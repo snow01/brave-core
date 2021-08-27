@@ -14,35 +14,25 @@
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_contents_delegate.h"
 #include "ui/base/metadata/metadata_header_macros.h"
+#include "content/public/browser/dom_storage_context.h"
+#include "third_party/blink/public/mojom/dom_storage/storage_area.mojom.h"
 
 class VpnLoginStatusDelegate : public content::WebContentsDelegate {
  public:
   VpnLoginStatusDelegate();
   ~VpnLoginStatusDelegate() override;
 
-  bool ShouldAllowLazyLoad() override;
-  void PassiveInsecureContentFound(const GURL& resource_url) override;
-  bool ShouldAllowRunningInsecureContent(content::WebContents* web_contents,
-                                       bool allowed_per_prefs,
-                                       const url::Origin& origin,
-                                       const GURL& resource_url) override;
-  bool ShouldSuppressDialogs(content::WebContents* source) override;
-  void OnDidBlockNavigation(
-      content::WebContents* web_contents,
-      const GURL& blocked_url,
-      const GURL& initiator_url,
-      blink::mojom::NavigationBlockedReason reason) override;
-  void UpdateTargetURL(content::WebContents* source, const GURL& url) override;
-  void LoadingStateChanged(content::WebContents* source,
-                           bool to_different_document) override;
-  bool DidAddMessageToConsole(content::WebContents* source,
-                              blink::mojom::ConsoleMessageLevel log_level,
-                              const std::u16string& message,
-                              int32_t line_no,
-                              const std::u16string& source_id) override;
-
   VpnLoginStatusDelegate(const VpnLoginStatusDelegate&) = delete;
   VpnLoginStatusDelegate& operator=(const VpnLoginStatusDelegate&) = delete;
+
+  // content::WebContentsDelegate overrides:
+  void LoadingStateChanged(content::WebContents* source,
+                           bool to_different_document) override;
+
+ private:
+  void OnGetAll(std::vector<blink::mojom::KeyValuePtr> out_data);
+
+  mojo::Remote<blink::mojom::StorageArea> storage_area_remote_;
 };
 
 class BraveVPNButton : public ToolbarButton,

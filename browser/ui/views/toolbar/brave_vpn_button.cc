@@ -18,10 +18,10 @@
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/themes/theme_properties.h"
 #include "chrome/browser/ui/layout_constants.h"
-#include "third_party/blink/public/mojom/frame/user_activation_notification_type.mojom-shared.h"
-#include "content/public/browser/storage_partition.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_ink_drop_util.h"
+#include "components/services/storage/public/mojom/local_storage_control.mojom.h"
 #include "content/public/browser/navigation_controller.h"
+#include "content/public/browser/storage_partition.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/gfx/paint_vector_icon.h"
@@ -30,130 +30,57 @@
 #include "ui/views/background.h"
 #include "ui/views/border.h"
 #include "ui/views/controls/highlight_path_generator.h"
+#include "base/json/json_reader.h"
 
 VpnLoginStatusDelegate::VpnLoginStatusDelegate() = default;
 VpnLoginStatusDelegate::~VpnLoginStatusDelegate() = default;
 
-void VpnLoginStatusDelegate::PassiveInsecureContentFound(const GURL& resource_url) {
-  LOG(ERROR) << "BSC]] WHOOPS ] " << resource_url.spec();
-}
+constexpr char kSkuOrigin[] = "https://account.brave.software/";
 
-bool VpnLoginStatusDelegate::ShouldAllowLazyLoad() {
-  return false;
-}
+void VpnLoginStatusDelegate::OnGetAll(
+    std::vector<blink::mojom::KeyValuePtr> out_data) {
+  LOG(ERROR) << "BSC]] OnGetAll (" << out_data.size() << " entries)";
 
-bool VpnLoginStatusDelegate::ShouldAllowRunningInsecureContent(
-    content::WebContents* web_contents,
-    bool allowed_per_prefs,
-    const url::Origin& origin,
-    const GURL& resource_url) {
-  return true;
-}
+  for (size_t i = 0; i < out_data.size(); i++) {
+    std::string the_key = "";
+    std::string the_value = "";
+    for (size_t j = 1; j < out_data[i]->key.size(); j++) {
+      the_key += ((char)out_data[i]->key[j]);
+    }
+    for (size_t j = 1; j < out_data[i]->value.size(); j++) {
+      the_value += ((char)out_data[i]->value[j]);
+    }
+    LOG(ERROR) << "BSC]] KEY: `" << the_key << "`";
+    LOG(ERROR) << "BSC]] VALUE: `" << the_value << "`";
 
-void VpnLoginStatusDelegate::OnDidBlockNavigation(
-      content::WebContents* web_contents,
-      const GURL& blocked_url,
-      const GURL& initiator_url,
-      blink::mojom::NavigationBlockedReason reason) {
-  LOG(ERROR) << "BSC]] WHOOPS2 ] " << blocked_url;
-}
+    storage_area_remote_.reset();
 
-void VpnLoginStatusDelegate::UpdateTargetURL(content::WebContents* source,
-    const GURL& url) {
-  LOG(ERROR) << "BSC]] UpdateTargetURL\nurl=" << url;
-}
-
-bool VpnLoginStatusDelegate::ShouldSuppressDialogs(content::WebContents* source){
-  return true;
+    base::JSONReader::ValueWithError value_with_error =
+      base::JSONReader::ReadAndReturnValueWithError(
+          the_value, base::JSONParserOptions::JSON_PARSE_RFC);
+    absl::optional<base::Value>& records_v = value_with_error.value;
+    if (!records_v) {
+      LOG(ERROR) << "Invalid response, could not parse JSON, JSON is: " << the_value;
+      return;
+    }
+  }
 }
 
 void VpnLoginStatusDelegate::LoadingStateChanged(content::WebContents* source,
                                                  bool to_different_document) {
-  LOG(ERROR) << "BSC]] LoadingStateChanged\nto_different_document="
-             << to_different_document << "\nIsLoading=" << source->IsLoading();
   if (!source->IsLoading()) {
-    LOG(ERROR) << "BSC]] FINISHED LOADING";
-
-    // NOTES:
-    // Before you can properly test, you need to open a tab to account.brave.software
-    // and login. There, you can purchase Talk (DM me if you need information).
-    // After that, you can close the tab and the browser. Local storage has been
-    // written to :)
-    //
-    // PROBLEM I'M TRYING TO SOLVE:
-    // When you open a fresh instance of Brave, use brave://flags to enable VPN
-    // and then click the VPN button, this code IS executing.
-    // The page does indeed load (first load takes about 10 seconds or so).
-    // As part of loading, it DOES NOT write anything to console.
-    // ex: There are no calls to DidAddMessageToConsole().
-    //
-    // If you open a tab and manually navigate to https://account.brave.software/skus/
-    // It will suddenly ACTUALLY finish loading the code that this tries to load
-    // and messages are being logged via DidAddMessageToConsole.
-    // Specifically the `rewards sdk initialized` one.
-    //
-    // Why does this need one user-opened instance to be visited first??!
-
-
-    // open questions
-    // - is something storage related being locked?
-    // - is the URL redirecting?
-    // - does the web contents need to be marked as being user opened?
     auto* main_frame = source->GetMainFrame();
-
-    // Storage path is accessible
     auto* storage = main_frame->GetStoragePartition();
-    LOG(ERROR) << "BSC]] storage GetPath() " << storage->GetPath();
+    auto* lsc = storage->GetLocalStorageControl();
 
-    // I thought maybe this would help "activate" the web contents, but it doesn't do anything
-    main_frame->NotifyUserActivation(blink::mojom::UserActivationNotificationType::kInteraction);
+    lsc->BindStorageArea(
+        url::Origin::Create(GURL(kSkuOrigin)),
+        storage_area_remote_.BindNewPipeAndPassReceiver());
+
+    storage_area_remote_->GetAll(
+        mojo::NullRemote(), base::BindOnce(&VpnLoginStatusDelegate::OnGetAll,
+                                           base::Unretained(this)));
   }
-}
-
-bool VpnLoginStatusDelegate::DidAddMessageToConsole(
-    content::WebContents* source,
-    blink::mojom::ConsoleMessageLevel log_level,
-    const std::u16string& message,
-    int32_t line_no,
-    const std::u16string& source_id) {
-  LOG(ERROR) << "BSC]] DidAddMessageToConsole\nmessage=" << message;
-
-  std::size_t found = message.find(u"rewards sdk initialized");
-  if (found != std::u16string::npos) {
-    LOG(ERROR) << "SKU SDK is initialized! Try to get reference to "
-                  "`navigator.brave.skus`";
-
-    const char16_t kGetTheCookie[] =
-        uR"(
-let retries = 10;
-let wait_for_sdk_id = window.setInterval(() => {
-  let sku_sdk = navigator.brave.skus;
-  if (sku_sdk) {
-    sku_sdk.prepare_credentials_presentation('talk.brave.software', '*').then((response) => {
-      console.log(response);
-    });
-    window.clearInterval(wait_for_sdk_id);
-  } else {
-    retries--;
-    if (retries <= 0) {
-      console.log('BSC]] giving up')
-      window.clearInterval(wait_for_sdk_id);
-    }
-  }
-}, 1000);
-)";
-
-    std::u16string get_my_cookie(kGetTheCookie);
-    auto* main_frame = source->GetMainFrame();
-    main_frame->ExecuteJavaScript(get_my_cookie, base::NullCallback());
-    return false;
-  }
-  found = message.find(u"__Secure-sku#");
-  if (found != std::u16string::npos) {
-    LOG(ERROR) << "GOT THE CREDENTIAL! " << message;
-  }
-
-  return true;
 }
 
 namespace {
@@ -268,8 +195,10 @@ void BraveVPNButton::OnButtonPressed(const ui::Event& event) {
   ShowBraveVPNPanel();
 
   if (contents_) {
-    content::RenderFrameHost::AllowInjectingJavaScript();
-    GURL url = GURL("https://account.brave.software/skus/");
+    std::string endpoint_url = std::string(kSkuOrigin);
+    endpoint_url.append("skus/");
+
+    GURL url = GURL(endpoint_url.c_str());
     std::string extra_headers =
         "Authorization: Basic BASE64_ENCODED_USER:PASSWORD_HERE";
     contents_->GetController().LoadURL(url, content::Referrer(),
