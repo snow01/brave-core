@@ -19,9 +19,7 @@
 #include "chrome/browser/themes/theme_properties.h"
 #include "chrome/browser/ui/layout_constants.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_ink_drop_util.h"
-#include "components/services/storage/public/mojom/local_storage_control.mojom.h"
 #include "content/public/browser/navigation_controller.h"
-#include "content/public/browser/storage_partition.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/gfx/paint_vector_icon.h"
@@ -30,57 +28,54 @@
 #include "ui/views/background.h"
 #include "ui/views/border.h"
 #include "ui/views/controls/highlight_path_generator.h"
-#include "base/json/json_reader.h"
+
+// constexpr char kSkuSdkEndpoint[] = "https://account.brave.software/skus/";
+constexpr char kSkuSdkEndpoint[] = "https://account.brave.com/skus/";
 
 VpnLoginStatusDelegate::VpnLoginStatusDelegate() = default;
 VpnLoginStatusDelegate::~VpnLoginStatusDelegate() = default;
 
-constexpr char kSkuOrigin[] = "https://account.brave.software/";
-
-void VpnLoginStatusDelegate::OnGetAll(
-    std::vector<blink::mojom::KeyValuePtr> out_data) {
-  LOG(ERROR) << "BSC]] OnGetAll (" << out_data.size() << " entries)";
-
-  for (size_t i = 0; i < out_data.size(); i++) {
-    std::string the_key = "";
-    std::string the_value = "";
-    for (size_t j = 1; j < out_data[i]->key.size(); j++) {
-      the_key += ((char)out_data[i]->key[j]);
-    }
-    for (size_t j = 1; j < out_data[i]->value.size(); j++) {
-      the_value += ((char)out_data[i]->value[j]);
-    }
-    LOG(ERROR) << "BSC]] KEY: `" << the_key << "`";
-    LOG(ERROR) << "BSC]] VALUE: `" << the_value << "`";
-
-    storage_area_remote_.reset();
-
-    base::JSONReader::ValueWithError value_with_error =
-      base::JSONReader::ReadAndReturnValueWithError(
-          the_value, base::JSONParserOptions::JSON_PARSE_RFC);
-    absl::optional<base::Value>& records_v = value_with_error.value;
-    if (!records_v) {
-      LOG(ERROR) << "Invalid response, could not parse JSON, JSON is: " << the_value;
-      return;
-    }
-  }
-}
-
 void VpnLoginStatusDelegate::LoadingStateChanged(content::WebContents* source,
                                                  bool to_different_document) {
   if (!source->IsLoading()) {
-    auto* main_frame = source->GetMainFrame();
-    auto* storage = main_frame->GetStoragePartition();
-    auto* lsc = storage->GetLocalStorageControl();
-
-    lsc->BindStorageArea(
-        url::Origin::Create(GURL(kSkuOrigin)),
-        storage_area_remote_.BindNewPipeAndPassReceiver());
-
-    storage_area_remote_->GetAll(
-        mojo::NullRemote(), base::BindOnce(&VpnLoginStatusDelegate::OnGetAll,
-                                           base::Unretained(this)));
+    LOG(ERROR) << "Finished loading `" << kSkuSdkEndpoint << "`";
+    const char16_t kHandleSdkEvents[] =
+        uR"(
+window.addEventListener("message", (event) => {
+  let msg = event.data
+  if (msg.type === 'sdk_initialized') {
+    console.log('SDK initialized; calling prepare_credentials_presentation')
+    let skus = navigator.brave.skus;
+    if (skus) {
+      skus.prepare_credentials_presentation('talk.brave.software', '*').then((response) => {
+        console.log(response);
+      });
+    } else {
+      console.log('`navigator.brave.skus` not found')
+    }
   }
+}, false);
+)";
+    std::u16string js_to_inject(kHandleSdkEvents);
+    auto* main_frame = source->GetMainFrame();
+    main_frame->ExecuteJavaScript(js_to_inject, base::NullCallback());
+    LOG(ERROR) << "SKU SDK handlers registered";
+  }
+}
+
+bool VpnLoginStatusDelegate::DidAddMessageToConsole(
+    content::WebContents* source,
+    blink::mojom::ConsoleMessageLevel log_level,
+    const std::u16string& message,
+    int32_t line_no,
+    const std::u16string& source_id) {
+  LOG(ERROR) << "TODO: REMOVE ME]] " << message;
+  std::size_t found = message.find(u"__Secure-sku#");
+  if (found != std::u16string::npos) {
+    LOG(ERROR) << "GOT THE CREDENTIAL! " << message;
+    return true;
+  }
+  return false;
 }
 
 namespace {
@@ -131,7 +126,8 @@ BraveVPNButton::BraveVPNButton(Profile* profile)
 
   UpdateButtonState();
 
-  // USED TO CHECK IF THEY ARE LOGGED IN LOL
+  // TODO(bsclifton): move to a more appropriate place
+  // ex: make a new method BraveVpnService::CheckLoginState()
   content::WebContents::CreateParams params(profile);
   contents_ = content::WebContents::Create(params);
   contents_delegate_.reset(new VpnLoginStatusDelegate);
@@ -195,15 +191,11 @@ void BraveVPNButton::OnButtonPressed(const ui::Event& event) {
   ShowBraveVPNPanel();
 
   if (contents_) {
-    std::string endpoint_url = std::string(kSkuOrigin);
-    endpoint_url.append("skus/");
-
-    GURL url = GURL(endpoint_url.c_str());
-    std::string extra_headers =
-        "Authorization: Basic BASE64_ENCODED_USER:PASSWORD_HERE";
-    contents_->GetController().LoadURL(url, content::Referrer(),
-                                       ui::PAGE_TRANSITION_TYPED,
-                                       extra_headers);
+    content::RenderFrameHost::AllowInjectingJavaScript();
+    GURL url = GURL(kSkuSdkEndpoint);
+    std::string extra_headers = "";
+    contents_->GetController().LoadURL(
+        url, content::Referrer(), ui::PAGE_TRANSITION_TYPED, extra_headers);
   }
 }
 
