@@ -36,9 +36,8 @@ AdsTabHelper::AdsTabHelper(content::WebContents* web_contents)
     return;
   }
 
-  Profile* profile =
-      Profile::FromBrowserContext(web_contents->GetBrowserContext());
-  ads_service_ = AdsServiceFactory::GetForProfile(profile);
+  profile_ = Profile::FromBrowserContext(web_contents->GetBrowserContext());
+  ads_service_ = AdsServiceFactory::GetForProfile(profile_);
 
 #if !defined(OS_ANDROID)
   BrowserList::AddObserver(this);
@@ -221,7 +220,17 @@ void AdsTabHelper::WebContentsDestroyed() {
 
 #if !defined(OS_ANDROID)
 // components/brave_ads/browser/background_helper_android.cc handles Android
+void AdsTabHelper::OnBrowserAdded(Browser* browser) {
+  VLOG(0) << "FOOBAR.OnBrowserAdded: " << browser->profile()->GetDebugName();
+}
+
+void AdsTabHelper::OnBrowserRemoved(Browser* browser) {
+  VLOG(0) << "FOOBAR.OnBrowserRemoved: " << browser->profile()->GetDebugName();
+}
+
 void AdsTabHelper::OnBrowserSetLastActive(Browser* browser) {
+  VLOG(0) << "FOOBAR.OnBrowserSetLastActive: " << profile_->GetDebugName();
+
   if (!browser) {
     return;
   }
@@ -233,6 +242,12 @@ void AdsTabHelper::OnBrowserSetLastActive(Browser* browser) {
     is_browser_active_ = true;
   }
 
+  VLOG(0) << "FOOBAR.OnBrowserSetLastActive.is_browser_active_: "
+      << is_browser_active_;
+  VLOG(0) << "FOOBAR.web_contents: " << web_contents();
+
+  VLOG(0) << "---------------------------------------------------------------";
+
   if (old_is_browser_active == is_browser_active_) {
     return;
   }
@@ -243,12 +258,20 @@ void AdsTabHelper::OnBrowserSetLastActive(Browser* browser) {
 void AdsTabHelper::OnBrowserNoLongerActive(Browser* browser) {
   DCHECK(browser);
 
+  VLOG(0) << "FOOBAR.OnBrowserNoLongerActive: " << profile_->GetDebugName();
+
   const bool old_is_browser_active = is_browser_active_;
 
   if (browser->tab_strip_model()->GetIndexOfWebContents(web_contents()) !=
       TabStripModel::kNoTab) {
     is_browser_active_ = false;
   }
+
+  VLOG(0) << "FOOBAR.OnBrowserNoLongerActive.is_browser_active_: "
+      << is_browser_active_;
+  VLOG(0) << "FOOBAR.web_contents: " << web_contents();
+
+  VLOG(0) << "---------------------------------------------------------------";
 
   if (old_is_browser_active == is_browser_active_) {
     return;

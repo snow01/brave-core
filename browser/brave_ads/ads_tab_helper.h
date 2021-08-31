@@ -81,10 +81,13 @@ class AdsTabHelper : public content::WebContentsObserver,
 
 #if !defined(OS_ANDROID)
   // BrowserListObserver overrides
+  void OnBrowserAdded(Browser* browser) override;
+  void OnBrowserRemoved(Browser* browser) override;
   void OnBrowserSetLastActive(Browser* browser) override;
   void OnBrowserNoLongerActive(Browser* browser) override;
 #endif
 
+  Profile* profile_ = nullptr;
   SessionID tab_id_;
   AdsService* ads_service_ = nullptr;  // NOT OWNED
   bool is_active_ = false;
