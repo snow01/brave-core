@@ -25,8 +25,13 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.tabs.TabLayout;
 
 import org.chromium.base.Log;
+import org.chromium.brave_wallet.mojom.ErcTokenRegistry;
+import org.chromium.brave_wallet.mojom.EthJsonRpcController;
+import org.chromium.brave_wallet.mojom.KeyringController;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.crypto_wallet.BraveWalletNativeWorker;
+import org.chromium.chrome.browser.crypto_wallet.ERCTokenRegistryFactory;
+import org.chromium.chrome.browser.crypto_wallet.EthJsonRpcControllerFactory;
+import org.chromium.chrome.browser.crypto_wallet.KeyringControllerFactory;
 import org.chromium.chrome.browser.crypto_wallet.adapters.CryptoFragmentPageAdapter;
 import org.chromium.chrome.browser.crypto_wallet.adapters.CryptoWalletOnboardingPagerAdapter;
 import org.chromium.chrome.browser.crypto_wallet.fragments.SwapBottomSheetDialogFragment;
@@ -41,17 +46,23 @@ import org.chromium.chrome.browser.crypto_wallet.listeners.OnNextPage;
 import org.chromium.chrome.browser.crypto_wallet.util.NavigationItem;
 import org.chromium.chrome.browser.crypto_wallet.util.Utils;
 import org.chromium.chrome.browser.init.AsyncInitializationActivity;
+import org.chromium.mojo.bindings.ConnectionErrorHandler;
+import org.chromium.mojo.system.MojoException;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BraveWalletActivity extends AsyncInitializationActivity implements OnNextPage {
+public class BraveWalletActivity
+        extends AsyncInitializationActivity implements OnNextPage, ConnectionErrorHandler {
     private Toolbar toolbar;
 
     private View cryptoLayout;
     private ImageView swapButton;
     private ViewPager cryptoWalletOnboardingViewPager;
     private CryptoWalletOnboardingPagerAdapter cryptoWalletOnboardingPagerAdapter;
+    private KeyringController mKeyringController;
+    private ErcTokenRegistry mErcTokenRegistry;
+    private EthJsonRpcController mEthJsonRpcController;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -122,24 +133,81 @@ public class BraveWalletActivity extends AsyncInitializationActivity implements 
                     @Override
                     public void onPageScrollStateChanged(int state) {}
                 });
-        if (Utils.shouldShowCryptoOnboarding()) {
-            setNavigationFragments(ONBOARDING_ACTION);
-        } else {
-            boolean isLocked = BraveWalletNativeWorker.getInstance().isWalletLocked();
-            if (isLocked) {
-                setNavigationFragments(UNLOCK_WALLET_ACTION);
-            } else {
-                setCryptoLayout();
-            }
-        }
 
         onInitialLayoutInflationComplete();
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        BraveWalletNativeWorker.getInstance().lockWallet();
+    public void onConnectionError(MojoException e) {
+        mKeyringController = null;
+        mErcTokenRegistry = null;
+        InitKeyringController();
+        InitErcTokenRegistry();
+        InitEthJsonRpcController();
+    }
+
+    private void InitKeyringController() {
+        if (mKeyringController != null) {
+            return;
+        }
+
+        mKeyringController = KeyringControllerFactory.getInstance().getKeyringController(this);
+    }
+
+    private void InitErcTokenRegistry() {
+        if (mErcTokenRegistry != null) {
+            return;
+        }
+
+        mErcTokenRegistry = ERCTokenRegistryFactory.getInstance().getERCTokenRegistry(this);
+    }
+
+    private void InitEthJsonRpcController() {
+        if (mEthJsonRpcController != null) {
+            return;
+        }
+
+        mEthJsonRpcController =
+                EthJsonRpcControllerFactory.getInstance().getEthJsonRpcController(this);
+    }
+
+    public KeyringController getKeyringController() {
+        return mKeyringController;
+    }
+
+    public ErcTokenRegistry getErcTokenRegistry() {
+        return mErcTokenRegistry;
+    }
+
+    public EthJsonRpcController getEthJsonRpcController() {
+        return mEthJsonRpcController;
+    }
+
+    @Override
+    public void finishNativeInitialization() {
+        super.finishNativeInitialization();
+        InitKeyringController();
+        InitErcTokenRegistry();
+        InitEthJsonRpcController();
+        if (Utils.shouldShowCryptoOnboarding()) {
+            setNavigationFragments(ONBOARDING_ACTION);
+        } else if (mKeyringController != null) {
+            mKeyringController.isLocked(isLocked -> {
+                if (isLocked) {
+                    setNavigationFragments(UNLOCK_WALLET_ACTION);
+                } else {
+                    setCryptoLayout();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mKeyringController != null) {
+            mKeyringController.lock();
+        }
     }
 
     @Override

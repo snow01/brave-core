@@ -6,9 +6,9 @@
 #ifndef BRAVE_COMPONENTS_BRAVE_ADS_BROWSER_NOTIFICATION_HELPER_MAC_H_
 #define BRAVE_COMPONENTS_BRAVE_ADS_BROWSER_NOTIFICATION_HELPER_MAC_H_
 
-#include "base/memory/weak_ptr.h"
-
 #include "brave/components/brave_ads/browser/notification_helper.h"
+
+#include "base/memory/weak_ptr.h"
 
 namespace brave_ads {
 
@@ -27,15 +27,12 @@ class NotificationHelperMac
   NotificationHelperMac();
   ~NotificationHelperMac() override;
 
-  bool IsEnabled() const;
-  bool IsAuthorized() const;
-
-  // NotificationHelper impl
-  bool ShouldShowNotifications() override;
-
-  bool ShowMyFirstAdNotification() override;
+  // NotificationHelper:
+  bool CanShowNativeNotifications() override;
 
   bool CanShowBackgroundNotifications() const override;
+
+  bool ShowMyFirstAdNotification() override;
 };
 
 }  // namespace brave_ads

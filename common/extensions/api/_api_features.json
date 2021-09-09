@@ -107,6 +107,13 @@
       "matches": [
         "chrome://newtab/*"
       ]
+    },
+    {
+      "channel": "stable",
+      "contexts": ["webui"],
+      "matches": [
+        "chrome://rewards/*"
+      ]
     }
   ],
   "rewardsNotifications": {
@@ -134,7 +141,8 @@
       "chrome://newtab/*",
       "chrome://webcompat/*",
       "chrome://wallet/*",
-      "chrome://wallet-panel.top-chrome/*"
+      "chrome://wallet-panel.top-chrome/*",
+      "chrome://vpn-panel.top-chrome/*"
     ]
   }],
   "greaselion": [{

@@ -6,31 +6,32 @@
 #ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_CREATIVE_AD_NOTIFICATIONS_DATABASE_TABLE_H_
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_CREATIVE_AD_NOTIFICATIONS_DATABASE_TABLE_H_
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "bat/ads/ads_client.h"
-#include "bat/ads/internal/ad_targeting/ad_targeting.h"
 #include "bat/ads/internal/bundle/creative_ad_notification_info.h"
 #include "bat/ads/internal/database/database_table.h"
-#include "bat/ads/internal/database/tables/campaigns_database_table.h"
-#include "bat/ads/internal/database/tables/creative_ads_database_table.h"
-#include "bat/ads/internal/database/tables/dayparts_database_table.h"
-#include "bat/ads/internal/database/tables/geo_targets_database_table.h"
-#include "bat/ads/internal/database/tables/segments_database_table.h"
-#include "bat/ads/mojom.h"
-#include "bat/ads/result.h"
+#include "bat/ads/internal/segments/segments_alias.h"
+#include "bat/ads/public/interfaces/ads.mojom.h"
 
 namespace ads {
 
 using GetCreativeAdNotificationsCallback =
-    std::function<void(const Result,
+    std::function<void(const bool,
                        const std::vector<std::string>&,
                        const CreativeAdNotificationList&)>;
 
 namespace database {
 namespace table {
+
+class Campaigns;
+class CreativeAds;
+class Dayparts;
+class GeoTargets;
+class Segments;
 
 class CreativeAdNotifications : public Table {
  public:
@@ -52,32 +53,33 @@ class CreativeAdNotifications : public Table {
 
   std::string get_table_name() const override;
 
-  void Migrate(DBTransaction* transaction, const int to_version) override;
+  void Migrate(mojom::DBTransaction* transaction,
+               const int to_version) override;
 
  private:
   void InsertOrUpdate(
-      DBTransaction* transaction,
+      mojom::DBTransaction* transaction,
       const CreativeAdNotificationList& creative_ad_notifications);
 
   int BindParameters(
-      DBCommand* command,
+      mojom::DBCommand* command,
       const CreativeAdNotificationList& creative_ad_notifications);
 
   std::string BuildInsertOrUpdateQuery(
-      DBCommand* command,
+      mojom::DBCommand* command,
       const CreativeAdNotificationList& creative_ad_notifications);
 
-  void OnGetForSegments(DBCommandResponsePtr response,
+  void OnGetForSegments(mojom::DBCommandResponsePtr response,
                         const SegmentList& segments,
                         GetCreativeAdNotificationsCallback callback);
 
-  void OnGetAll(DBCommandResponsePtr response,
+  void OnGetAll(mojom::DBCommandResponsePtr response,
                 GetCreativeAdNotificationsCallback callback);
 
-  CreativeAdNotificationInfo GetFromRecord(DBRecord* record) const;
+  CreativeAdNotificationInfo GetFromRecord(mojom::DBRecord* record) const;
 
-  void CreateTableV15(DBTransaction* transaction);
-  void MigrateToV15(DBTransaction* transaction);
+  void CreateTableV16(mojom::DBTransaction* transaction);
+  void MigrateToV16(mojom::DBTransaction* transaction);
 
   int batch_size_;
 

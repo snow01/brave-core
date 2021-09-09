@@ -4,10 +4,13 @@
 <translation id="3333887201479867589">Brave Rewards</translation>
 <translation id="7942180974165298215">Brave 광고 차단</translation>
 <translation id="4615489450165434530">작동이 멈춘 사이트 보고</translation>
+<translation id="1209739344687072997">작동이 멈춘 사이트 보고</translation>
 <translation id="6406506848690869874">동기화</translation>
 <translation id="1544192797660353713">월렛</translation>
 <translation id="2445484935443597917">새 프로필 만들기</translation>
+<translation id="744341768939279100">새 프로필 만들기</translation>
 <translation id="2666990579225592931">게스트 창 열기</translation>
+<translation id="4986483413015198747">게스트 창 열기</translation>
 <translation id="8275068909952022340">더 보기…</translation>
 <translation id="120759863357279975"><ph name="EXTENSION_NAME"/> (extension ID "<ph name="EXTENSION_ID"/>")은(는) Brave에서 허용되지 않습니다.</translation>
 <translation id="6786747875388722282">확장 프로그램</translation>
@@ -28,6 +31,9 @@
 <translation id="3218385319396786393">이 페이지에서는 자동 재생이 차단되었습니다</translation>
 <translation id="4988333904713528597"><ph name="HOST"/>에서 자동 재생 항상 허용하기</translation>
 <translation id="4150684676757176434">계속해서 자동 재생 차단</translation>
+<translation id="1448289340149908413">이더리움</translation>
+<translation id="6583467242903731748">사이트가 Ethereum 제공자 API에 액세스하려고 할 때 묻기</translation>
+<translation id="7017590444693657895">사이트가 Ethereum 제공자 API에 액세스할 수 없도록 차단</translation>
 <translation id="8988939298652262600">Brave는 확장 프로그램의 보안 및 안전을 검토하지 않습니다. 개발자를 신뢰하는 경우에만 이 확장 프로그램을 설치하세요.</translation>
 <translation id="8081858229109418493">프로필 이름 및 아이콘</translation>
 <translation id="2044383478723007273">Brave 색상</translation>
@@ -42,9 +48,12 @@
 <translation id="5802665280774361839">주소 표시줄에 자동 완성 표시</translation>
 <translation id="597020512043916976">자동 완성 제안에 인기 사이트 표시</translation>
 <translation id="264150068416846820">자동 완성 제안에 Brave 추천 사이트 표시</translation>
+<translation id="5529693968082667490">탭 검색 버튼 표시</translation>
 <translation id="6414370348346025511">표준 보호가 켜져 있습니다.</translation>
 <translation id="814018970995616154">Brave에 저장된 안전하지 않은 사이트 목록을 이용해 URL을 확인합니다.</translation>
 <translation id="1144810021918451336">위험한 웹사이트, 다운로드 및 확장 프로그램으로부터 사용자를 보호하지 않습니다.</translation>
+<translation id="6285118765755298263">다른 검색 엔진 색인</translation>
+<translation id="919715748352669592">OpenSearch 사양을 준수하는 웹사이트를 자동으로 색인합니다.</translation>
 <translation id="7781069478569868053">새 탭 페이지</translation>
 <translation id="1988804048511540801">새 탭 페이지 표시</translation>
 <translation id="2970343821770026391">대시보드</translation>
@@ -93,7 +102,7 @@
 <translation id="6303294677342628402">보호</translation>
 <translation id="7133511168130368997">웹에서 귀하를 따라오는 추적기 및 광고를 차단하세요.</translation>
 <translation id="2761825942249694703">이는 기본 Shields 설정입니다. 특정 사이트에 대해 Shields 패널에서 무언가를 바꾸지 않는 한 모든 웹사이트에 적용됩니다. 이를 바꾼다고 해도 기존 사이트별 설정에는 영향을 미치지 않습니다.</translation>
-<translation id="8754605759692119662">웹사이트의 광고 대부분을 차단하지만, Brave 비공개 광고는 제외되며 — 해당 광고는 ~에서 제어됩니다</translation>
+<translation id="1485394570478670912">이렇게 하면 다음 옵션에서 관리하는 Brave Private Ads가 아닌 대부분의 광고가 웹사이트에서 차단됩니다.</translation>
 <translation id="6388201778088078932">설정.</translation>
 <translation id="9185018653595759199">소셜 미디어 차단</translation>
 <translation id="7390783310074170337">기본 보기</translation>
@@ -187,7 +196,6 @@
 <translation id="1834467296210148203">툴바에 Brave 월렛 아이콘 표시</translation>
 <translation id="6864914031231797928">확장 프로그램에 대한 Google 로그인 허용</translation>
 <translation id="5927916530277631319">Unstoppable Domains 해석 방법</translation>
-<translation id="8412057160793088103">HTTPS를 통한 DNS 및 이더리움 개인정보 보호 고려 사항에 대해 <ph name="BEGIN_LINK"/>자세히 알아보세요<ph name="END_LINK"/>.</translation>
 <translation id="5248318250177143470">Ethereum Name Service(ENS) 해석 방법</translation>
 <translation id="7024553202001112871">IPNS 키 설정</translation>
 <translation id="951216659045543447">해당 비공개 키로 콘텐츠에 서명하고 IPNS에 게시</translation>
@@ -219,7 +227,6 @@
 <translation id="1327977588028644528">게이트웨이</translation>
 <translation id="80225669816651290">로컬 노드</translation>
 <translation id="4927734062756955434">IPFS 퍼블릭 게이트웨이 주소</translation>
-<translation id="3399481770463167943">IPFS 로컬 노드 및 게이트웨이 개인정보 보호 고려 사항에 대해 <ph name="BEGIN_LINK_MPL"/>자세히 알아보세요<ph name="END_LINK_MPL"/>.</translation>
 <translation id="8425213833346101688">변경</translation>
 <translation id="557281710253742286">IPFS 게이트웨이 설정</translation>
 <translation id="8571837315037233299">게이트웨이 주소</translation>
@@ -233,7 +240,6 @@
 <translation id="8655170717758778983">가능한 경우 DNSLink를 통해 IPFS 페이지로 자동으로 리다이렉트</translation>
 <translation id="2233724520223030977">가능한 경우, 자동으로 DNSLink를 사용하여 웹 사이트의 IPFS 버전으로 이동합니다.</translation>
 <translation id="6554397389149987360">화면 공유와 다른 기능들을 브라우저에서 사용하시려면 행아웃 요소들을 사용하세요.</translation>
-<translation id="1765684547504191670">브라우저에서 Chromecast를 활성화하기 위해 Media Router 콤포넌트를 사용합니다.</translation>
 <translation id="9156965752763025780">변경사항은 다음에 Brave을 다시 시작할 때 적용됩니다.</translation>
 <translation id="7179921470347911571">지금 다시 실행</translation>
 <translation id="8068526464562249859">브라우저 바에서 공통 IPFS 태스크에 접근할 수 있는 기능 등 Brave에서의 보다 향상된 IPFS 지원을 위해 IPFS 컴패니언 확장 기능을 사용합니다.</translation>
@@ -294,8 +300,16 @@
 <translation id="1391855377994926460">더욱 빠른 웹 브라우징 - 주요 뉴스 사이트 속도가 최대 6배 빨라집니다.</translation>
 <translation id="9218430445555521422">기본 브라우저로 설정</translation>
 <translation id="3479552764303398839">나중에</translation>
+<translation id="5039804452771397117">허용</translation>
+<translation id="7053983685419859001">차단</translation>
+<translation id="7815301689257843278">충돌 보고서를 자동 전송하여 Brave가 문제 재발을 방지할 수 있도록 하시겠습니까?</translation>
+<translation id="660171790038410175"><ph name="BROWSER_NAME"/>가 예기치 않게 종료되었습니다.</translation>
+<translation id="1324417023773393937">Brave 브라우저</translation>
+<translation id="1068069727470515940"><ph name="SETTING_TEXT"/>은 언제든지 다시 변경할 수 있습니다.</translation>
+<translation id="6873781976650514089">이 설정</translation>
 <translation id="6040143037577758943">닫기</translation>
 <translation id="5600566490506283344">Brave 광고 알림</translation>
+<translation id="1516554614404600536">Brave 툴팁</translation>
 <translation id="4877147287319222750">사이드바에 추가</translation>
 <translation id="4233010476457917696">사이드바 표시</translation>
 <translation id="5404213409401164238">사이드바 표시</translation>
@@ -336,6 +350,7 @@
         귀하는 <ph name="BEGIN_LINK_SOURCE_CODE"/>이 사본을 만드는 데 사용되는 특정 소스 코드<ph name="END_LINK_SOURCE_CODE"/>를 <ph name="BEGIN_LINK_BUILD_INSTRUCTIONS"/>다운로드하고 구축하는 방법에 대한 지침<ph name="END_LINK_BUILD_INSTRUCTIONS"/>을 읽으실 수 있습니다.</translation>
 <translation id="4474155171896946103">모든 탭 북마크...</translation>
 <translation id="2336228925368920074">모든 탭 북마크...</translation>
+<translation id="7705524343798198388">VPN</translation>
 <translation id="796831669370432378">북마크를 추가하려면 주소 표시줄 옆에 있는 북마크 버튼을 클릭하세요</translation>
 <translation id="4989337484121655457">전체 디스크 액세스 권한(Full Disk Access) 필요</translation>
 <translation id="8025559074845816210">Safari에서 책갈피를 가져오려면 Brave에 전체 디스크 액세스 권한(Full Disk Access)이 필요합니다.</translation>
@@ -345,6 +360,6 @@
 <translation id="8487693399751278191">지금 북마크 가져오기...</translation>
 <translation id="2557899542277210112">빠르게 액세스하려면, 북마크 바에 북마크를 배치하세요.</translation>
 <translation id="2808630562319398131">Brave 리워드 데이터 재설정...</translation>
-<translation id="1224064034972923114">자동으로 충돌 보고서를 보내 Brave 개선 지원</translation>
-<translation id="3738833060602717053">자동으로 충돌 보고서를 보내 <ph name="PRODUCT_NAME"/> 개선 지원</translation>
+<translation id="2273851479262317744">Brave를 기본 브라우저로 설정</translation>
+<translation id="8581710194025054669">온라인 프라이버시를 최대한 확보하려면 Brave를 컴퓨터의 기본 브라우저로 설정하세요. Brave를 기본 브라우저로 설정하면 웹 링크를 클릭하여 열 때 Brave의 프라이버시 보호가 적용됩니다.</translation>
 </translationbundle>

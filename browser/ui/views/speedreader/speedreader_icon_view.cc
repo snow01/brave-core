@@ -24,10 +24,11 @@
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/base/theme_provider.h"
+#include "ui/views/animation/ink_drop.h"
 #include "ui/views/animation/ink_drop_host_view.h"
 #include "ui/views/animation/ink_drop_state.h"
 
-using DistillState = speedreader::SpeedreaderTabHelper::DistillState;
+using DistillState = speedreader::DistillState;
 
 SpeedreaderIconView::SpeedreaderIconView(
     CommandUpdater* command_updater,
@@ -55,13 +56,14 @@ void SpeedreaderIconView::UpdateImpl() {
     return;
   }
 
-  if (ink_drop()->GetHighlighted() && !IsBubbleShowing())
-    ink_drop()->AnimateToState(views::InkDropState::HIDDEN, nullptr);
+  if (views::InkDrop::Get(this)->GetHighlighted() && !IsBubbleShowing()) {
+    views::InkDrop::Get(this)->AnimateToState(views::InkDropState::HIDDEN,
+                                              nullptr);
+  }
 
   const ui::ThemeProvider* theme_provider = GetThemeProvider();
   const DistillState state = GetDistillState();
-  const bool is_distilled =
-      speedreader::SpeedreaderTabHelper::PageStateIsDistilled(state);
+  const bool is_distilled = speedreader::PageStateIsDistilled(state);
 
   if (!is_distilled) {
     if (state == DistillState::kSpeedreaderOnDisabledPage ||

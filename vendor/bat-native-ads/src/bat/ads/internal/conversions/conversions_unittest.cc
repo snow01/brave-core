@@ -5,6 +5,7 @@
 
 #include "bat/ads/internal/conversions/conversions.h"
 
+#include <cstdint>
 #include <memory>
 
 #include "base/strings/stringprintf.h"
@@ -35,9 +36,8 @@ class BatAdsConversionsTest : public UnitTestBase {
   ~BatAdsConversionsTest() override = default;
 
   void SaveConversions(const ConversionList& conversions) {
-    conversions_database_table_->Save(conversions, [](const Result result) {
-      ASSERT_EQ(Result::SUCCESS, result);
-    });
+    conversions_database_table_->Save(
+        conversions, [](const bool success) { ASSERT_TRUE(success); });
   }
 
   int64_t CalculateExpiryTimestamp(const int observation_window) {
@@ -56,8 +56,7 @@ class BatAdsConversionsTest : public UnitTestBase {
     ad_event.timestamp = NowAsTimestamp();
     ad_event.confirmation_type = confirmation_type;
 
-    LogAdEvent(ad_event,
-               [](const Result result) { ASSERT_EQ(Result::SUCCESS, result); });
+    LogAdEvent(ad_event, [](const bool success) { ASSERT_TRUE(success); });
   }
 
   std::unique_ptr<Conversions> conversions_;
@@ -94,8 +93,8 @@ TEST_F(BatAdsConversionsTest, ShouldNotAllowConversionTracking) {
       conversion.creative_set_id.c_str());
 
   ad_events_database_table_->GetIf(
-      condition, [](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      condition, [](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_TRUE(ad_events.empty());
       });
@@ -128,8 +127,8 @@ TEST_F(BatAdsConversionsTest, ConvertViewedAd) {
 
   ad_events_database_table_->GetIf(
       condition,
-      [&conversion](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      [&conversion](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_EQ(1UL, ad_events.size());
         AdEventInfo ad_event = ad_events.front();
@@ -166,8 +165,8 @@ TEST_F(BatAdsConversionsTest, ConvertClickedAd) {
 
   ad_events_database_table_->GetIf(
       condition,
-      [&conversion](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      [&conversion](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_EQ(1UL, ad_events.size());
         AdEventInfo ad_event = ad_events.front();
@@ -219,8 +218,8 @@ TEST_F(BatAdsConversionsTest, ConvertMultipleAds) {
 
   ad_events_database_table_->GetIf(
       condition,
-      [&conversions](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      [&conversions](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_EQ(2UL, ad_events.size());
 
@@ -262,8 +261,8 @@ TEST_F(BatAdsConversionsTest, ConvertViewedAdWhenAdWasDismissed) {
 
   ad_events_database_table_->GetIf(
       condition,
-      [&conversion](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      [&conversion](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_EQ(1UL, ad_events.size());
         AdEventInfo ad_event = ad_events.front();
@@ -302,8 +301,8 @@ TEST_F(BatAdsConversionsTest, DoNotConvertNonViewedOrClickedAds) {
       conversion.creative_set_id.c_str());
 
   ad_events_database_table_->GetIf(
-      condition, [](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      condition, [](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_TRUE(ad_events.empty());
       });
@@ -335,8 +334,8 @@ TEST_F(BatAdsConversionsTest, DoNotConvertViewedAdForPostClick) {
       conversion.creative_set_id.c_str());
 
   ad_events_database_table_->GetIf(
-      condition, [](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      condition, [](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_TRUE(ad_events.empty());
       });
@@ -357,8 +356,8 @@ TEST_F(BatAdsConversionsTest, DoNotConvertAdIfConversionDoesNotExist) {
       "confirmation_type = 'conversion'";
 
   ad_events_database_table_->GetIf(
-      condition, [](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      condition, [](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_TRUE(ad_events.empty());
       });
@@ -394,8 +393,8 @@ TEST_F(BatAdsConversionsTest,
 
   ad_events_database_table_->GetIf(
       condition,
-      [&conversion](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      [&conversion](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_EQ(1UL, ad_events.size());
         AdEventInfo ad_event = ad_events.front();
@@ -431,8 +430,8 @@ TEST_F(BatAdsConversionsTest,
       conversion.creative_set_id.c_str());
 
   ad_events_database_table_->GetIf(
-      condition, [](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      condition, [](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_TRUE(ad_events.empty());
       });
@@ -468,8 +467,8 @@ TEST_F(BatAdsConversionsTest, ConvertAdWhenTheConversionIsOnTheCuspOfExpiring) {
 
   ad_events_database_table_->GetIf(
       condition,
-      [&conversion](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      [&conversion](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_EQ(1UL, ad_events.size());
         AdEventInfo ad_event = ad_events.front();
@@ -506,8 +505,8 @@ TEST_F(BatAdsConversionsTest, DoNotConvertAdWhenTheConversionHasExpired) {
       conversion.creative_set_id.c_str());
 
   ad_events_database_table_->GetIf(
-      condition, [](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      condition, [](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_TRUE(ad_events.empty());
       });
@@ -542,8 +541,8 @@ TEST_F(BatAdsConversionsTest, ConvertAdForRedirectChainIntermediateUrl) {
 
   ad_events_database_table_->GetIf(
       condition,
-      [&conversion](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      [&conversion](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_EQ(1UL, ad_events.size());
         AdEventInfo ad_event = ad_events.front();
@@ -581,8 +580,8 @@ TEST_F(BatAdsConversionsTest, ConvertAdForRedirectChainOriginalUrl) {
 
   ad_events_database_table_->GetIf(
       condition,
-      [&conversion](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      [&conversion](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_EQ(1UL, ad_events.size());
         AdEventInfo ad_event = ad_events.front();
@@ -620,8 +619,8 @@ TEST_F(BatAdsConversionsTest, ConvertAdForRedirectChainUrl) {
 
   ad_events_database_table_->GetIf(
       condition,
-      [&conversion](const Result result, const AdEventList& ad_events) {
-        ASSERT_EQ(Result::SUCCESS, result);
+      [&conversion](const bool success, const AdEventList& ad_events) {
+        ASSERT_TRUE(success);
 
         EXPECT_EQ(1UL, ad_events.size());
         AdEventInfo ad_event = ad_events.front();
@@ -660,9 +659,9 @@ TEST_F(BatAdsConversionsTest, ExtractConversionId) {
 
   // Assert
   conversion_queue_database_table_->GetAll(
-      [=](const Result result,
+      [=](const bool success,
           const ConversionQueueItemList& conversion_queue_items) {
-        ASSERT_EQ(Result::SUCCESS, result);
+        ASSERT_TRUE(success);
 
         ASSERT_EQ(1UL, conversion_queue_items.size());
         ConversionQueueItemInfo item = conversion_queue_items.front();
@@ -706,9 +705,9 @@ TEST_F(BatAdsConversionsTest, ExtractConversionIdWithResourcePatternFromHtml) {
 
   // Assert
   conversion_queue_database_table_->GetAll(
-      [=](const Result result,
+      [=](const bool success,
           const ConversionQueueItemList& conversion_queue_items) {
-        ASSERT_EQ(Result::SUCCESS, result);
+        ASSERT_TRUE(success);
 
         ASSERT_EQ(1UL, conversion_queue_items.size());
         ConversionQueueItemInfo item = conversion_queue_items.front();
@@ -752,9 +751,9 @@ TEST_F(BatAdsConversionsTest, ExtractConversionIdWithResourcePatternFromUrl) {
 
   // Assert
   conversion_queue_database_table_->GetAll(
-      [=](const Result result,
+      [=](const bool success,
           const ConversionQueueItemList& conversion_queue_items) {
-        ASSERT_EQ(Result::SUCCESS, result);
+        ASSERT_TRUE(success);
 
         ASSERT_EQ(1UL, conversion_queue_items.size());
         ConversionQueueItemInfo item = conversion_queue_items.front();

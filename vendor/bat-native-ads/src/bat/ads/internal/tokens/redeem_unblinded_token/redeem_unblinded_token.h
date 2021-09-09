@@ -6,10 +6,8 @@
 #ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_TOKENS_REDEEM_UNBLINDED_TOKEN_REDEEM_UNBLINDED_TOKEN_H_
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_TOKENS_REDEEM_UNBLINDED_TOKEN_REDEEM_UNBLINDED_TOKEN_H_
 
-#include <string>
-
 #include "bat/ads/internal/tokens/redeem_unblinded_token/redeem_unblinded_token_delegate.h"
-#include "bat/ads/mojom.h"
+#include "bat/ads/public/interfaces/ads.mojom.h"
 
 namespace ads {
 
@@ -32,11 +30,11 @@ class RedeemUnblindedToken {
 
  private:
   void CreateConfirmation(const ConfirmationInfo& confirmation);
-  void OnCreateConfirmation(const UrlResponse& url_response,
+  void OnCreateConfirmation(const mojom::UrlResponse& url_response,
                             const ConfirmationInfo& confirmation);
 
   void FetchPaymentToken(const ConfirmationInfo& confirmation);
-  void OnFetchPaymentToken(const UrlResponse& url_response,
+  void OnFetchPaymentToken(const mojom::UrlResponse& url_response,
                            const ConfirmationInfo& confirmation);
 
   void OnDidRedeemUnblindedToken(

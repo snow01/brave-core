@@ -3,13 +3,14 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import * as React from 'react'
+import geminiBg from './assets/gemini_bg.svg'
 import tapBg from './assets/tap_bg.svg'
 import upholdCardBg from './assets/uphold_card_bg.png'
 import upholdEquitiesBg from './assets/uphold_equities_bg.svg'
 import { StyledInfo } from '../../ui/components/sidebarPromo/style'
 import { getLocale } from '../../../../common/locale'
 
-export type PromoType = 'uphold-card' | 'tap-network' | 'uphold-equities'
+export type PromoType = 'gemini' | 'uphold-card' | 'tap-network' | 'uphold-equities'
 
 export interface Promo {
   title: string
@@ -24,7 +25,7 @@ export const getActivePromos = (rewardsData: Rewards.State) => {
   let promos = []
 
   if (rewardsData && rewardsData.externalWallet) {
-    let wallet = rewardsData.externalWallet
+    const wallet = rewardsData.externalWallet
     if (wallet.type === 'uphold') {
       promos.unshift('tap-network')
       if (wallet.status === 2 && wallet.address) { // WalletStatus::VERIFIED
@@ -32,6 +33,7 @@ export const getActivePromos = (rewardsData: Rewards.State) => {
       }
       promos.unshift('uphold-equities')
     }
+    promos.unshift('gemini')
   }
 
   return promos
@@ -39,6 +41,9 @@ export const getActivePromos = (rewardsData: Rewards.State) => {
 
 const getLink = (type: PromoType) => {
   switch (type) {
+    case 'gemini': {
+      return 'https://www.gemini.com/brave'
+    }
     case 'tap-network': {
       return 'https://brave.tapnetwork.io'
     }
@@ -53,11 +58,37 @@ const getLink = (type: PromoType) => {
   return ''
 }
 
+// Ensure that images are retrieved from the root path, since we may be on a
+// rewards page subpath like brave://rewards/uphold.
+// TODO: Come up with a more generic solution for this, since it affects other
+// resource loads
+const getRootImagePath = (path: string) => {
+  return `/${path}`
+}
+
 export const getPromo = (type: PromoType, rewardsData: Rewards.State) => {
   switch (type) {
+    case 'gemini':
+      return {
+        imagePath: getRootImagePath(geminiBg),
+        link: getLink(type),
+        copy: (
+          <StyledInfo>
+            {getLocale('geminiPromoInfo')}
+          </StyledInfo>
+        ),
+        supportedLocales: [
+          'AR', 'AT', 'AU', 'BE', 'BG', 'BM', 'BR', 'BS', 'BT', 'CA', 'CH', 'CL', 'CY', 'CZ', 'DK', 'EE', 'EG', 'ES',
+          'FI', 'GB', 'GG', 'GI', 'GR', 'HK', 'HR', 'HU', 'IL', 'IN', 'IS', 'IT', 'JE', 'KR', 'KY', 'LI', 'LT', 'LU',
+          'LV', 'MM', 'MT', 'NG', 'NL', 'NO', 'NZ', 'PE', 'PH', 'PL', 'PT', 'RO', 'SE', 'SG', 'SI', 'SK', 'TR', 'TW',
+          'US', 'UY', 'VC', 'VG', 'VN', 'ZA'
+        ],
+        title: getLocale('geminiPromoTitle'),
+        disclaimer: getLocale('geminiPromoDisclaimer')
+      }
     case 'tap-network':
       return {
-        imagePath: tapBg,
+        imagePath: getRootImagePath(tapBg),
         link: getLink(type),
         copy: (
           <StyledInfo>
@@ -70,7 +101,7 @@ export const getPromo = (type: PromoType, rewardsData: Rewards.State) => {
       }
     case 'uphold-card':
       return {
-        imagePath: upholdCardBg,
+        imagePath: getRootImagePath(upholdCardBg),
         link: getLink(type),
         copy: (
           <StyledInfo>
@@ -82,7 +113,7 @@ export const getPromo = (type: PromoType, rewardsData: Rewards.State) => {
       }
     case 'uphold-equities':
       return {
-        imagePath: upholdEquitiesBg,
+        imagePath: getRootImagePath(upholdEquitiesBg),
         link: getLink(type),
         copy: (
           <StyledInfo>

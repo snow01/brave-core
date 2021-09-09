@@ -6,6 +6,7 @@
 #ifndef BRAVE_COMMON_PREF_NAMES_H_
 #define BRAVE_COMMON_PREF_NAMES_H_
 
+#include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "build/build_config.h"
 #include "components/gcm_driver/gcm_buildflags.h"
 
@@ -52,7 +53,7 @@ extern const char kNewTabPageShowToday[];
 extern const char kNewTabPageShowRewards[];
 extern const char kNewTabPageShowBinance[];
 extern const char kNewTabPageShowGemini[];
-extern const char kNewTabPageShowTogether[];
+extern const char kNewTabPageShowBraveTalk[];
 extern const char kNewTabPageHideAllWidgets[];
 extern const char kNewTabPageShowsOptions[];
 // TODO(petemill): Move to brave_today component
@@ -63,7 +64,6 @@ extern const char kBraveTodayWeeklySessionCount[];
 extern const char kBraveTodayWeeklyCardViewsCount[];
 extern const char kBraveTodayWeeklyCardVisitsCount[];
 extern const char kBraveTodayWeeklyDisplayAdViewedCount[];
-extern const char kBraveEnabledMediaRouter[];
 extern const char kAlwaysShowBookmarkBarOnNTP[];
 extern const char kAutocompleteEnabled[];
 extern const char kTopSiteSuggestionsEnabled[];
@@ -91,5 +91,10 @@ extern const char kSafetynetStatus[];
 
 extern const char kDefaultBrowserLaunchingCount[];
 extern const char kBraveDefaultSearchVersion[];
+extern const char kTabsSearchShow[];
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+extern const char kBraveVPNShowButton[];
+#endif
 
 #endif  // BRAVE_COMMON_PREF_NAMES_H_

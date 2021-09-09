@@ -384,7 +384,7 @@ class BraveAdsBrowserTest : public InProcessBrowserTest,
   MOCK_METHOD1(OnGetEnvironment, void(ledger::type::Environment));
   MOCK_METHOD1(OnGetDebug, void(bool));
   MOCK_METHOD1(OnGetReconcileTime, void(int32_t));
-  MOCK_METHOD1(OnGetShortRetries, void(bool));
+  MOCK_METHOD1(OnGetRetryInterval, void(int32_t));
 
   std::unique_ptr<net::EmbeddedTestServer> https_server_;
 
@@ -407,46 +407,6 @@ IN_PROC_BROWSER_TEST_F(BraveAdsBrowserTest, BraveAdsLocaleIsSupported) {
 
 IN_PROC_BROWSER_TEST_F(BraveAdsBrowserTest, BraveAdsLocaleIsNotSupported) {
   EXPECT_FALSE(ads_service_->IsSupportedLocale());
-}
-
-IN_PROC_BROWSER_TEST_F(BraveAdsBrowserTest, BraveAdsLocaleIsNewlySupported) {
-  GetPrefs()->SetInteger(
-      brave_ads::prefs::kSupportedCountryCodesLastSchemaVersion, 3);
-
-  GetPrefs()->SetInteger(
-      brave_ads::prefs::kSupportedCountryCodesSchemaVersion,
-      brave_ads::prefs::kSupportedCountryCodesSchemaVersionNumber);
-
-  EXPECT_TRUE(ads_service_->IsNewlySupportedLocale());
-}
-
-IN_PROC_BROWSER_TEST_F(BraveAdsBrowserTest,
-                       BraveAdsLocaleIsNewlySupportedForLatestSchemaVersion) {
-  // IMPORTANT: When adding new schema versions |newly_supported_locale_| must
-  // be updated in |BraveAdsBrowserTest| to reflect a locale from the latest
-  // "bat-native-ads/src/bat/ads/internal/locale/supported_country_codes.h"
-  // schema
-
-  GetPrefs()->SetInteger(
-      brave_ads::prefs::kSupportedCountryCodesLastSchemaVersion,
-      brave_ads::prefs::kSupportedCountryCodesSchemaVersionNumber);
-
-  GetPrefs()->SetInteger(
-      brave_ads::prefs::kSupportedCountryCodesSchemaVersion,
-      brave_ads::prefs::kSupportedCountryCodesSchemaVersionNumber);
-
-  EXPECT_TRUE(ads_service_->IsNewlySupportedLocale());
-}
-
-IN_PROC_BROWSER_TEST_F(BraveAdsBrowserTest, BraveAdsLocaleIsNotNewlySupported) {
-  GetPrefs()->SetInteger(
-      brave_ads::prefs::kSupportedCountryCodesLastSchemaVersion, 2);
-
-  GetPrefs()->SetInteger(
-      brave_ads::prefs::kSupportedCountryCodesSchemaVersion,
-      brave_ads::prefs::kSupportedCountryCodesSchemaVersionNumber);
-
-  EXPECT_FALSE(ads_service_->IsNewlySupportedLocale());
 }
 
 IN_PROC_BROWSER_TEST_F(BraveAdsBrowserTest,

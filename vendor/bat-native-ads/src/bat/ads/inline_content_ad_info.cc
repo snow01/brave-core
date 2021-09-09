@@ -5,12 +5,11 @@
 
 #include "bat/ads/inline_content_ad_info.h"
 
+#include "bat/ads/confirmation_type.h"
 #include "bat/ads/internal/json_helper.h"
 #include "bat/ads/internal/logging.h"
 
 namespace ads {
-
-struct ConfirmationType;
 
 InlineContentAdInfo::InlineContentAdInfo() = default;
 
@@ -48,13 +47,13 @@ std::string InlineContentAdInfo::ToJson() const {
   return json;
 }
 
-Result InlineContentAdInfo::FromJson(const std::string& json) {
+bool InlineContentAdInfo::FromJson(const std::string& json) {
   rapidjson::Document document;
   document.Parse(json.c_str());
 
   if (document.HasParseError()) {
     BLOG(1, helper::JSON::GetLastError(&document));
-    return FAILED;
+    return false;
   }
 
   if (document.HasMember("type")) {
@@ -109,7 +108,7 @@ Result InlineContentAdInfo::FromJson(const std::string& json) {
     target_url = document["target_url"].GetString();
   }
 
-  return SUCCESS;
+  return true;
 }
 
 void SaveToJson(JsonWriter* writer, const InlineContentAdInfo& info) {

@@ -5,12 +5,14 @@
 
 #include "bat/ads/internal/ads/inline_content_ads/inline_content_ad_exclusion_rules.h"
 
+#include "base/check.h"
 #include "bat/ads/internal/ad_serving/ad_targeting/geographic/subdivision/subdivision_targeting.h"
 #include "bat/ads/internal/bundle/creative_ad_info.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/anti_targeting_frequency_cap.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/conversion_frequency_cap.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/daily_cap_frequency_cap.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/daypart_frequency_cap.h"
+#include "bat/ads/internal/frequency_capping/exclusion_rules/dislike_frequency_cap.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/exclusion_rule.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/exclusion_rule_util.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/marked_as_inappropriate_frequency_cap.h"
@@ -23,7 +25,6 @@
 #include "bat/ads/internal/frequency_capping/exclusion_rules/subdivision_targeting_frequency_cap.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/total_max_frequency_cap.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/transferred_frequency_cap.h"
-#include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting_resource.h"
 
 namespace ads {
@@ -96,6 +97,11 @@ bool ExclusionRules::ShouldExcludeAd(const CreativeAdInfo& ad) const {
 
   TransferredFrequencyCap transferred_frequency_cap(ad_events_);
   if (ShouldExclude(ad, &transferred_frequency_cap)) {
+    should_exclude = true;
+  }
+
+  DislikeFrequencyCap dislike_frequency_cap;
+  if (ShouldExclude(ad, &dislike_frequency_cap)) {
     should_exclude = true;
   }
 

@@ -13,8 +13,7 @@
 #include "brave/browser/ui/brave_pages.h"
 #include "brave/browser/ui/browser_commands.h"
 #include "brave/common/pref_names.h"
-#include "brave/components/brave_rewards/browser/buildflags/buildflags.h"
-#include "brave/components/brave_sync/buildflags/buildflags.h"
+#include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/sidebar/buildflags/buildflags.h"
@@ -27,16 +26,19 @@
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/common/pref_names.h"
 #include "components/prefs/pref_service.h"
-
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
 #include "components/sync/driver/sync_driver_switches.h"
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+#include "brave/browser/brave_vpn/brave_vpn_service_factory.h"
+#include "brave/components/brave_vpn/brave_vpn_service_desktop.h"
+#include "brave/components/brave_vpn/brave_vpn_utils.h"
 #endif
 
 #if BUILDFLAG(ENABLE_SIDEBAR)
 #include "brave/browser/ui/sidebar/sidebar_utils.h"
 #endif
 
-#if BUILDFLAG(IPFS_ENABLED)
+#if BUILDFLAG(ENABLE_IPFS)
 #include "brave/components/ipfs/ipfs_constants.h"
 #include "brave/components/ipfs/ipfs_utils.h"
 #include "brave/components/ipfs/pref_names.h"
@@ -122,16 +124,12 @@ void BraveBrowserCommandController::InitBraveCommandState() {
   // to normal window in this case.
   const bool is_guest_session = browser_->profile()->IsGuestSession();
   if (!is_guest_session) {
-#if BUILDFLAG(BRAVE_REWARDS_ENABLED)
     UpdateCommandForBraveRewards();
-#endif
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
     UpdateCommandForBraveWallet();
 #endif
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
     if (switches::IsSyncAllowedByFlag())
       UpdateCommandForBraveSync();
-#endif
   }
   UpdateCommandForBraveAdblock();
   UpdateCommandForWebcompatReporter();
@@ -139,6 +137,7 @@ void BraveBrowserCommandController::InitBraveCommandState() {
   UpdateCommandForTor();
 #endif
   UpdateCommandForSidebar();
+  UpdateCommandForBraveVPN();
   bool add_new_profile_enabled = !is_guest_session;
   bool open_guest_profile_enabled = !is_guest_session;
   if (!is_guest_session) {
@@ -184,6 +183,23 @@ void BraveBrowserCommandController::UpdateCommandForSidebar() {
 #if BUILDFLAG(ENABLE_SIDEBAR)
   if (sidebar::CanUseSidebar(browser_->profile()))
     UpdateCommandEnabled(IDC_SIDEBAR_SHOW_OPTION_MENU, true);
+#endif
+}
+
+void BraveBrowserCommandController::UpdateCommandForBraveVPN() {
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+  if (!brave_vpn::IsBraveVPNEnabled()) {
+    UpdateCommandEnabled(IDC_SHOW_BRAVE_VPN_PANEL, false);
+    UpdateCommandEnabled(IDC_BRAVE_VPN_MENU, false);
+    return;
+  }
+
+  UpdateCommandEnabled(IDC_SHOW_BRAVE_VPN_PANEL, true);
+
+  auto* vpn_service =
+      BraveVpnServiceFactory::GetForProfile(browser_->profile());
+  // Only show vpn menu for purchased user.
+  UpdateCommandEnabled(IDC_BRAVE_VPN_MENU, vpn_service->is_purchased_user());
 #endif
 }
 
@@ -259,6 +275,9 @@ bool BraveBrowserCommandController::ExecuteBraveCommandWithDisposition(
       break;
     case IDC_CLOSE_BRAVE_WALLET_PANEL:
       brave::CloseWalletBubble(browser_);
+      break;
+    case IDC_SHOW_BRAVE_VPN_PANEL:
+      brave::ShowBraveVPNBubble(browser_);
       break;
     default:
       LOG(WARNING) << "Received Unimplemented Command: " << id;

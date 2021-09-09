@@ -10,7 +10,7 @@ import { HostContext } from '../lib/host_context'
 
 import { CustomAmountInput } from './custom_amount_input'
 import { CustomTipAmount } from './custom_tip_amount'
-import { ExchangeAmount } from './exchange_amount'
+import { ExchangeAmount } from '../../shared/components/exchange_amount'
 import { TipAmountSelector, TipAmountOption } from './tip_amount_selector'
 import { TermsOfService } from '../../shared/components/terms_of_service'
 import { NewTabLink } from '../../shared/components/new_tab_link'
@@ -160,6 +160,9 @@ export function BatTipForm (props: Props) {
       </style.main>
       <style.footer>
         <style.terms>
+          <style.feeNote>
+            {getString('tippingFeeNote')}
+          </style.feeNote>
           <TermsOfService />
         </style.terms>
         {

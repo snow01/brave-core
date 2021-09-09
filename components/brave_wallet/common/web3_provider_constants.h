@@ -6,6 +6,8 @@
 #ifndef BRAVE_COMPONENTS_BRAVE_WALLET_COMMON_WEB3_PROVIDER_CONSTANTS_H_
 #define BRAVE_COMPONENTS_BRAVE_WALLET_COMMON_WEB3_PROVIDER_CONSTANTS_H_
 
+#include <stdint.h>
+
 namespace brave_wallet {
 
 extern const char kConnectEvent[];
@@ -13,6 +15,8 @@ extern const char kDisconnectEvent[];
 extern const char kChainChangedEvent[];
 extern const char kAccountsChangedEvent[];
 
+// https://eips.ethereum.org/EIPS/eip-1193#provider-errors
+// https://eips.ethereum.org/EIPS/eip-1474#error-codes
 enum class ProviderErrors {
   kUserRejectedRequest = 4001,  // User rejected the request
   kUnauthorized = 4100,         // The requested account and/or method has not
@@ -22,7 +26,15 @@ enum class ProviderErrors {
   kDisconnected = 4900,         // The provider is disconnected from all chains
   kChainDisconnected = 4901,    // The provider is disconnected from the
                                 // specified chain
+  kInvalidParams = -32602,      // Invalid method parameters
+  kInternalError = -32603,      // Internal JSON-RPC error
 };
+
+constexpr char kEthAccounts[] = "eth_accounts";
+constexpr char kEthRequestAccounts[] = "eth_requestAccounts";
+constexpr char kMethod[] = "method";
+constexpr char kParams[] = "params";
+constexpr char kAddEthereumChainMethod[] = "wallet_addEthereumChain";
 
 }  // namespace brave_wallet
 

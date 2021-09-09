@@ -438,11 +438,34 @@ ExtensionFunction::ResponseAction IpfsResolveIPFSURIFunction::Run() {
   GURL ipfs_gateway_url;
   PrefService* prefs = user_prefs::UserPrefs::Get(browser_context());
   if (!::ipfs::ResolveIPFSURI(prefs, chrome::GetChannel(), uri,
-                              &ipfs_gateway_url)) {
+                              &ipfs_gateway_url) ||
+      !ipfs_gateway_url.is_valid()) {
     return RespondNow(Error("Could not translate IPFS URI"));
   }
 
   return RespondNow(OneArgument(base::Value(ipfs_gateway_url.spec())));
+}
+
+ExtensionFunction::ResponseAction IpfsValidateGatewayUrlFunction::Run() {
+  if (!::ipfs::IpfsServiceFactory::IsIpfsEnabled(browser_context()))
+    return RespondNow(Error("IPFS not enabled"));
+  ::ipfs::IpfsService* ipfs_service = GetIpfsService(browser_context());
+  if (!ipfs_service) {
+    return RespondNow(Error("Could not obtain IPFS service"));
+  }
+  std::unique_ptr<ipfs::ValidateGatewayUrl::Params> params(
+      ipfs::ValidateGatewayUrl::Params::Create(*args_));
+  EXTENSION_FUNCTION_VALIDATE(params.get());
+
+  ipfs_service->ValidateGateway(
+      GURL(params->url),
+      base::BindOnce(&IpfsValidateGatewayUrlFunction::OnGatewayValidated,
+                     base::RetainedRef(this)));
+  return did_respond() ? AlreadyResponded() : RespondLater();
+}
+
+void IpfsValidateGatewayUrlFunction::OnGatewayValidated(bool success) {
+  return Respond(OneArgument(base::Value(success)));
 }
 
 }  // namespace api

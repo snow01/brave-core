@@ -11,7 +11,6 @@
 #include "bat/ads/ad_type.h"
 #include "bat/ads/confirmation_type.h"
 #include "bat/ads/export.h"
-#include "bat/ads/result.h"
 
 namespace ads {
 
@@ -24,7 +23,7 @@ struct ADS_EXPORT AdContentInfo {
   bool operator!=(const AdContentInfo& rhs) const;
 
   std::string ToJson() const;
-  Result FromJson(const std::string& json);
+  bool FromJson(const std::string& json);
 
   enum class LikeAction { kNeutral = 0, kThumbsUp, kThumbsDown };
 
@@ -35,7 +34,6 @@ struct ADS_EXPORT AdContentInfo {
   std::string campaign_id;
   std::string brand;
   std::string brand_info;
-  std::string brand_logo;
   std::string brand_display_url;
   std::string brand_url;
   LikeAction like_action = LikeAction::kNeutral;

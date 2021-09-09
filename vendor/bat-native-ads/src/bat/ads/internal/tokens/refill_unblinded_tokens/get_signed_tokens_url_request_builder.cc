@@ -5,8 +5,8 @@
 
 #include "bat/ads/internal/tokens/refill_unblinded_tokens/get_signed_tokens_url_request_builder.h"
 
+#include "base/check.h"
 #include "base/strings/stringprintf.h"
-#include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/server/confirmations_server_util.h"
 
 namespace ads {
@@ -23,10 +23,10 @@ GetSignedTokensUrlRequestBuilder::~GetSignedTokensUrlRequestBuilder() = default;
 
 // GET /v1/confirmation/token/{payment_id}?nonce={nonce}
 
-UrlRequestPtr GetSignedTokensUrlRequestBuilder::Build() {
-  UrlRequestPtr url_request = UrlRequest::New();
+mojom::UrlRequestPtr GetSignedTokensUrlRequestBuilder::Build() {
+  mojom::UrlRequestPtr url_request = mojom::UrlRequest::New();
   url_request->url = BuildUrl();
-  url_request->method = UrlRequestMethod::GET;
+  url_request->method = mojom::UrlRequestMethod::kGet;
 
   return url_request;
 }

@@ -13,6 +13,7 @@
 #include "base/bind.h"
 #include "base/command_line.h"
 #include "base/containers/flat_map.h"
+#include "base/debug/dump_without_crashing.h"
 #include "base/feature_list.h"
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
@@ -45,10 +46,12 @@
 #include "brave/browser/profiles/profile_util.h"
 #include "brave/common/brave_channel_info.h"
 #include "brave/common/pref_names.h"
+#include "brave/components/brave_adaptive_captcha/buildflags/buildflags.h"
 #include "brave/components/brave_ads/browser/ads_p2a.h"
-#include "brave/components/brave_ads/browser/features.h"
 #include "brave/components/brave_ads/browser/frequency_capping_helper.h"
 #include "brave/components/brave_ads/browser/notification_helper.h"
+#include "brave/components/brave_ads/browser/service_sandbox_type.h"
+#include "brave/components/brave_ads/common/features.h"
 #include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/brave_ads/common/switches.h"
 #include "brave/components/brave_rewards/browser/rewards_notification_service.h"
@@ -85,6 +88,7 @@
 #include "content/public/browser/service_process_host.h"
 #include "content/public/browser/storage_partition.h"
 #include "net/base/network_change_notifier.h"
+#include "services/network/public/cpp/resource_request.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 #include "services/network/public/cpp/simple_url_loader.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
@@ -103,6 +107,11 @@
 #include "content/public/browser/page_navigator.h"
 #endif
 
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+#include "brave/components/brave_adaptive_captcha/brave_adaptive_captcha_service.h"
+#include "brave/components/brave_ads/browser/ads_tooltips_delegate.h"
+#endif
+
 using brave_rewards::RewardsNotificationService;
 
 namespace brave_ads {
@@ -110,10 +119,6 @@ namespace brave_ads {
 namespace {
 
 const unsigned int kRetriesCountOnNetworkChange = 1;
-
-}  // namespace
-
-namespace {
 
 constexpr char kAdNotificationUrlPrefix[] = "https://www.brave.com/ads/?";
 
@@ -130,17 +135,17 @@ int GetSchemaResourceId(const std::string& name) {
   return 0;
 }
 
-std::string URLMethodToRequestType(ads::UrlRequestMethod method) {
+std::string URLMethodToRequestType(ads::mojom::UrlRequestMethod method) {
   switch (method) {
-    case ads::UrlRequestMethod::GET: {
+    case ads::mojom::UrlRequestMethod::kGet: {
       return "GET";
     }
 
-    case ads::UrlRequestMethod::POST: {
+    case ads::mojom::UrlRequestMethod::kPost: {
       return "POST";
     }
 
-    case ads::UrlRequestMethod::PUT: {
+    case ads::mojom::UrlRequestMethod::kPut: {
       return "PUT";
     }
   }
@@ -206,10 +211,20 @@ net::NetworkTrafficAnnotationTag GetNetworkTrafficAnnotationTag() {
 
 }  // namespace
 
-AdsServiceImpl::AdsServiceImpl(Profile* profile,
-                               history::HistoryService* history_service)
+AdsServiceImpl::AdsServiceImpl(
+    Profile* profile,
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+    brave_adaptive_captcha::BraveAdaptiveCaptchaService*
+        adaptive_captcha_service,
+    std::unique_ptr<AdsTooltipsDelegate> ads_tooltips_delegate,
+#endif
+    history::HistoryService* history_service)
     : profile_(profile),
       history_service_(history_service),
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+      adaptive_captcha_service_(adaptive_captcha_service),
+      ads_tooltips_delegate_(std::move(ads_tooltips_delegate)),
+#endif
       file_task_runner_(base::ThreadPool::CreateSequencedTaskRunner(
           {base::MayBlock(), base::TaskPriority::BEST_EFFORT,
            base::TaskShutdownBehavior::BLOCK_SHUTDOWN})),
@@ -221,6 +236,9 @@ AdsServiceImpl::AdsServiceImpl(Profile* profile,
           brave_rewards::RewardsServiceFactory::GetForProfile(profile_)),
       bat_ads_client_receiver_(new bat_ads::AdsClientMojoBridge(this)) {
   DCHECK(profile_);
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+  DCHECK(adaptive_captcha_service_);
+#endif
   DCHECK(history_service_);
   DCHECK(brave::IsRegularProfile(profile_));
 
@@ -242,28 +260,6 @@ void AdsServiceImpl::OnResourceComponentUpdated(const std::string& id) {
 bool AdsServiceImpl::IsSupportedLocale() const {
   const std::string locale = GetLocale();
   return ads::IsSupportedLocale(locale);
-}
-
-bool AdsServiceImpl::IsNewlySupportedLocale() {
-  if (!IsSupportedLocale()) {
-    return false;
-  }
-
-  const int schema_version =
-      GetIntegerPref(prefs::kSupportedCountryCodesSchemaVersion);
-  if (schema_version != prefs::kSupportedCountryCodesSchemaVersionNumber) {
-    SetIntegerPref(prefs::kSupportedCountryCodesLastSchemaVersion,
-                   schema_version);
-
-    SetIntegerPref(prefs::kSupportedCountryCodesSchemaVersion,
-                   prefs::kSupportedCountryCodesSchemaVersionNumber);
-  }
-
-  const int last_schema_version =
-      GetIntegerPref(prefs::kSupportedCountryCodesLastSchemaVersion);
-
-  const std::string locale = GetLocale();
-  return ads::IsNewlySupportedLocale(locale, last_schema_version);
 }
 
 void AdsServiceImpl::SetEnabled(const bool is_enabled) {
@@ -396,8 +392,7 @@ void AdsServiceImpl::OnWalletUpdated() {
 }
 
 void AdsServiceImpl::OnGetBraveWallet(ledger::type::BraveWalletPtr wallet) {
-  if (!wallet) {
-    VLOG(0) << "Failed to get wallet";
+  if (!connected() || !wallet) {
     return;
   }
 
@@ -434,6 +429,16 @@ void AdsServiceImpl::GetAccountStatement(GetAccountStatementCallback callback) {
   bat_ads_->GetAccountStatement(
       base::BindOnce(&AdsServiceImpl::OnGetAccountStatement, AsWeakPtr(),
                      std::move(callback)));
+}
+
+void AdsServiceImpl::GetAdDiagnostics(GetAdDiagnosticsCallback callback) {
+  if (!connected()) {
+    std::move(callback).Run(/* success */ false, "");
+    return;
+  }
+
+  bat_ads_->GetAdDiagnostics(base::BindOnce(&AdsServiceImpl::OnGetAdDiagnostics,
+                                            AsWeakPtr(), std::move(callback)));
 }
 
 void AdsServiceImpl::ToggleAdThumbUp(const std::string& creative_instance_id,
@@ -521,9 +526,13 @@ bool AdsServiceImpl::IsEnabled() const {
   return GetBooleanPref(ads::prefs::kEnabled);
 }
 
+bool AdsServiceImpl::IsBraveNewsEnabled() const {
+  return GetBooleanPref(kBraveTodayOptedIn) &&
+         GetBooleanPref(kNewTabPageShowToday);
+}
+
 bool AdsServiceImpl::ShouldStart() const {
-  return GetBooleanPref(ads::prefs::kEnabled) ||
-         GetBooleanPref(kBraveTodayOptedIn);
+  return IsEnabled() || IsBraveNewsEnabled();
 }
 
 int64_t AdsServiceImpl::GetAdsPerHour() const {
@@ -663,6 +672,10 @@ void AdsServiceImpl::Initialize() {
       kBraveTodayOptedIn, base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
                                               base::Unretained(this)));
 
+  profile_pref_change_registrar_.Add(
+      kNewTabPageShowToday, base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
+                                                base::Unretained(this)));
+
   MaybeStart(false);
 }
 
@@ -675,8 +688,8 @@ void AdsServiceImpl::OnCreate() {
   bat_ads_->Initialize(base::BindOnce(std::move(callback)));
 }
 
-void AdsServiceImpl::OnInitialize(const int32_t result) {
-  if (result != ads::Result::SUCCESS) {
+void AdsServiceImpl::OnInitialize(const bool success) {
+  if (!success) {
     VLOG(0) << "Failed to initialize ads";
 
     is_initialized_ = false;
@@ -701,10 +714,10 @@ void AdsServiceImpl::ShutdownBatAds() {
       base::BindOnce(&AdsServiceImpl::OnShutdownBatAds, AsWeakPtr()));
 }
 
-void AdsServiceImpl::OnShutdownBatAds(const int32_t result) {
+void AdsServiceImpl::OnShutdownBatAds(const bool success) {
   DCHECK(is_initialized_);
 
-  if (result != ads::Result::SUCCESS) {
+  if (!success) {
     VLOG(0) << "Failed to shutdown ads";
     return;
   }
@@ -762,17 +775,20 @@ void AdsServiceImpl::MaybeStart(const bool should_restart) {
     return;
   }
 
+  ++total_number_of_starts_;
   if (should_restart) {
     base::ThreadTaskRunnerHandle::Get()->PostDelayedTask(
-        FROM_HERE, base::BindOnce(&AdsServiceImpl::Start, AsWeakPtr()),
+        FROM_HERE,
+        base::BindOnce(&AdsServiceImpl::Start, AsWeakPtr(),
+                       total_number_of_starts_),
         base::TimeDelta::FromSeconds(1));
   } else {
-    Start();
+    Start(total_number_of_starts_);
   }
 }
 
-void AdsServiceImpl::Start() {
-  DetectUncertainFuture();
+void AdsServiceImpl::Start(const uint32_t number_of_start) {
+  DetectUncertainFuture(number_of_start);
 }
 
 void AdsServiceImpl::Stop() {
@@ -802,10 +818,10 @@ void AdsServiceImpl::ResetAllState(const bool should_shutdown) {
       base::BindOnce(&AdsServiceImpl::OnShutdownAndResetBatAds, AsWeakPtr()));
 }
 
-void AdsServiceImpl::OnShutdownAndResetBatAds(const int32_t result) {
+void AdsServiceImpl::OnShutdownAndResetBatAds(const bool success) {
   DCHECK(is_initialized_);
 
-  if (result != ads::Result::SUCCESS) {
+  if (!success) {
     VLOG(0) << "Failed to shutdown and reset ads state";
     return;
   }
@@ -826,38 +842,62 @@ void AdsServiceImpl::OnResetAllState(const bool success) {
   VLOG(1) << "Successfully reset ads state";
 }
 
-void AdsServiceImpl::DetectUncertainFuture() {
-  auto callback =
-      base::BindOnce(&AdsServiceImpl::OnDetectUncertainFuture, AsWeakPtr());
+void AdsServiceImpl::DetectUncertainFuture(const uint32_t number_of_start) {
+  auto callback = base::BindOnce(&AdsServiceImpl::OnDetectUncertainFuture,
+                                 AsWeakPtr(), number_of_start);
   brave_rpill::DetectUncertainFuture(base::BindOnce(std::move(callback)));
 }
 
-void AdsServiceImpl::OnDetectUncertainFuture(const bool is_uncertain_future) {
-  ads::SysInfoPtr sys_info = ads::SysInfo::New();
+void AdsServiceImpl::OnDetectUncertainFuture(const uint32_t number_of_start,
+                                             const bool is_uncertain_future) {
+  ads::mojom::SysInfoPtr sys_info = ads::mojom::SysInfo::New();
   sys_info->is_uncertain_future = is_uncertain_future;
-
   bat_ads_service_->SetSysInfo(std::move(sys_info), base::NullCallback());
 
-  EnsureBaseDirectoryExists();
+  EnsureBaseDirectoryExists(number_of_start);
 }
 
-void AdsServiceImpl::EnsureBaseDirectoryExists() {
+void AdsServiceImpl::EnsureBaseDirectoryExists(const uint32_t number_of_start) {
   base::PostTaskAndReplyWithResult(
       file_task_runner_.get(), FROM_HERE,
       base::BindOnce(&EnsureBaseDirectoryExistsOnFileTaskRunner, base_path_),
-      base::BindOnce(&AdsServiceImpl::OnEnsureBaseDirectoryExists,
-                     AsWeakPtr()));
+      base::BindOnce(&AdsServiceImpl::OnEnsureBaseDirectoryExists, AsWeakPtr(),
+                     number_of_start));
 }
 
-void AdsServiceImpl::OnEnsureBaseDirectoryExists(const bool success) {
+void AdsServiceImpl::OnEnsureBaseDirectoryExists(const uint32_t number_of_start,
+                                                 const bool success) {
   if (!success) {
     VLOG(0) << "Failed to create base directory";
+    return;
+  }
+
+  // Check if another start was initiated.
+  if (number_of_start != total_number_of_starts_) {
+    VLOG(1) << "Do not proceed with current ads service init as another ads "
+               "service start is in progress";
     return;
   }
 
   BackgroundHelper::GetInstance()->AddObserver(this);
 
   g_brave_browser_process->resource_component()->AddObserver(this);
+
+  if (database_) {
+    NOTREACHED() << "Ads service shutdown was not initiated prior to start";
+    const uint32_t total_number_of_starts = total_number_of_starts_;
+    base::debug::Alias(&total_number_of_starts);
+    base::debug::Alias(&number_of_start);
+    base::debug::DumpWithoutCrashing();
+
+    // TODO(https://github.com/brave/brave-browser/issues/17643):
+    // This is a temporary hack to make sure that all race conditions on
+    // ads service start/shutdown are fixed. Need to craft more reliable
+    // solution for a longer term.
+    const bool success =
+        file_task_runner_->DeleteSoon(FROM_HERE, database_.release());
+    VLOG_IF(1, !success) << "Failed to release database";
+  }
 
   database_ = std::make_unique<ads::Database>(
       base_path_.AppendASCII("database.sqlite"));
@@ -876,27 +916,27 @@ void AdsServiceImpl::OnEnsureBaseDirectoryExists(const bool success) {
 }
 
 void AdsServiceImpl::SetEnvironment() {
-  ads::Environment environment;
+  ads::mojom::Environment environment;
 
 #if defined(OFFICIAL_BUILD)
-  environment = ads::Environment::PRODUCTION;
+  environment = ads::mojom::Environment::kProduction;
 #else
-  environment = ads::Environment::STAGING;
+  environment = ads::mojom::Environment::kStaging;
 #endif
 
 #if defined(OS_ANDROID)
   if (GetBooleanPref(brave_rewards::prefs::kUseRewardsStagingServer)) {
-    environment = ads::Environment::STAGING;
+    environment = ads::mojom::Environment::kStaging;
   }
 #else
   const auto& command_line = *base::CommandLine::ForCurrentProcess();
 
   if (command_line.HasSwitch(switches::kProduction)) {
-    environment = ads::Environment::PRODUCTION;
+    environment = ads::mojom::Environment::kProduction;
   } else if (command_line.HasSwitch(switches::kStaging)) {
-    environment = ads::Environment::STAGING;
+    environment = ads::mojom::Environment::kStaging;
   } else if (command_line.HasSwitch(switches::kDevelopment)) {
-    environment = ads::Environment::DEVELOPMENT;
+    environment = ads::mojom::Environment::kDevelopment;
   }
 #endif
 
@@ -904,7 +944,7 @@ void AdsServiceImpl::SetEnvironment() {
 }
 
 void AdsServiceImpl::SetBuildChannel() {
-  ads::BuildChannelPtr build_channel = ads::BuildChannel::New();
+  ads::mojom::BuildChannelPtr build_channel = ads::mojom::BuildChannel::New();
   build_channel->name = brave::GetChannelName();
   build_channel->is_release = build_channel->name == "release" ? true : false;
 
@@ -975,13 +1015,24 @@ int AdsServiceImpl::GetIdleTimeThreshold() {
   return GetIntegerPref(ads::prefs::kIdleTimeThreshold);
 }
 
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+void AdsServiceImpl::ShowScheduledCaptcha(const std::string& payment_id,
+                                          const std::string& captcha_id) {
+  adaptive_captcha_service_->ShowScheduledCaptcha(payment_id, captcha_id);
+}
+
+void AdsServiceImpl::SnoozeScheduledCaptcha() {
+  adaptive_captcha_service_->SnoozeScheduledCaptcha();
+}
+#endif
+
 void AdsServiceImpl::OnShowAdNotification(const std::string& notification_id) {
   if (!connected()) {
     return;
   }
 
   bat_ads_->OnAdNotificationEvent(notification_id,
-                                  ads::AdNotificationEventType::kViewed);
+                                  ads::mojom::AdNotificationEventType::kViewed);
 }
 
 void AdsServiceImpl::OnCloseAdNotification(const std::string& notification_id,
@@ -992,9 +1043,9 @@ void AdsServiceImpl::OnCloseAdNotification(const std::string& notification_id,
     return;
   }
 
-  const ads::AdNotificationEventType event_type =
-      by_user ? ads::AdNotificationEventType::kDismissed
-              : ads::AdNotificationEventType::kTimedOut;
+  const ads::mojom::AdNotificationEventType event_type =
+      by_user ? ads::mojom::AdNotificationEventType::kDismissed
+              : ads::mojom::AdNotificationEventType::kTimedOut;
 
   bat_ads_->OnAdNotificationEvent(notification_id, event_type);
 }
@@ -1006,8 +1057,32 @@ void AdsServiceImpl::OnClickAdNotification(const std::string& notification_id) {
 
   OpenNewTabWithAd(notification_id);
 
-  bat_ads_->OnAdNotificationEvent(notification_id,
-                                  ads::AdNotificationEventType::kClicked);
+  bat_ads_->OnAdNotificationEvent(
+      notification_id, ads::mojom::AdNotificationEventType::kClicked);
+}
+
+bool AdsServiceImpl::ShouldShowCustomAdNotifications() {
+  const bool can_show_native_notifications =
+      NotificationHelper::GetInstance()->CanShowNativeNotifications();
+
+  const bool can_fallback_to_custom_ad_notifications =
+      features::CanFallbackToCustomAdNotifications();
+  if (!can_fallback_to_custom_ad_notifications) {
+    ClearPref(prefs::kAdNotificationDidFallbackToCustom);
+  }
+
+  const bool should_show = features::IsCustomAdNotificationsEnabled();
+
+  const bool should_fallback =
+      !can_show_native_notifications && can_fallback_to_custom_ad_notifications;
+  if (should_fallback) {
+    SetBooleanPref(prefs::kAdNotificationDidFallbackToCustom, true);
+  }
+
+  const bool did_fallback =
+      GetBooleanPref(prefs::kAdNotificationDidFallbackToCustom);
+
+  return should_show || should_fallback || did_fallback;
 }
 
 void AdsServiceImpl::MaybeOpenNewTabWithAd() {
@@ -1044,7 +1119,7 @@ void AdsServiceImpl::OnOpenNewTabWithAd(const std::string& json) {
 void AdsServiceImpl::OnNewTabPageAdEvent(
     const std::string& uuid,
     const std::string& creative_instance_id,
-    const ads::NewTabPageAdEventType event_type) {
+    const ads::mojom::NewTabPageAdEventType event_type) {
   if (!connected()) {
     return;
   }
@@ -1055,7 +1130,7 @@ void AdsServiceImpl::OnNewTabPageAdEvent(
 void AdsServiceImpl::OnPromotedContentAdEvent(
     const std::string& uuid,
     const std::string& creative_instance_id,
-    const ads::PromotedContentAdEventType event_type) {
+    const ads::mojom::PromotedContentAdEventType event_type) {
   if (!connected()) {
     return;
   }
@@ -1077,7 +1152,7 @@ void AdsServiceImpl::GetInlineContentAd(const std::string& dimensions,
 void AdsServiceImpl::OnInlineContentAdEvent(
     const std::string& uuid,
     const std::string& creative_instance_id,
-    const ads::InlineContentAdEventType event_type) {
+    const ads::mojom::InlineContentAdEventType event_type) {
   if (!connected()) {
     return;
   }
@@ -1086,7 +1161,7 @@ void AdsServiceImpl::OnInlineContentAdEvent(
 }
 
 void AdsServiceImpl::PurgeOrphanedAdEventsForType(
-    const ads::mojom::BraveAdsAdType ad_type) {
+    const ads::mojom::AdType ad_type) {
   if (!connected()) {
     return;
   }
@@ -1141,10 +1216,6 @@ void AdsServiceImpl::NotificationTimedOut(const std::string& uuid) {
 
 void AdsServiceImpl::RegisterResourceComponentsForLocale(
     const std::string& locale) {
-  if (!IsEnabled()) {
-    return;
-  }
-
   g_brave_browser_process->resource_component()->RegisterComponentsForLocale(
       locale);
 }
@@ -1195,7 +1266,7 @@ void AdsServiceImpl::OnURLRequestComplete(
     }
   }
 
-  ads::UrlResponse url_response;
+  ads::mojom::UrlResponse url_response;
   url_response.url = url_loader->GetFinalURL().spec();
   url_response.status_code = response_code;
   url_response.body = response_body ? *response_body : "";
@@ -1250,8 +1321,6 @@ void AdsServiceImpl::OnGetAdsHistory(OnGetAdsHistoryCallback callback,
     ad_content_dictionary.SetKey("brand", base::Value(item.ad_content.brand));
     ad_content_dictionary.SetKey("brandInfo",
                                  base::Value(item.ad_content.brand_info));
-    ad_content_dictionary.SetKey("brandLogo",
-                                 base::Value(item.ad_content.brand_logo));
     ad_content_dictionary.SetKey(
         "brandDisplayUrl", base::Value(item.ad_content.brand_display_url));
     ad_content_dictionary.SetKey("brandUrl",
@@ -1316,8 +1385,14 @@ void AdsServiceImpl::OnGetAccountStatement(GetAccountStatementCallback callback,
       statement.earnings_this_month, statement.earnings_last_month);
 }
 
-void AdsServiceImpl::OnRemoveAllHistory(const int32_t result) {
-  if (result != ads::Result::SUCCESS) {
+void AdsServiceImpl::OnGetAdDiagnostics(GetAdDiagnosticsCallback callback,
+                                        const bool success,
+                                        const std::string& json) {
+  std::move(callback).Run(success, json);
+}
+
+void AdsServiceImpl::OnRemoveAllHistory(const bool success) {
+  if (!success) {
     VLOG(0) << "Failed to remove ads history";
     return;
   }
@@ -1371,9 +1446,9 @@ void AdsServiceImpl::OnLoaded(const ads::LoadCallback& callback,
   }
 
   if (value.empty())
-    callback(ads::Result::FAILED, value);
+    callback(/* success */ false, value);
   else
-    callback(ads::Result::SUCCESS, value);
+    callback(/* success */ true, value);
 }
 
 void AdsServiceImpl::OnSaved(const ads::ResultCallback& callback,
@@ -1382,7 +1457,7 @@ void AdsServiceImpl::OnSaved(const ads::ResultCallback& callback,
     return;
   }
 
-  callback(success ? ads::Result::SUCCESS : ads::Result::FAILED);
+  callback(success);
 }
 
 void AdsServiceImpl::MigratePrefs() {
@@ -1750,9 +1825,11 @@ void AdsServiceImpl::MaybeShowMyFirstAdNotification() {
   SetBooleanPref(prefs::kShouldShowMyFirstAdNotification, false);
 }
 
-bool AdsServiceImpl::ShouldShowMyFirstAdNotification() const {
-  auto should_show = GetBooleanPref(prefs::kShouldShowMyFirstAdNotification);
-  return IsEnabled() && should_show;
+bool AdsServiceImpl::ShouldShowMyFirstAdNotification() {
+  const bool should_show_my_first_ad_notification =
+      GetBooleanPref(prefs::kShouldShowMyFirstAdNotification);
+  return IsEnabled() && ShouldShowNotifications() &&
+         should_show_my_first_ad_notification;
 }
 
 bool AdsServiceImpl::PrefExists(const std::string& path) const {
@@ -1760,13 +1837,22 @@ bool AdsServiceImpl::PrefExists(const std::string& path) const {
 }
 
 void AdsServiceImpl::OnPrefsChanged(const std::string& pref) {
-  if (pref == ads::prefs::kEnabled || pref == kBraveTodayOptedIn) {
+  if (pref == ads::prefs::kEnabled || pref == kBraveTodayOptedIn ||
+      pref == kNewTabPageShowToday) {
     if (pref == ads::prefs::kEnabled) {
       rewards_service_->OnAdsEnabled(IsEnabled());
 
       if (!IsEnabled()) {
         SuspendP2AHistograms();
         VLOG(1) << "P2A histograms suspended";
+
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+        // Close any open captcha tooltip
+        ads_tooltips_delegate_->CloseCaptchaTooltip();
+
+        // Clear any scheduled captcha
+        adaptive_captcha_service_->ClearScheduledCaptcha();
+#endif
       }
 
       brave_rewards::p3a::UpdateAdsStateOnPreferenceChange(profile_->GetPrefs(),
@@ -1822,7 +1908,7 @@ std::string AdsServiceImpl::LoadDataResourceAndDecompressIfNeeded(
 }
 
 void AdsServiceImpl::ShowNotification(const ads::AdNotificationInfo& info) {
-  if (features::ShouldShowCustomAdNotifications()) {
+  if (ShouldShowCustomAdNotifications()) {
     std::unique_ptr<AdNotificationPlatformBridge> platform_bridge =
         std::make_unique<AdNotificationPlatformBridge>(profile_);
 
@@ -1879,7 +1965,7 @@ void AdsServiceImpl::ShowNotification(const ads::AdNotificationInfo& info) {
 
 void AdsServiceImpl::StartNotificationTimeoutTimer(const std::string& uuid) {
 #if defined(OS_ANDROID)
-  if (!features::ShouldShowCustomAdNotifications()) {
+  if (!ShouldShowCustomAdNotifications()) {
     return;
   }
 #endif
@@ -1915,15 +2001,19 @@ bool AdsServiceImpl::StopNotificationTimeoutTimer(const std::string& uuid) {
 
 bool AdsServiceImpl::ShouldShowNotifications() {
   if (!features::IsAdNotificationsEnabled()) {
-    LOG(INFO) << "Notification not made: Feature is disabled";
+    LOG(INFO) << "Notification not made: Ad notifications feature is disabled";
     return false;
   }
 
-  return NotificationHelper::GetInstance()->ShouldShowNotifications();
+  if (!NotificationHelper::GetInstance()->CanShowNativeNotifications()) {
+    return ShouldShowCustomAdNotifications();
+  }
+
+  return true;
 }
 
 void AdsServiceImpl::CloseNotification(const std::string& uuid) {
-  if (features::ShouldShowCustomAdNotifications()) {
+  if (ShouldShowCustomAdNotifications()) {
     std::unique_ptr<AdNotificationPlatformBridge> platform_bridge =
         std::make_unique<AdNotificationPlatformBridge>(profile_);
 
@@ -1958,7 +2048,7 @@ void AdsServiceImpl::ResetAdEvents() const {
   return FrequencyCappingHelper::GetInstance()->ResetAdEvents();
 }
 
-void AdsServiceImpl::UrlRequest(ads::UrlRequestPtr url_request,
+void AdsServiceImpl::UrlRequest(ads::mojom::UrlRequestPtr url_request,
                                 ads::UrlRequestCallback callback) {
   auto resource_request = std::make_unique<network::ResourceRequest>();
   resource_request->url = GURL(url_request->url);
@@ -2013,7 +2103,7 @@ void AdsServiceImpl::LoadAdsResource(const std::string& id,
       g_brave_browser_process->resource_component()->GetPath(id, version);
 
   if (!path) {
-    callback(ads::Result::FAILED, "");
+    callback(/* success */ false, "");
     return;
   }
 
@@ -2061,10 +2151,10 @@ void AdsServiceImpl::OnBrowsingHistorySearchComplete(
 }
 
 void AdsServiceImpl::RecordP2AEvent(const std::string& name,
-                                    const ads::P2AEventType type,
+                                    const ads::mojom::P2AEventType type,
                                     const std::string& value) {
   switch (type) {
-    case ads::P2AEventType::kListType: {
+    case ads::mojom::P2AEventType::kListType: {
       absl::optional<base::Value> maybe_list = base::JSONReader::Read(value);
       if (!maybe_list || !maybe_list->is_list()) {
         break;
@@ -2097,15 +2187,51 @@ std::string AdsServiceImpl::LoadResourceForId(const std::string& id) {
   return LoadDataResourceAndDecompressIfNeeded(resource_id);
 }
 
-ads::DBCommandResponsePtr RunDBTransactionOnFileTaskRunner(
-    ads::DBTransactionPtr transaction,
+void AdsServiceImpl::ClearScheduledCaptcha() {
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+  adaptive_captcha_service_->ClearScheduledCaptcha();
+#endif
+}
+
+void AdsServiceImpl::GetScheduledCaptcha(
+    const std::string& payment_id,
+    ads::GetScheduledCaptchaCallback callback) {
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+  adaptive_captcha_service_->GetScheduledCaptcha(payment_id,
+                                                 std::move(callback));
+#endif
+}
+
+void AdsServiceImpl::ShowScheduledCaptchaNotification(
+    const std::string& payment_id,
+    const std::string& captcha_id) {
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+  PrefService* pref_service = profile_->GetPrefs();
+  if (pref_service->GetBoolean(
+          brave_adaptive_captcha::kScheduledCaptchaPaused)) {
+    VLOG(0) << "Ads paused; support intervention required";
+    return;
+  }
+
+  const int snooze_count = pref_service->GetInteger(
+      brave_adaptive_captcha::kScheduledCaptchaSnoozeCount);
+
+  ads_tooltips_delegate_->ShowCaptchaTooltip(
+      payment_id, captcha_id, snooze_count == 0,
+      base::BindOnce(&AdsServiceImpl::ShowScheduledCaptcha, AsWeakPtr()),
+      base::BindOnce(&AdsServiceImpl::SnoozeScheduledCaptcha, AsWeakPtr()));
+#endif
+}
+
+ads::mojom::DBCommandResponsePtr RunDBTransactionOnFileTaskRunner(
+    ads::mojom::DBTransactionPtr transaction,
     ads::Database* database) {
   DCHECK(database);
 
-  auto response = ads::DBCommandResponse::New();
+  auto response = ads::mojom::DBCommandResponse::New();
 
   if (!database) {
-    response->status = ads::DBCommandResponse::Status::RESPONSE_ERROR;
+    response->status = ads::mojom::DBCommandResponse::Status::RESPONSE_ERROR;
   } else {
     database->RunTransaction(std::move(transaction), response.get());
   }
@@ -2113,7 +2239,7 @@ ads::DBCommandResponsePtr RunDBTransactionOnFileTaskRunner(
   return response;
 }
 
-void AdsServiceImpl::RunDBTransaction(ads::DBTransactionPtr transaction,
+void AdsServiceImpl::RunDBTransaction(ads::mojom::DBTransactionPtr transaction,
                                       ads::RunDBTransactionCallback callback) {
   base::PostTaskAndReplyWithResult(
       file_task_runner_.get(), FROM_HERE,
@@ -2123,8 +2249,9 @@ void AdsServiceImpl::RunDBTransaction(ads::DBTransactionPtr transaction,
                      std::move(callback)));
 }
 
-void AdsServiceImpl::OnRunDBTransaction(ads::RunDBTransactionCallback callback,
-                                        ads::DBCommandResponsePtr response) {
+void AdsServiceImpl::OnRunDBTransaction(
+    ads::RunDBTransactionCallback callback,
+    ads::mojom::DBCommandResponsePtr response) {
   callback(std::move(response));
 }
 

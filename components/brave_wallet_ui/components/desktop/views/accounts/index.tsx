@@ -2,15 +2,15 @@ import * as React from 'react'
 
 import {
   WalletAccountType,
-  UserAssetOptionType,
   RPCTransactionType,
-  AccountSettingsNavTypes
+  AccountSettingsNavTypes,
+  UpdateAccountNamePayloadType
 } from '../../../../constants/types'
 import { reduceAddress } from '../../../../utils/reduce-address'
-import { formatePrices } from '../../../../utils/format-prices'
 import { copyToClipboard } from '../../../../utils/copy-to-clipboard'
 import { create } from 'ethereum-blockies'
 import locale from '../../../../constants/locale'
+import { formatBalance } from '../../../../utils/format-balances'
 
 // Styled Components
 import {
@@ -35,7 +35,6 @@ import {
   WalletInfoLeftSide,
   QRCodeIcon,
   EditIcon,
-  EditButtonRow,
   SubviewSectionTitle
 } from './style'
 
@@ -50,28 +49,30 @@ import {
 } from '../../'
 
 export interface Props {
-  userWatchList: string[]
   accounts: WalletAccountType[]
-  userAssetList: UserAssetOptionType[]
   transactions: (RPCTransactionType | undefined)[]
+  privateKey: string
+  onViewPrivateKey: (address: string, isDefault: boolean) => void
+  onDoneViewingPrivateKey: () => void
   toggleNav: () => void
   onClickBackup: () => void
   onClickAddAccount: () => void
-  onUpdateWatchList: (list: string[]) => void
-  onUpdateAccountName: (name: string) => void
+  onUpdateAccountName: (payload: UpdateAccountNamePayloadType) => { success: boolean }
+  onRemoveAccount: (address: string) => void
 }
 
 function Accounts (props: Props) {
   const {
     accounts,
-    userAssetList,
     transactions,
-    userWatchList,
+    privateKey,
+    onViewPrivateKey,
+    onDoneViewingPrivateKey,
     toggleNav,
     onClickBackup,
     onClickAddAccount,
-    onUpdateWatchList,
-    onUpdateAccountName
+    onUpdateAccountName,
+    onRemoveAccount
   } = props
 
   const primaryAccounts = React.useMemo(() => {
@@ -89,6 +90,13 @@ function Accounts (props: Props) {
   const [selectedAccount, setSelectedAccount] = React.useState<WalletAccountType>()
   const [showEditModal, setShowEditModal] = React.useState<boolean>(false)
   const [editTab, setEditTab] = React.useState<AccountSettingsNavTypes>('details')
+
+  React.useMemo(() => {
+    if (selectedAccount) {
+      const updatedAccount = accounts.find((account) => account.id === selectedAccount.id)
+      setSelectedAccount(updatedAccount)
+    }
+  }, [accounts])
 
   const goBack = () => {
     setSelectedAccount(undefined)
@@ -112,11 +120,6 @@ function Accounts (props: Props) {
 
   const onChangeTab = (id: AccountSettingsNavTypes) => {
     setEditTab(id)
-  }
-
-  const toggleShowEditWatchlist = () => {
-    setShowEditModal(!showEditModal)
-    setEditTab('watchlist')
   }
 
   const onShowEditModal = () => {
@@ -163,6 +166,7 @@ function Accounts (props: Props) {
                 key={account.id}
                 isHardwareWallet={false}
                 onClick={onSelectAccount}
+                onRemoveAccount={onRemoveAccount}
                 account={account}
               />
             )}
@@ -176,6 +180,7 @@ function Accounts (props: Props) {
                 key={account.id}
                 isHardwareWallet={false}
                 onClick={onSelectAccount}
+                onRemoveAccount={onRemoveAccount}
                 account={account}
               />
             )}
@@ -187,6 +192,7 @@ function Accounts (props: Props) {
                   key={account.id}
                   isHardwareWallet={true}
                   onClick={onSelectAccount}
+                  onRemoveAccount={onRemoveAccount}
                   account={account}
                 />
               )}
@@ -215,26 +221,18 @@ function Accounts (props: Props) {
               <EditIcon />
             </Button>
           </WalletInfoRow>
-          <SubviewSectionTitle>{locale.accountsWatchlist}</SubviewSectionTitle>
+          <SubviewSectionTitle>{locale.accountsAssets}</SubviewSectionTitle>
           <SubDivider />
-          {userAssetList.map((item) =>
+          {selectedAccount.tokens.map((item) =>
             <PortfolioAssetItem
-              key={item.asset.id}
+              key={item.asset.contractAddress}
               name={item.asset.name}
-              assetBalance={item.assetBalance}
-              fiatBalance={formatePrices(item.fiatBalance)}
+              assetBalance={formatBalance(item.assetBalance, item.asset.decimals)}
+              fiatBalance={item.fiatBalance}
               symbol={item.asset.symbol}
               icon={item.asset.icon}
             />
           )}
-          <EditButtonRow>
-            <AddButton
-              buttonType='secondary'
-              onSubmit={toggleShowEditWatchlist}
-              text={locale.accountsEditWatchList}
-              editIcon={true}
-            />
-          </EditButtonRow>
           <SubviewSectionTitle>{locale.transactions}</SubviewSectionTitle>
           <SubDivider />
           {transactions?.map((transaction) =>
@@ -251,16 +249,19 @@ function Accounts (props: Props) {
       )}
       {showEditModal && selectedAccount &&
         <AccountSettingsModal
-          userAssetList={userAssetList}
           title={locale.account}
           account={selectedAccount}
           onClose={onCloseEditModal}
           onUpdateAccountName={onUpdateAccountName}
-          onUpdateWatchList={onUpdateWatchList}
           onCopyToClipboard={onCopyToClipboard}
           onChangeTab={onChangeTab}
+          onToggleNav={toggleNav}
+          onRemoveAccount={onRemoveAccount}
+          onViewPrivateKey={onViewPrivateKey}
+          onDoneViewingPrivateKey={onDoneViewingPrivateKey}
+          privateKey={privateKey}
           tab={editTab}
-          userWatchList={userWatchList}
+          hideNav={false}
         />
       }
     </StyledWrapper>

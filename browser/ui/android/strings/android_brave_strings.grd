@@ -252,7 +252,13 @@ This file contains all "about" strings.  It is set to NOT be translated, in tran
         Allow privacy-preserving product analytics (P3A)
       </message>
       <message name="IDS_SEND_P3A_ANALYTICS_SUMMARY" desc="Summary for checkbox of send p3a analytics.">
-        This completely anonymised info helps Brave estimate the overall usage of certain features and make it better for you.
+        Anonymized P3A info helps Brave estimate overall usage, and ensure we’re improving popular features.
+      </message>
+      <message name="IDS_SEND_CRASH_REPORTS_TITLE" desc="Title for checkbox of send crash reports automatically.">
+        Automatically send crash reports
+      </message>
+      <message name="IDS_SEND_CRASH_REPORTS_SUMMARY" desc="Summary for checkbox of send crash reports automatically.">
+        Crash reports help Brave improve product stability for all users.
       </message>
       <message name="IDS_BRAVE_STATS_TEXT_DATA_SAVED" desc="Title for the data saved stats">
         Est. Data\nSaved
@@ -902,7 +908,7 @@ until they verify, or until 90 days have passed.
         User Wallet
       </message>
       <message name="IDS_USER_WALLET_GOTO_UPHOLD">
-        Go to my Uphold account
+        Go to your Uphold account
       </message>
       <message name="IDS_USER_WALLET_DISCONNECT_REWARDS">
         Disconnect from Brave Rewards
@@ -1598,7 +1604,7 @@ until they verify, or until 90 days have passed.
         Brave protects your privacy and\nappreciates your consent to the following:
       </message>
       <message name="IDS_P3A_ONBOARDING_CHECKBOX_TEXT" desc="P3a onboarding checkbox text">
-        Help improve Brave by sending crash reports and completely anonymized, <ph name="PRIVATE_PRODUCT_ANALYSIS">%1$s</ph>
+        Help improve Brave by sending completely anonymized <ph name="PRIVATE_PRODUCT_ANALYSIS">%1$s</ph>
       </message>
       <message name="IDS_PRIVATE_PRODUCT_ANALYSIS_TEXT" desc="private product analysis text">
         private product analytics.
@@ -1849,14 +1855,35 @@ until they verify, or until 90 days have passed.
     <message name="IDS_ACCOUNT_RECOVERY_FAILED" desc="Brave Wallet text">
       Account recovery failed. Please try again.
     </message>
-    <message name="IDS_MAINNET" desc="Brave Wallet network selection button text">
+    <message name="IDS_MAINNET" desc="Brave Wallet network selection button text(network name)" translateable="false">
       Mainnet
+    </message>
+    <message name="IDS_RINKEBY" desc="Brave Wallet network selection button text(network name)" translateable="false">
+      Rinkeby
+    </message>
+    <message name="IDS_ROPSTEN" desc="Brave Wallet network selection button text(network name)" translateable="false">
+      Ropsten
+    </message>
+    <message name="IDS_GOERLI" desc="Brave Wallet network selection button text(network name)" translateable="false">
+      Goerli
+    </message>
+    <message name="IDS_KOVAN" desc="Brave Wallet network selection button text(network name)" translateable="false">
+      Kovan
+    </message>
+    <message name="IDS_LOCALHOST" desc="Brave Wallet network selection button text(network name)" translateable="false">
+      Localhost
     </message>
     <message name="IDS_MARKET_PRICE_IN" desc="Brave Wallet buy-send-swap section text">
       Market Price in ETH
     </message>
+    <message name="IDS_PRICE_IN" desc="Brave Wallet buy-send-swap section text">
+      Price in ETH
+    </message>
     <message name="IDS_FROM" desc="Brave Wallet buy-send-swap section text">
       From
+    </message>
+    <message name="IDS_BUY_WALLET" desc="Brave Wallet buy-send-swap section text for Buy">
+      Buy
     </message>
     <message name="IDS_PERCENTAGE_25" desc="Brave Wallet buy-send-swap section text">
       25%
@@ -1870,6 +1897,12 @@ until they verify, or until 90 days have passed.
     <message name="IDS_TO_ESTIMATE" desc="Brave Wallet buy-send-swap section text">
       To (estimate)
     </message>
+    <message name="IDS_TO_ADDRESS" desc="Brave Wallet buy-send-swap section text. Send To address">
+      To
+    </message>
+    <message name="IDS_TO_ADDRESS_EDIT" desc="Brave Wallet buy-send-swap section for address(hint)">
+      address or url
+    </message>
     <message name="IDS_LIMIT" desc="Brave Wallet buy-send-swap section text">
       Limit
     </message>
@@ -1878,6 +1911,70 @@ until they verify, or until 90 days have passed.
     </message>
     <message name="IDS_SLIPPING_TOLERANCE" desc="Brave Wallet buy-send-swap section text">
       Slippage tolerance
+    </message>
+    <message name="IDS_EXPIRES_IN" desc="Brave Wallet buy-send-swap section text">
+      Expires in
+    </message>
+    <message name="IDS_ACCOUNTS" desc="Brave Wallet section text">
+      Accounts
+    </message>
+    <message name="IDS_TRANSACTIONS" desc="Brave Wallet section text">
+      Transactions
+    </message>
+    <message name="IDS_INFO" desc="Brave Wallet section text">
+      Info
+    </message>
+    <!-- Stats -->
+    <message name="IDS_BRAVE_STATS_USAGE_PING_TITLE" desc="Description that shows in settings for toggling stats usage pings">
+      Automatically send daily usage ping to Brave
+    </message>
+    <message name="IDS_BRAVE_STATS_USAGE_PING_SUMMARY" desc="Description that shows under main toggle setting for usage pings">
+      This anonymous, private ping lets Brave estimate active users.
+    </message>
+    <message name="IDS_BACKUP" desc="Brave wallet accounts text">
+      Backup
+    </message>
+    <message name="IDS_PRIMARY_CRYPTO_ACCOUNTS" desc="Brave wallet accounts text">
+      Primary Crypto Accounts
+    </message>
+    <message name="IDS_SECONDARY_ACCOUNTS" desc="Brave wallet accounts text">
+      Secondary Accounts
+    </message>
+    <message name="IDS_SECONDARY_ACCOUNTS_TEXT" desc="Brave wallet accounts text">
+      These accounts can be used with web 3 dapps and can be shown in your portfolio, however, they cannot not be restored via recovery phrase from your primary account backup. Enable Brave Sync accounts to auto-restore secondary accounts.
+    </message>
+    <message name="IDS_ACCOUNT_NAME" desc="Brave wallet accounts text">
+      Account Name
+    </message>
+    <message name="IDS_ACCOUNT_NAME_TEXT" desc="Brave wallet accounts text">
+      You can create a secondary account by importing your private key.
+    </message>
+    <message name="IDS_IMPORT_ACCOUNT_TEXT" desc="Brave wallet accounts text">
+      Enter, paste, or import your private key string file or JSON.
+    </message>
+    <message name="IDS_IMPORT_TEXT" desc="Brave wallet accounts text">
+      Import...
+    </message>
+    <message name="IDS_ASSETS" desc="Brave wallet accounts text">
+      Assets
+    </message>
+    <message name="IDS_DETAILS" desc="Brave wallet accounts text">
+      Details
+    </message>
+    <message name="IDS_EDIT" desc="Brave wallet accounts text">
+      Edit
+    </message>
+    <message name="IDS_ACCOUNT_DETAILS" desc="Brave wallet accounts text">
+      Account Details
+    </message>
+    <message name="IDS_EDIT_VISIBLE_ASSETS" desc="Brave wallet edit assets button name">
+      Edit visible assets
+    </message>
+    <message name="IDS_SAVE_ACCOUNT_WATCHLIST" desc="Brave wallet save a watchlist assets button name">
+      Save account watchlist
+    </message>
+    <message name="IDS_SEARCH_TOKENS" desc="Brave wallet search tokens control hint">
+      Search tokens
     </message>
     </messages>
   </release>

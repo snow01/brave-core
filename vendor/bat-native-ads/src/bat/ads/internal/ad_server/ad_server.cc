@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 
+#include "base/check.h"
 #include "base/time/time.h"
 #include "bat/ads/ads.h"
 #include "bat/ads/internal/account/confirmations/confirmations.h"
@@ -20,6 +21,7 @@
 #include "bat/ads/internal/catalog/catalog_issuers_info.h"
 #include "bat/ads/internal/catalog/catalog_version.h"
 #include "bat/ads/internal/logging.h"
+#include "bat/ads/internal/logging_util.h"
 #include "bat/ads/internal/server/ads_server_util.h"
 #include "bat/ads/internal/time_formatting_util.h"
 #include "bat/ads/pref_names.h"
@@ -67,7 +69,7 @@ void AdServer::Fetch() {
   is_processing_ = true;
 
   GetCatalogUrlRequestBuilder url_request_builder;
-  UrlRequestPtr url_request = url_request_builder.Build();
+  mojom::UrlRequestPtr url_request = url_request_builder.Build();
   BLOG(5, UrlRequestToString(url_request));
   BLOG(7, UrlRequestHeadersToString(url_request));
 
@@ -75,7 +77,7 @@ void AdServer::Fetch() {
   AdsClientHelper::Get()->UrlRequest(std::move(url_request), callback);
 }
 
-void AdServer::OnFetch(const UrlResponse& url_response) {
+void AdServer::OnFetch(const mojom::UrlResponse& url_response) {
   BLOG(7, UrlResponseToString(url_response));
   BLOG(7, UrlResponseHeadersToString(url_response));
 

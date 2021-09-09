@@ -9,7 +9,6 @@
 #include <memory>
 
 #include "base/strings/stringprintf.h"
-#include "bat/ads/internal/bundle/creative_ad_info.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting_resource.h"
 #include "bat/ads/internal/url_util.h"
 
@@ -20,15 +19,15 @@ namespace {
 bool HasVisitedSiteOnAntiTargetingList(
     const BrowsingHistoryList browsing_history,
     const resource::AntiTargetingList anti_targeting_sites) {
-  auto result = std::find_first_of(
+  const auto iter = std::find_first_of(
       anti_targeting_sites.begin(), anti_targeting_sites.end(),
       browsing_history.begin(), browsing_history.end(), SameDomainOrHost);
 
-  if (result != anti_targeting_sites.end()) {
-    return true;
+  if (iter == anti_targeting_sites.end()) {
+    return false;
   }
 
-  return false;
+  return true;
 }
 
 }  // namespace

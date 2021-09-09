@@ -10,9 +10,12 @@ static_library("common") {
   sources = [
     "features.cc",
     "features.h",
+    "value_conversion_utils.cc",
+    "value_conversion_utils.h",
   ]
   deps = [
     ":common_constants",
+    ":mojom__generator",
     "//base",
   ]
 }
@@ -34,7 +37,11 @@ preprocess_if_expr("preprocess_mojo") {
 }
 
 mojom("mojom") {
+  generate_java = true
   sources = [ "brave_wallet.mojom" ]
 
-  deps = [ "//mojo/public/mojom/base" ]
+  deps = [
+    "//mojo/public/mojom/base",
+    "//url/mojom:url_mojom_gurl",
+  ]
 }

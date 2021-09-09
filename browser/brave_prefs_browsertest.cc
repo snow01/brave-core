@@ -7,12 +7,14 @@
 #include "brave/common/pref_names.h"
 #include "brave/components/brave_rewards/common/pref_names.h"
 #include "brave/components/brave_shields/common/pref_names.h"
+#include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/brave_wayback_machine/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/net/prediction_options.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/ui/webui/new_tab_page/ntp_pref_names.h"
 #include "chrome/common/pref_names.h"
 #include "chrome/test/base/chrome_test_utils.h"
 #include "components/embedder_support/pref_names.h"
@@ -22,7 +24,7 @@
 #include "components/sync/base/pref_names.h"
 #include "content/public/test/browser_test.h"
 
-#if BUILDFLAG(IPFS_ENABLED)
+#if BUILDFLAG(ENABLE_IPFS)
 #include "brave/components/ipfs/ipfs_constants.h"
 #include "brave/components/ipfs/pref_names.h"
 #endif
@@ -85,7 +87,7 @@ IN_PROC_BROWSER_TEST_F(BraveProfilePrefsBrowserTest, MiscBravePrefs) {
       kHangoutsEnabled));
   EXPECT_FALSE(chrome_test_utils::GetProfile(this)->GetPrefs()->GetBoolean(
       brave_rewards::prefs::kHideButton));
-#if BUILDFLAG(IPFS_ENABLED)
+#if BUILDFLAG(ENABLE_IPFS)
   EXPECT_EQ(chrome_test_utils::GetProfile(this)->GetPrefs()->GetInteger(
                 kIPFSResolveMethod),
             static_cast<int>((ipfs::IPFSResolveMethodTypes::IPFS_ASK)));
@@ -121,6 +123,11 @@ IN_PROC_BROWSER_TEST_F(BraveProfilePrefsBrowserTest, MiscBravePrefs) {
   EXPECT_FALSE(chrome_test_utils::GetProfile(this)->GetPrefs()->GetBoolean(
       kBraveGCMChannelStatus));
 #endif
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+  EXPECT_TRUE(chrome_test_utils::GetProfile(this)->GetPrefs()->GetBoolean(
+      kBraveVPNShowButton));
+#endif
 }
 
 IN_PROC_BROWSER_TEST_F(BraveProfilePrefsBrowserTest,
@@ -145,7 +152,7 @@ IN_PROC_BROWSER_TEST_F(BraveProfilePrefsBrowserTest,
       prefs::kCloudPrintSubmitEnabled));
 #if !defined(OS_ANDROID)
   EXPECT_TRUE(chrome_test_utils::GetProfile(this)->GetPrefs()->GetBoolean(
-      prefs::kNtpUseMostVisitedTiles));
+      ntp_prefs::kNtpUseMostVisitedTiles));
 #endif
   EXPECT_TRUE(chrome_test_utils::GetProfile(this)->GetPrefs()->GetBoolean(
       prefs::kHideWebStoreIcon));

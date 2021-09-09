@@ -8,8 +8,10 @@
 #include <cstdint>
 #include <string>
 
+#include "base/check_op.h"
 #include "base/guid.h"
 #include "base/time/time.h"
+#include "bat/ads/internal/ad_events/ad_event_info.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/client/client.h"
 #include "bat/ads/internal/database/tables/ad_events_database_table_unittest_util.h"
@@ -81,7 +83,7 @@ void ResetFrequencyCaps(const AdType& type) {
   Client::Get()->ResetAllSeenAdvertisersForType(type);
 
   database::table::ad_events::Reset(
-      [](const Result result) { ASSERT_EQ(Result::SUCCESS, result); });
+      [](const bool success) { ASSERT_TRUE(success); });
 }
 
 }  // namespace ads

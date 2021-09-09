@@ -8,10 +8,38 @@
 #include <map>
 #include <string>
 
+#include "base/notreached.h"
 #include "bat/ads/ads_history_info.h"
-#include "bat/ads/internal/logging.h"
 
 namespace ads {
+
+namespace {
+
+bool ShouldFilterAction(const ConfirmationType& confirmation_type) {
+  switch (confirmation_type.value()) {
+    case ConfirmationType::kViewed:
+    case ConfirmationType::kClicked:
+    case ConfirmationType::kDismissed: {
+      return false;
+    }
+
+    case ConfirmationType::kServed:
+    case ConfirmationType::kTransferred:
+    case ConfirmationType::kFlagged:
+    case ConfirmationType::kUpvoted:
+    case ConfirmationType::kDownvoted:
+    case ConfirmationType::kConversion: {
+      return true;
+    }
+
+    case ConfirmationType::kUndefined: {
+      NOTREACHED();
+      return true;
+    }
+  }
+}
+
+}  // namespace
 
 AdsHistoryConfirmationFilter::AdsHistoryConfirmationFilter() = default;
 
@@ -47,31 +75,6 @@ std::deque<AdHistoryInfo> AdsHistoryConfirmationFilter::Apply(
   }
 
   return filtered_ads_history;
-}
-
-bool AdsHistoryConfirmationFilter::ShouldFilterAction(
-    const ConfirmationType& confirmation_type) const {
-  switch (confirmation_type.value()) {
-    case ConfirmationType::kViewed:
-    case ConfirmationType::kClicked:
-    case ConfirmationType::kDismissed: {
-      return false;
-    }
-
-    case ConfirmationType::kServed:
-    case ConfirmationType::kTransferred:
-    case ConfirmationType::kFlagged:
-    case ConfirmationType::kUpvoted:
-    case ConfirmationType::kDownvoted:
-    case ConfirmationType::kConversion: {
-      return true;
-    }
-
-    case ConfirmationType::kUndefined: {
-      NOTREACHED();
-      return true;
-    }
-  }
 }
 
 }  // namespace ads

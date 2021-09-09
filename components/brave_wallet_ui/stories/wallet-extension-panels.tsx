@@ -5,11 +5,16 @@ import {
   ConnectWithSite,
   ConnectedPanel,
   Panel,
-  WelcomePanel
+  WelcomePanel,
+  SignPanel,
+  AllowSpendPanel,
+  AllowAddNetworkPanel,
+  ConfirmTransactionPanel
 } from '../components/extension'
 import { AppList } from '../components/shared'
 import {
   Send,
+  Buy,
   SelectAsset,
   SelectNetwork,
   SelectAccount
@@ -19,20 +24,23 @@ import {
   PanelTypes,
   AppObjectType,
   AppsListType,
-  AssetOptionType,
+  AccountAssetOptionType,
   BuySendSwapViewTypes,
-  NetworkOptionsType
+  EthereumChain
 } from '../constants/types'
 import { AppsList } from '../options/apps-list-options'
-import { NetworkOptions } from '../options/network-options'
+import { WyreAccountAssetOptions } from '../options/wyre-asset-options'
 import { filterAppList } from '../utils/filter-app-list'
+import { BuyAssetUrl } from '../utils/buy-asset-url'
 import LockPanel from '../components/extension/lock-panel'
 import {
+  StyledExtensionWrapperLonger,
   StyledExtensionWrapper,
   ScrollContainer,
   SelectContainer
 } from './style'
-import { AssetOptions } from '../options/asset-options'
+import { mockNetworks } from './mock-data/mock-networks'
+import { AccountAssetOptions } from '../options/asset-options'
 
 export default {
   title: 'Wallet/Extension/Panels',
@@ -49,30 +57,181 @@ const accounts: WalletAccountType[] = [
     id: '1',
     name: 'Account 1',
     address: '0x7d66c9ddAED3115d93Bd1790332f3Cd06Cf52B14',
-    balance: 0.31178,
+    balance: '0.31178',
     asset: 'eth',
     fiatBalance: '0',
-    accountType: 'Primary'
+    accountType: 'Primary',
+    tokens: []
   },
   {
     id: '2',
     name: 'Account 2',
     address: '0x73A29A1da97149722eB09c526E4eAd698895bDCf',
-    balance: 0.31178,
+    balance: '0.31178',
     asset: 'eth',
     fiatBalance: '0',
-    accountType: 'Primary'
+    accountType: 'Primary',
+    tokens: []
   },
   {
     id: '3',
     name: 'Account 3',
     address: '0x3f29A1da97149722eB09c526E4eAd698895b426',
-    balance: 0.31178,
+    balance: '0.31178',
     asset: 'eth',
     fiatBalance: '0',
-    accountType: 'Primary'
+    accountType: 'Primary',
+    tokens: []
   }
 ]
+
+const batTokenInfo = {
+  contractAddress: '0x0d8775f648430679a709e98d2b0cb6250d2887ef',
+  name: 'Basic Attention Token',
+  isErc20: true,
+  isErc721: false,
+  symbol: 'BAT',
+  decimals: 18,
+  icon: ''
+}
+
+export const _ConfirmTransaction = () => {
+
+  const transactionPanelPayload = {
+    transactionAmount: '68000000000000000000',
+    transactionGas: '7548000000000000',
+    toAddress: '0x0d8775f648430679a709e98d2b0cb6250d2887ef',
+    erc20Token: batTokenInfo,
+    tokenPrice: '0.35',
+    ethPrice: '3058.35',
+    transactionData: {
+      functionName: 'Atomic Match_',
+      parameters: 'Parameters: [ {"type": "uint256"}, {"type": "address[]"}, {"type": "address"}, {"type": "uint256"} ]',
+      hexData: '0xab834bab0000000000000000000000007be8076f4ea4a4ad08075c2508e481d6c946d12b00000000000000000000000073a29a1da97149722eb09c526e4ead698895bdc',
+      hexSize: '228'
+    }
+  }
+
+  const onConfirmTransaction = () => {
+    alert('Confirmed Transaction')
+  }
+
+  const onRejectTransaction = () => {
+    alert('Rejected Transaction')
+  }
+
+  return (
+    <StyledExtensionWrapperLonger>
+      <ConfirmTransactionPanel
+        selectedNetwork={mockNetworks[0]}
+        onConfirm={onConfirmTransaction}
+        onReject={onRejectTransaction}
+        selectedAccount={accounts[0]}
+        transactionPayload={transactionPanelPayload}
+      />
+    </StyledExtensionWrapperLonger>
+  )
+}
+
+_ConfirmTransaction.story = {
+  name: 'Confirm Transaction'
+}
+
+export const _AllowAddNetwork = () => {
+
+  const onApprove = () => {
+    alert('Approved Adding Network')
+  }
+
+  const onCancel = () => {
+    alert('Canceled Adding Network')
+  }
+
+  const onLearnMore = () => {
+    alert('Will nav to Learn More')
+  }
+
+  return (
+    <StyledExtensionWrapperLonger>
+      <AllowAddNetworkPanel
+        onApprove={onApprove}
+        onCancel={onCancel}
+        networkPayload={mockNetworks[0]}
+        onLearnMore={onLearnMore}
+      />
+    </StyledExtensionWrapperLonger>
+  )
+}
+
+_AllowAddNetwork.story = {
+  name: 'Allow Add Network'
+}
+
+export const _AllowSpend = () => {
+  const spendPayload = {
+    siteUrl: 'https://app.compound.finance',
+    contractAddress: '0x3f29A1da97149722eB09c526E4eAd698895b426',
+    erc20Token: batTokenInfo,
+    transactionFeeWei: '0.002447',
+    transactionFeeFiat: '$6.57',
+    transactionData: {
+      functionName: 'Atomic Match_',
+      parameters: 'Parameters: [ {"type": "uint256"}, {"type": "address[]"}, {"type": "address"}, {"type": "uint256"} ]',
+      hexData: '0xab834bab0000000000000000000000007be8076f4ea4a4ad08075c2508e481d6c946d12b00000000000000000000000073a29a1da97149722eb09c526e4ead698895bdc',
+      hexSize: '228'
+    }
+  }
+
+  const onConfirm = () => {
+    alert('Confirmed Spend')
+  }
+
+  const onReject = () => {
+    alert('Rejected Spend')
+  }
+
+  return (
+    <StyledExtensionWrapperLonger>
+      <AllowSpendPanel
+        selectedNetwork={mockNetworks[0]}
+        onConfirm={onConfirm}
+        onReject={onReject}
+        spendPayload={spendPayload}
+      />
+    </StyledExtensionWrapperLonger>
+  )
+}
+
+_AllowSpend.story = {
+  name: 'Allow Spend'
+}
+
+export const _SignTransaction = () => {
+
+  const onSign = () => {
+    alert('Signed Transaction')
+  }
+
+  const onCancel = () => {
+    alert('Canceled Signing Transaction')
+  }
+
+  return (
+    <StyledExtensionWrapperLonger>
+      <SignPanel
+        selectedAccount={accounts[0]}
+        selectedNetwork={mockNetworks[0]}
+        message='To avoid digital cat burglars, sign below to authenticate with CryptoKitties.'
+        onCancel={onCancel}
+        onSign={onSign}
+      />
+    </StyledExtensionWrapperLonger>
+  )
+}
+
+_SignTransaction.story = {
+  name: 'Sign Transaction'
+}
 
 export const _ConnectWithSite = () => {
   const [selectedAccounts, setSelectedAccounts] = React.useState<WalletAccountType[]>([
@@ -142,11 +301,24 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
   const [filteredAppsList, setFilteredAppsList] = React.useState<AppsListType[]>(AppsList)
   const [walletConnected, setWalletConnected] = React.useState<boolean>(true)
   const [hasPasswordError, setHasPasswordError] = React.useState<boolean>(false)
-  const [selectedNetwork, setSelectedNetwork] = React.useState<NetworkOptionsType>(NetworkOptions[0])
-  const [selectedAsset, setSelectedAsset] = React.useState<AssetOptionType>(AssetOptions[0])
+  const [selectedNetwork, setSelectedNetwork] = React.useState<EthereumChain>(mockNetworks[0])
+  const [selectedWyreAsset, setSelectedWyreAsset] = React.useState<AccountAssetOptionType>(WyreAccountAssetOptions[0])
+  const [selectedAsset, setSelectedAsset] = React.useState<AccountAssetOptionType>(AccountAssetOptions[0])
   const [showSelectAsset, setShowSelectAsset] = React.useState<boolean>(false)
   const [toAddress, setToAddress] = React.useState('')
   const [fromAmount, setFromAmount] = React.useState('')
+  const [buyAmount, setBuyAmount] = React.useState('')
+
+  const onSetBuyAmount = (value: string) => {
+    setBuyAmount(value)
+  }
+
+  const onSubmitBuy = () => {
+    const url = BuyAssetUrl(mockNetworks[0].chainId, selectedWyreAsset, selectedAccount, buyAmount)
+    if (url) {
+      window.open(url, '_blank')
+    }
+  }
 
   const onChangeSendView = (view: BuySendSwapViewTypes) => {
     if (view === 'assets') {
@@ -158,7 +330,7 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
     setSelectedPanel('main')
   }
 
-  const onSelectNetwork = (network: NetworkOptionsType) => () => {
+  const onSelectNetwork = (network: EthereumChain) => () => {
     setSelectedNetwork(network)
     setSelectedPanel('main')
   }
@@ -172,8 +344,12 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
     setShowSelectAsset(false)
   }
 
-  const onSelectAsset = (asset: AssetOptionType) => () => {
-    setSelectedAsset(asset)
+  const onSelectAsset = (asset: AccountAssetOptionType) => () => {
+    if (selectedPanel === 'buy') {
+      setSelectedWyreAsset(asset)
+    } else {
+      setSelectedAsset(asset)
+    }
     setShowSelectAsset(false)
   }
 
@@ -233,6 +409,10 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
     }
   }
 
+  const onLockWallet = () => {
+    setWalletLocked(true)
+  }
+
   const onSelectPresetAmount = (percent: number) => {
     const amount = Number(selectedAccount.balance) * percent
     setFromAmount(amount.toString())
@@ -245,6 +425,10 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
 
   const onSubmitSend = () => {
     alert('Will submit Send')
+  }
+
+  const onOpenSettings = () => {
+    alert('Will go to Wallet Settings')
   }
 
   return (
@@ -265,13 +449,15 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
               isConnected={walletConnected}
               connectAction={toggleConnected}
               navAction={navigateTo}
+              onLockWallet={onLockWallet}
+              onOpenSettings={onOpenSettings}
             />
           ) : (
             <>
               {showSelectAsset &&
                 <SelectContainer>
                   <SelectAsset
-                    assets={AssetOptions}
+                    assets={AccountAssetOptions}
                     onSelectAsset={onSelectAsset}
                     onBack={onHideSelectAsset}
                   />
@@ -289,7 +475,7 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
               {selectedPanel === 'networks' &&
                 <SelectContainer>
                   <SelectNetwork
-                    networks={NetworkOptions}
+                    networks={mockNetworks}
                     onBack={onBack}
                     onSelectNetwork={onSelectNetwork}
                   />
@@ -322,6 +508,16 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
                         selectedAssetAmount={fromAmount}
                         selectedAssetBalance={selectedAccount.balance.toString()}
                         toAddress={toAddress}
+                      />
+                    }
+                    {selectedPanel === 'buy' &&
+                      <Buy
+                        onChangeBuyView={onChangeSendView}
+                        onInputChange={onSetBuyAmount}
+                        onSubmit={onSubmitBuy}
+                        selectedAsset={selectedWyreAsset}
+                        buyAmount={buyAmount}
+                        selectedNetwork={selectedNetwork}
                       />
                     }
                   </ScrollContainer>

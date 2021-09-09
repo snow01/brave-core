@@ -5,14 +5,16 @@
 
 #include "bat/ads/internal/database/tables/creative_ads_database_table.h"
 
+#include <algorithm>
+#include <functional>
 #include <utility>
 
+#include "base/check.h"
 #include "base/strings/stringprintf.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/database/database_statement_util.h"
 #include "bat/ads/internal/database/database_table_util.h"
 #include "bat/ads/internal/database/database_util.h"
-#include "bat/ads/internal/logging.h"
 
 namespace ads {
 namespace database {
@@ -26,7 +28,7 @@ CreativeAds::CreativeAds() = default;
 
 CreativeAds::~CreativeAds() = default;
 
-void CreativeAds::InsertOrUpdate(DBTransaction* transaction,
+void CreativeAds::InsertOrUpdate(mojom::DBTransaction* transaction,
                                  const CreativeAdList& creative_ads) {
   DCHECK(transaction);
 
@@ -34,15 +36,15 @@ void CreativeAds::InsertOrUpdate(DBTransaction* transaction,
     return;
   }
 
-  DBCommandPtr command = DBCommand::New();
-  command->type = DBCommand::Type::RUN;
+  mojom::DBCommandPtr command = mojom::DBCommand::New();
+  command->type = mojom::DBCommand::Type::RUN;
   command->command = BuildInsertOrUpdateQuery(command.get(), creative_ads);
 
   transaction->commands.push_back(std::move(command));
 }
 
 void CreativeAds::Delete(ResultCallback callback) {
-  DBTransactionPtr transaction = DBTransaction::New();
+  mojom::DBTransactionPtr transaction = mojom::DBTransaction::New();
 
   util::Delete(transaction.get(), get_table_name());
 
@@ -55,12 +57,13 @@ std::string CreativeAds::get_table_name() const {
   return kTableName;
 }
 
-void CreativeAds::Migrate(DBTransaction* transaction, const int to_version) {
+void CreativeAds::Migrate(mojom::DBTransaction* transaction,
+                          const int to_version) {
   DCHECK(transaction);
 
   switch (to_version) {
-    case 15: {
-      MigrateToV15(transaction);
+    case 16: {
+      MigrateToV16(transaction);
       break;
     }
 
@@ -72,7 +75,7 @@ void CreativeAds::Migrate(DBTransaction* transaction, const int to_version) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int CreativeAds::BindParameters(DBCommand* command,
+int CreativeAds::BindParameters(mojom::DBCommand* command,
                                 const CreativeAdList& creative_ads) {
   DCHECK(command);
 
@@ -86,6 +89,7 @@ int CreativeAds::BindParameters(DBCommand* command,
     BindInt(command, index++, creative_ad.per_week);
     BindInt(command, index++, creative_ad.per_month);
     BindInt(command, index++, creative_ad.total_max);
+    BindDouble(command, index++, creative_ad.value);
     BindString(command, index++, creative_ad.split_test_group);
     BindString(command, index++, creative_ad.target_url);
 
@@ -96,7 +100,7 @@ int CreativeAds::BindParameters(DBCommand* command,
 }
 
 std::string CreativeAds::BuildInsertOrUpdateQuery(
-    DBCommand* command,
+    mojom::DBCommand* command,
     const CreativeAdList& creative_ads) {
   const int count = BindParameters(command, creative_ads);
 
@@ -108,13 +112,14 @@ std::string CreativeAds::BuildInsertOrUpdateQuery(
       "per_week, "
       "per_month, "
       "total_max, "
+      "value, "
       "split_test_group, "
       "target_url) VALUES %s",
       get_table_name().c_str(),
-      BuildBindingParameterPlaceholders(8, count).c_str());
+      BuildBindingParameterPlaceholders(9, count).c_str());
 }
 
-void CreativeAds::CreateTableV15(DBTransaction* transaction) {
+void CreativeAds::CreateTableV16(mojom::DBTransaction* transaction) {
   DCHECK(transaction);
 
   const std::string query = base::StringPrintf(
@@ -126,23 +131,24 @@ void CreativeAds::CreateTableV15(DBTransaction* transaction) {
       "per_week INTEGER NOT NULL DEFAULT 0, "
       "per_month INTEGER NOT NULL DEFAULT 0, "
       "total_max INTEGER NOT NULL DEFAULT 0, "
+      "value DOUBLE NOT NULL DEFAULT 0, "
       "split_test_group TEXT, "
       "target_url TEXT NOT NULL)",
       get_table_name().c_str());
 
-  DBCommandPtr command = DBCommand::New();
-  command->type = DBCommand::Type::EXECUTE;
+  mojom::DBCommandPtr command = mojom::DBCommand::New();
+  command->type = mojom::DBCommand::Type::EXECUTE;
   command->command = query;
 
   transaction->commands.push_back(std::move(command));
 }
 
-void CreativeAds::MigrateToV15(DBTransaction* transaction) {
+void CreativeAds::MigrateToV16(mojom::DBTransaction* transaction) {
   DCHECK(transaction);
 
   util::Drop(transaction, get_table_name());
 
-  CreateTableV15(transaction);
+  CreateTableV16(transaction);
 }
 
 }  // namespace table

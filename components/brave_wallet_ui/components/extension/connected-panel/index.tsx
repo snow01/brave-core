@@ -6,6 +6,8 @@ import {
   ConnectedHeader
 } from '../'
 import { Tooltip } from '../../shared'
+import { formatPrices } from '../../../utils/format-prices'
+import { formatBalance } from '../../../utils/format-balances'
 
 // Styled Components
 import {
@@ -16,36 +18,53 @@ import {
   AccountAddressText,
   AccountNameText,
   CenterColumn,
-  SwapIcon,
   OvalButton,
   OvalButtonText,
-  ConnectedIcon,
-  NotConnectedIcon,
+  BigCheckMark,
   CaratDownIcon,
   StatusRow,
-  BalanceColumn
+  BalanceColumn,
+  SwitchIcon
 } from './style'
 
 // Utils
 import { reduceAddress } from '../../../utils/reduce-address'
+import { reduceNetworkDisplayName } from '../../../utils/network-utils'
 import { copyToClipboard } from '../../../utils/copy-to-clipboard'
-import { WalletAccountType, PanelTypes, NetworkOptionsType } from '../../../constants/types'
+import { WalletAccountType, PanelTypes, EthereumChain } from '../../../constants/types'
 import { create, background } from 'ethereum-blockies'
 import locale from '../../../constants/locale'
 
 export interface Props {
   selectedAccount: WalletAccountType
-  selectedNetwork: NetworkOptionsType
+  selectedNetwork: EthereumChain
   isConnected: boolean
   connectAction: () => void
   navAction: (path: PanelTypes) => void
+  onLockWallet: () => void
+  onOpenSettings: () => void
 }
 
 const ConnectedPanel = (props: Props) => {
-  const { connectAction, isConnected, navAction, selectedAccount, selectedNetwork } = props
+  const { onLockWallet, onOpenSettings, connectAction, isConnected, navAction, selectedAccount, selectedNetwork } = props
+  const [showMore, setShowMore] = React.useState<boolean>(false)
 
   const navigate = (path: PanelTypes) => () => {
     navAction(path)
+  }
+
+  const onExpand = () => {
+    navAction('expanded')
+  }
+
+  const onShowMore = () => {
+    setShowMore(true)
+  }
+
+  const onHideMore = () => {
+    if (showMore) {
+      setShowMore(false)
+    }
   }
 
   const onCopyToClipboard = async () => {
@@ -60,35 +79,41 @@ const ConnectedPanel = (props: Props) => {
     return create({ seed: selectedAccount.address, size: 8, scale: 16 }).toDataURL()
   }, [selectedAccount.address])
 
-  const FiatBalance = selectedAccount.balance * 2000
   return (
-    <StyledWrapper panelBackground={bg}>
-      <ConnectedHeader action={navAction} />
+    <StyledWrapper onClick={onHideMore} panelBackground={bg}>
+      <ConnectedHeader
+        onExpand={onExpand}
+        onClickLock={onLockWallet}
+        onClickSetting={onOpenSettings}
+        onClickMore={onShowMore}
+        showMore={showMore}
+      />
       <CenterColumn>
         <StatusRow>
           <OvalButton onClick={connectAction}>
-            {isConnected ? (<ConnectedIcon />) : (<NotConnectedIcon />)}
-            <OvalButtonText>{isConnected ? 'Connected' : 'Not Connected'}</OvalButtonText>
+            {isConnected && <BigCheckMark />}
+            <OvalButtonText>{isConnected ? locale.panelConnected : locale.panelNotConnected}</OvalButtonText>
           </OvalButton>
           <OvalButton onClick={navigate('networks')}>
-            <OvalButtonText>{selectedNetwork.abbr}</OvalButtonText>
+            <OvalButtonText>{reduceNetworkDisplayName(selectedNetwork.chainName)}</OvalButtonText>
             <CaratDownIcon />
           </OvalButton>
         </StatusRow>
         <BalanceColumn>
-          <AccountCircle orb={orb} />
+          <AccountCircle orb={orb} onClick={navigate('accounts')}>
+            <SwitchIcon />
+          </AccountCircle>
           <AccountNameText>{selectedAccount.name}</AccountNameText>
           <Tooltip text={locale.toolTipCopyToClipboard}>
             <AccountAddressText onClick={onCopyToClipboard}>{reduceAddress(selectedAccount.address)}</AccountAddressText>
           </Tooltip>
         </BalanceColumn>
-        <OvalButton onClick={navigate('accounts')}><SwapIcon /></OvalButton>
         <BalanceColumn>
-          <AssetBalanceText>{selectedAccount.balance} {selectedAccount.asset.toUpperCase()}</AssetBalanceText>
-          <FiatBalanceText>${FiatBalance.toFixed(2)}</FiatBalanceText>
+          <AssetBalanceText>{formatBalance(selectedAccount.balance, 18)} {selectedAccount.asset.toUpperCase()}</AssetBalanceText>
+          <FiatBalanceText>${formatPrices(Number(selectedAccount.fiatBalance))}</FiatBalanceText>
         </BalanceColumn>
       </CenterColumn>
-      <ConnectedBottomNav action={navAction} />
+      <ConnectedBottomNav onNavigate={navAction} />
     </StyledWrapper>
   )
 }

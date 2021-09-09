@@ -13,6 +13,7 @@
 #include "brave/app/brave_command_ids.h"
 #include "brave/browser/ui/views/toolbar/bookmark_button.h"
 #include "brave/common/pref_names.h"
+#include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/browser_process.h"
@@ -31,6 +32,11 @@
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
 #include "brave/browser/ui/views/toolbar/wallet_button.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
+#endif
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+#include "brave/browser/ui/views/toolbar/brave_vpn_button.h"
+#include "brave/components/brave_vpn/brave_vpn_utils.h"
 #endif
 
 namespace {
@@ -151,8 +157,7 @@ void BraveToolbarView::Init() {
 
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
   if (brave_wallet::IsNativeWalletEnabled()) {
-    wallet_ =
-        new WalletButton(GetAppMenuButton(), profile, profile->GetPrefs());
+    wallet_ = new WalletButton(GetAppMenuButton(), profile->GetPrefs());
     wallet_->SetTriggerableEventFlags(ui::EF_LEFT_MOUSE_BUTTON |
                                       ui::EF_MIDDLE_MOUSE_BUTTON);
   }
@@ -163,8 +168,26 @@ void BraveToolbarView::Init() {
   }
 #endif
 
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+  if (brave_vpn::IsBraveVPNEnabled()) {
+    show_brave_vpn_button_.Init(
+        kBraveVPNShowButton, profile->GetPrefs(),
+        base::BindRepeating(&BraveToolbarView::OnVPNButtonVisibilityChanged,
+                            base::Unretained(this)));
+    brave_vpn_ = AddChildViewAt(std::make_unique<BraveVPNButton>(browser()),
+                                GetIndexOf(GetAppMenuButton()) - 1);
+    brave_vpn_->SetVisible(show_brave_vpn_button_.GetValue());
+  }
+#endif
+
   brave_initialized_ = true;
 }
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+void BraveToolbarView::OnVPNButtonVisibilityChanged() {
+  brave_vpn_->SetVisible(show_brave_vpn_button_.GetValue());
+}
+#endif
 
 void BraveToolbarView::OnEditBookmarksEnabledChanged() {
   DCHECK_EQ(DisplayMode::NORMAL, display_mode_);

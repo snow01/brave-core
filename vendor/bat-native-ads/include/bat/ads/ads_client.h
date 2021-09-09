@@ -8,27 +8,29 @@
 
 #include <cstdint>
 #include <functional>
-#include <memory>
 #include <string>
 #include <vector>
 
 #include "bat/ads/ad_notification_info.h"
 #include "bat/ads/export.h"
-#include "bat/ads/mojom.h"
-#include "bat/ads/result.h"
+#include "bat/ads/public/interfaces/ads.mojom.h"
 
 namespace ads {
 
-using ResultCallback = std::function<void(const Result)>;
+using ResultCallback = std::function<void(const bool)>;
 
-using LoadCallback = std::function<void(const Result, const std::string&)>;
+using LoadCallback = std::function<void(const bool, const std::string&)>;
 
-using UrlRequestCallback = std::function<void(const UrlResponse&)>;
+using UrlRequestCallback = std::function<void(const mojom::UrlResponse&)>;
 
-using RunDBTransactionCallback = std::function<void(DBCommandResponsePtr)>;
+using RunDBTransactionCallback =
+    std::function<void(mojom::DBCommandResponsePtr)>;
 
 using GetBrowsingHistoryCallback =
     std::function<void(const std::vector<std::string>&)>;
+
+using GetScheduledCaptchaCallback =
+    base::OnceCallback<void(const std::string&)>;
 
 class ADS_EXPORT AdsClient {
  public:
@@ -82,19 +84,19 @@ class ADS_EXPORT AdsClient {
   // the app remains responsive and should handle incoming data or errors as
   // they arrive. The callback takes 1 argument - |URLResponse| should contain
   // the url, status code, HTTP body and HTTP headers
-  virtual void UrlRequest(UrlRequestPtr url_request,
+  virtual void UrlRequest(mojom::UrlRequestPtr url_request,
                           UrlRequestCallback callback) = 0;
 
   // Save a value to persistent storage. The callback takes one argument -
-  // |Result| should be set to |SUCCESS| if successful otherwise should be set
-  // to |FAILED|
+  // |bool| should be set to |true| if successful otherwise should be set to
+  // |false|
   virtual void Save(const std::string& name,
                     const std::string& value,
                     ResultCallback callback) = 0;
 
   // Load a value from persistent storage. The callback takes 2 arguments -
-  // |Result| should be set to |SUCCESS| if successful otherwise should be set
-  // to |FAILED|. |value| should contain the persisted value
+  // |bool| should be set to |true| if successful otherwise should be set to
+  // |false|. |value| should contain the persisted value
   virtual void Load(const std::string& name, LoadCallback callback) = 0;
 
   // Load ads resource for name and version from persistent storage.
@@ -105,9 +107,25 @@ class ADS_EXPORT AdsClient {
   // Should return the resource for given |id|
   virtual std::string LoadResourceForId(const std::string& id) = 0;
 
+  // Clears the currently scheduled captcha, if any
+  virtual void ClearScheduledCaptcha() = 0;
+
+  // Retrieves the captcha scheduled for the given |payment_id|, if
+  // any. If there is a scheduled captcha that the user must solve in
+  // order to proceed, |callback| will return the captcha id;
+  // otherwise, |callback| will return the empty string.
+  virtual void GetScheduledCaptcha(const std::string& payment_id,
+                                   GetScheduledCaptchaCallback callback) = 0;
+
+  // Show a notification indicating that a scheduled captcha with the given
+  // |captcha_id| must be solved to resume Ads for the given |payment_id|
+  virtual void ShowScheduledCaptchaNotification(
+      const std::string& payment_id,
+      const std::string& captcha_id) = 0;
+
   // Run database transaction. The callback takes one argument -
-  // |DBCommandResponsePtr|
-  virtual void RunDBTransaction(DBTransactionPtr transaction,
+  // |mojom::DBCommandResponsePtr|
+  virtual void RunDBTransaction(mojom::DBTransactionPtr transaction,
                                 RunDBTransactionCallback callback) = 0;
 
   // Should be called when ad rewards have changed, i.e. to refresh the UI
@@ -115,7 +133,7 @@ class ADS_EXPORT AdsClient {
 
   // Record P2A event
   virtual void RecordP2AEvent(const std::string& name,
-                              const ads::P2AEventType type,
+                              const mojom::P2AEventType type,
                               const std::string& value) = 0;
 
   // Log diagnostic information

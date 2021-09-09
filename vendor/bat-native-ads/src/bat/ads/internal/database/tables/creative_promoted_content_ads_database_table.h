@@ -6,36 +6,37 @@
 #ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_CREATIVE_PROMOTED_CONTENT_ADS_DATABASE_TABLE_H_
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_CREATIVE_PROMOTED_CONTENT_ADS_DATABASE_TABLE_H_
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "bat/ads/ads_client.h"
-#include "bat/ads/internal/ad_targeting/ad_targeting.h"
 #include "bat/ads/internal/bundle/creative_promoted_content_ad_info.h"
 #include "bat/ads/internal/database/database_table.h"
-#include "bat/ads/internal/database/tables/campaigns_database_table.h"
-#include "bat/ads/internal/database/tables/creative_ads_database_table.h"
-#include "bat/ads/internal/database/tables/dayparts_database_table.h"
-#include "bat/ads/internal/database/tables/geo_targets_database_table.h"
-#include "bat/ads/internal/database/tables/segments_database_table.h"
-#include "bat/ads/mojom.h"
-#include "bat/ads/result.h"
+#include "bat/ads/internal/segments/segments_alias.h"
+#include "bat/ads/public/interfaces/ads.mojom.h"
 
 namespace ads {
 
 using GetCreativePromotedContentAdCallback =
-    std::function<void(const Result,
+    std::function<void(const bool,
                        const std::string& creative_instance_id,
                        const CreativePromotedContentAdInfo&)>;
 
 using GetCreativePromotedContentAdsCallback =
-    std::function<void(const Result,
+    std::function<void(const bool,
                        const std::vector<std::string>&,
                        const CreativePromotedContentAdList&)>;
 
 namespace database {
 namespace table {
+
+class Campaigns;
+class CreativeAds;
+class Dayparts;
+class GeoTargets;
+class Segments;
 
 class CreativePromotedContentAds : public Table {
  public:
@@ -60,37 +61,38 @@ class CreativePromotedContentAds : public Table {
 
   std::string get_table_name() const override;
 
-  void Migrate(DBTransaction* transaction, const int to_version) override;
+  void Migrate(mojom::DBTransaction* transaction,
+               const int to_version) override;
 
  private:
   void InsertOrUpdate(
-      DBTransaction* transaction,
+      mojom::DBTransaction* transaction,
       const CreativePromotedContentAdList& creative_promoted_content_ads);
 
   int BindParameters(
-      DBCommand* command,
+      mojom::DBCommand* command,
       const CreativePromotedContentAdList& creative_promoted_content_ads);
 
   std::string BuildInsertOrUpdateQuery(
-      DBCommand* command,
+      mojom::DBCommand* command,
       const CreativePromotedContentAdList& creative_promoted_content_ads);
 
   void OnGetForCreativeInstanceId(
-      DBCommandResponsePtr response,
+      mojom::DBCommandResponsePtr response,
       const std::string& creative_instance_id,
       GetCreativePromotedContentAdCallback callback);
 
-  void OnGetForSegments(DBCommandResponsePtr response,
+  void OnGetForSegments(mojom::DBCommandResponsePtr response,
                         const SegmentList& segments,
                         GetCreativePromotedContentAdsCallback callback);
 
-  void OnGetAll(DBCommandResponsePtr response,
+  void OnGetAll(mojom::DBCommandResponsePtr response,
                 GetCreativePromotedContentAdsCallback callback);
 
-  CreativePromotedContentAdInfo GetFromRecord(DBRecord* record) const;
+  CreativePromotedContentAdInfo GetFromRecord(mojom::DBRecord* record) const;
 
-  void CreateTableV15(DBTransaction* transaction);
-  void MigrateToV15(DBTransaction* transaction);
+  void CreateTableV16(mojom::DBTransaction* transaction);
+  void MigrateToV16(mojom::DBTransaction* transaction);
 
   int batch_size_;
 

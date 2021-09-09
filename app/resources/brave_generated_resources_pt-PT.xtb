@@ -4,10 +4,13 @@
 <translation id="3333887201479867589">Recompensas Brave</translation>
 <translation id="7942180974165298215">Bloqueador de Anúncios Brave</translation>
 <translation id="4615489450165434530">Informar sobre um Site Danificado</translation>
+<translation id="1209739344687072997">Comunicar ''site'' com problemas</translation>
 <translation id="6406506848690869874">Sincronização</translation>
 <translation id="1544192797660353713">Wallet</translation>
 <translation id="2445484935443597917">Criar um novo perfil</translation>
+<translation id="744341768939279100">Criar um novo perfil</translation>
 <translation id="2666990579225592931">Abrir Janela de Convidado</translation>
+<translation id="4986483413015198747">Abrir janela de convidado</translation>
 <translation id="8275068909952022340">More…</translation>
 <translation id="120759863357279975"><ph name="EXTENSION_NAME"/> (extension ID "<ph name="EXTENSION_ID"/>") não é permitida no Brave.</translation>
 <translation id="6786747875388722282">Extensões</translation>
@@ -28,6 +31,9 @@ Ao instalar esta extensão, está a concordar com os Termos de Utilização do G
 <translation id="3218385319396786393">A reprodução automática foi bloqueada nesta página</translation>
 <translation id="4988333904713528597">Permitir sempre reprodução automática e <ph name="HOST"/></translation>
 <translation id="4150684676757176434">Continuar a bloquear a reprodução automática</translation>
+<translation id="1448289340149908413">Ethereum</translation>
+<translation id="6583467242903731748">Perguntar quando um site quiser aceder à API de fornecedor Ethereum</translation>
+<translation id="7017590444693657895">Bloquear o acesso dos sites à API de fornecedor Ethereum</translation>
 <translation id="8988939298652262600">O Brave não avalia a segurança e a proteção desta extensão. Instale apenas esta extensão se confiar no programador.</translation>
 <translation id="8081858229109418493">Nome de perfil e ícone</translation>
 <translation id="2044383478723007273">Cores Brave</translation>
@@ -42,9 +48,12 @@ Ao instalar esta extensão, está a concordar com os Termos de Utilização do G
 <translation id="5802665280774361839">Apresentar o preenchimento automático na barra de endereços</translation>
 <translation id="597020512043916976">Mostrar sites principais em sugestões de preenchimento automático</translation>
 <translation id="264150068416846820">Mostrar sites principais em sugestões de preenchimento automático</translation>
+<translation id="5529693968082667490">Mostrar botão de pesquisa de separadores</translation>
 <translation id="6414370348346025511">A proteção padrão está ativada.</translation>
 <translation id="814018970995616154">Verifica os URL com uma lista de sites não seguros armazenados no Brave.</translation>
 <translation id="1144810021918451336">Não o protege contra websites, transferências e extensões perigosos.</translation>
+<translation id="6285118765755298263">Indexar outros motores de pesquisa</translation>
+<translation id="919715748352669592">Indexa automaticamente Web sites que seguem a especificação OpenSearch</translation>
 <translation id="7781069478569868053">Nova ficha de registo</translation>
 <translation id="1988804048511540801">Aspeto novo separador</translation>
 <translation id="2970343821770026391">Painel de controlo</translation>
@@ -93,7 +102,7 @@ Ao instalar esta extensão, está a concordar com os Termos de Utilização do G
 <translation id="6303294677342628402">Proteções</translation>
 <translation id="7133511168130368997">Bloquear rastreadores e anúncios que o acompanham pela web.</translation>
 <translation id="2761825942249694703">Estas são as definições predefinidas das «Proteções». Estas aplicam-se a todos os ''sites'', exceto se alterar algo no painel das «Proteções» para um determinado ''site''. Alterá-las não irá afetar as definições preexistentes para o ''site''.</translation>
-<translation id="8754605759692119662">Isto bloqueará a maioria dos anúncios em sites, mas não os anúncios Brave particulares; estes são controláveis na</translation>
+<translation id="1485394570478670912">Esta funcionalidade bloqueia a maior parte dos anúncios nos websites, mas não os anúncios privados do Brave, que são controlados nas</translation>
 <translation id="6388201778088078932">definições.</translation>
 <translation id="9185018653595759199">Bloqueio das redes sociais</translation>
 <translation id="7390783310074170337">Vista padrão</translation>
@@ -187,7 +196,6 @@ Ao instalar esta extensão, está a concordar com os Termos de Utilização do G
 <translation id="1834467296210148203">Mostrar ícone da carteira do Brave na barra de ferramentas</translation>
 <translation id="6864914031231797928">Autorizar logins do Google para extensões</translation>
 <translation id="5927916530277631319">Método para resolver Unstoppable Domains</translation>
-<translation id="8412057160793088103"><ph name="BEGIN_LINK"/>Saiba mais<ph name="END_LINK"/> acerca da privacidade de DNS por HTTPS e da Ethereum.</translation>
 <translation id="5248318250177143470">Método para resolver Ethereum Name Service (ENS)</translation>
 <translation id="7024553202001112871">Configurar as suas chaves IPNS</translation>
 <translation id="951216659045543447">Assine conteúdo utilizando a chave privada correspondente e publique em IPNS</translation>
@@ -209,7 +217,7 @@ Ao instalar esta extensão, está a concordar com os Termos de Utilização do G
 <translation id="1534091531114892221">Configurar a descrição de parceiros IPFS</translation>
 <translation id="8996633027318264334">Pretende realmente eliminar <ph name="KEY_NAME"/>?</translation>
 <translation id="910215077892371264">O nó ainda não está lançado</translation>
-<translation id="616058968889448209">Erro ao iniciar o serviço IPFS. Pode obter mais informações na <ph name="BEGIN_LINK"/>página de diagnóstico<ph name="END_LINK"/></translation>
+<translation id="616058968889448209">Erro de iniciação do serviço IPFS, mais informações disponíveis em <ph name="BEGIN_LINK"/>página de diagnóstico<ph name="END_LINK"/></translation>
 <translation id="6912148685459054619">Falha ao importar a chave '<ph name="KEY_NAME"/>'</translation>
 <translation id="3364053282600191535">'<ph name="KEY_NAME"/>' falha ao exportar a chave</translation>
 <translation id="8275038454117074363">Importar</translation>
@@ -219,7 +227,6 @@ Ao instalar esta extensão, está a concordar com os Termos de Utilização do G
 <translation id="1327977588028644528">Gateway</translation>
 <translation id="80225669816651290">Nó local</translation>
 <translation id="4927734062756955434">Endereço gateway público IPFS</translation>
-<translation id="3399481770463167943"><ph name="BEGIN_LINK_MPL"/>Saiba mais<ph name="END_LINK_MPL"/> acerca do nó local e da privacidade da porta do IPFS.</translation>
 <translation id="8425213833346101688">Alterar</translation>
 <translation id="557281710253742286">Definir gateway IPFS</translation>
 <translation id="8571837315037233299">Endereço gateway</translation>
@@ -233,7 +240,6 @@ Ao instalar esta extensão, está a concordar com os Termos de Utilização do G
 <translation id="8655170717758778983">Redireciona automaticamente para páginas IPFS via DNSLink quando possível</translation>
 <translation id="2233724520223030977">Usa DNSLink automaticamente para, quando possível, navegar para uma versão IPFS de um site</translation>
 <translation id="6554397389149987360">Utiliza um componente de Hangouts para permitir a partilha de ecrã e outras funcionalidades no navegador.</translation>
-<translation id="1765684547504191670">Utiliza o componente "Media Router" para ativar o Chromecast no navegador.</translation>
 <translation id="9156965752763025780">As alterações serão aplicadas da próxima vez que reiniciar o Brave.</translation>
 <translation id="7179921470347911571">Relançar Agora</translation>
 <translation id="8068526464562249859">Usa a extensão IPFS Companion para suporte IPFS otimizado no Brave, incluindo o acesso a tarefas IPFS comuns a partir da barra do seu navegador.</translation>
@@ -294,8 +300,16 @@ Ao instalar esta extensão, está a concordar com os Termos de Utilização do G
 <translation id="1391855377994926460">Navegue mais rápido — até 6x mais rápido nos sites de notícias principais.</translation>
 <translation id="9218430445555521422">Definir como predefinição</translation>
 <translation id="3479552764303398839">Agora não</translation>
+<translation id="5039804452771397117">Permitir</translation>
+<translation id="7053983685419859001">Bloquear</translation>
+<translation id="7815301689257843278">Enviar relatórios de falhas automaticamente, para que o Brave consiga impedir que este problema volte a ocorrer?</translation>
+<translation id="660171790038410175">O <ph name="BROWSER_NAME"/> fechou inesperadamente.</translation>
+<translation id="1324417023773393937">Navegador Brave</translation>
+<translation id="1068069727470515940">Pode alterar <ph name="SETTING_TEXT"/> novamente quando quiser.</translation>
+<translation id="6873781976650514089">esta definição</translation>
 <translation id="6040143037577758943">Fechar</translation>
 <translation id="5600566490506283344">Notificação de anúncios Brave</translation>
+<translation id="1516554614404600536">Descrição Brave</translation>
 <translation id="4877147287319222750">Adicionar à barra lateral</translation>
 <translation id="4233010476457917696">Mostrar barra lateral</translation>
 <translation id="5404213409401164238">Mostrar barra lateral</translation>
@@ -336,6 +350,7 @@ Ao instalar esta extensão, está a concordar com os Termos de Utilização do G
         Pode ler <ph name="BEGIN_LINK_BUILD_INSTRUCTIONS"/> sobre como proceder ao download e fazer você mesmo<ph name="END_LINK_BUILD_INSTRUCTIONS"/> the specific <ph name="BEGIN_LINK_SOURCE_CODE"/>código fonte usado para a criação desta cópia<ph name="END_LINK_SOURCE_CODE"/>.</translation>
 <translation id="4474155171896946103">Adicionar todos os separadores aos marcadores...</translation>
 <translation id="2336228925368920074">Adicionar todos os separadores aos marcadores...</translation>
+<translation id="7705524343798198388">VPN</translation>
 <translation id="796831669370432378">Para adicionar um marcador, clique no botão Marcadores ao lado da barra de endereço</translation>
 <translation id="4989337484121655457">É necessário acesso total ao disco</translation>
 <translation id="8025559074845816210">O Brave precisa de acesso total ao disco para importar os seus favoritos do Safari.</translation>
@@ -345,6 +360,6 @@ Ao instalar esta extensão, está a concordar com os Termos de Utilização do G
 <translation id="8487693399751278191">Importar marcadores agora...</translation>
 <translation id="2557899542277210112">Para acesso rápido, coloque os seus marcadores aqui na barra de marcadores.</translation>
 <translation id="2808630562319398131">Redefinir dados da Brave Rewards...</translation>
-<translation id="1224064034972923114">Ajude o Brave a enviar automaticamente relatórios de falhas</translation>
-<translation id="3738833060602717053">Ajude a melhorar <ph name="PRODUCT_NAME"/> ao enviar automaticamente relatórios de falhas</translation>
+<translation id="2273851479262317744">Definir o Brave como o navegador predefinido</translation>
+<translation id="8581710194025054669">Para garantir a melhor privacidade online, considere definir o Brave como o navegador predefinido no seu computador. Com o Brave como predefinição, qualquer ligação da Web em que clicar irá abrir com as proteções de privacidade do Brave.</translation>
 </translationbundle>

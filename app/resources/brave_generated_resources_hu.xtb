@@ -4,10 +4,13 @@
 <translation id="3333887201479867589">Brave jutalmak</translation>
 <translation id="7942180974165298215">Brave hirdetés blokkolása</translation>
 <translation id="4615489450165434530">Nem működő oldal jelentése</translation>
+<translation id="1209739344687072997">Nem működő oldal jelentése</translation>
 <translation id="6406506848690869874">Szinkronizálás</translation>
 <translation id="1544192797660353713">Pénztárca</translation>
 <translation id="2445484935443597917">Új profil létrehozása</translation>
+<translation id="744341768939279100">Új profil létrehozása</translation>
 <translation id="2666990579225592931">Vendég módú ablak megnyitása</translation>
+<translation id="4986483413015198747">Vendégablak megnyitása</translation>
 <translation id="8275068909952022340">Bővebben…</translation>
 <translation id="120759863357279975"><ph name="EXTENSION_NAME"/> (kiterjesztésazonosító "<ph name="EXTENSION_ID"/>") nem engedélyezett a Brave-ben.</translation>
 <translation id="6786747875388722282">Kiterjesztések</translation>
@@ -28,6 +31,9 @@ Ennek a bővítménynek a telepítésével elfogadja a Google Widevine felhaszn�
 <translation id="3218385319396786393">Ezen az oldalon blokkolták az automatikus lejátszást.</translation>
 <translation id="4988333904713528597">Automatikus lejátszás általános engedélyezése itt: <ph name="HOST"/></translation>
 <translation id="4150684676757176434">Automatikus lejátszás további blokkolása</translation>
+<translation id="1448289340149908413">Ethereum</translation>
+<translation id="6583467242903731748">Kérdezzen rá, ha egy oldal szeretne hozzáférni az Ethereum szolgáltató API-hoz</translation>
+<translation id="7017590444693657895">Blokkolja az oldalak hozzáférését az Ethereum szolgáltató API-hoz</translation>
 <translation id="8988939298652262600">A Brave nem vizsgálja felül a biztonsági kiterjesztéseket. Csak akkor telepítse ezt a kiterjesztést, ha megbízik a fejlesztőben.</translation>
 <translation id="8081858229109418493">Profilnév és ikon</translation>
 <translation id="2044383478723007273">Brave színek</translation>
@@ -42,9 +48,12 @@ Ennek a bővítménynek a telepítésével elfogadja a Google Widevine felhaszn�
 <translation id="5802665280774361839">Mutassa az automatikus kiegészítést a címsorban</translation>
 <translation id="597020512043916976">A legjobb oldalak mutatása az automatikus kiegészítési javaslatokban</translation>
 <translation id="264150068416846820">Brave által javasolt oldalak mutatása az automatikus kiegészítési javaslatokban</translation>
+<translation id="5529693968082667490">Lapkeresés gomb megjelenítése</translation>
 <translation id="6414370348346025511">A normál védelem be van kapcsolva.</translation>
 <translation id="814018970995616154">Ellenőrizze az URL-eket a Brave-ben tárolt nem biztonságos webhelyek listájával.</translation>
 <translation id="1144810021918451336">Nem védi meg a veszélyes webhelyek, letöltések és bővítmények ellen.</translation>
+<translation id="6285118765755298263">Egyéb keresőmotorok indexálása</translation>
+<translation id="919715748352669592">Automatikusan indexálja a weboldalakat, amelyek követik az OpenSearch specet.</translation>
 <translation id="7781069478569868053">Új lap</translation>
 <translation id="1988804048511540801">Ez látható az új ablakban</translation>
 <translation id="2970343821770026391">Műszerfal</translation>
@@ -93,7 +102,7 @@ Ennek a bővítménynek a telepítésével elfogadja a Google Widevine felhaszn�
 <translation id="6303294677342628402">Pajzsok</translation>
 <translation id="7133511168130368997">Tiltsd le a nyomkövetőket és hirdetéseket, amelyek követnek téged a weben.</translation>
 <translation id="2761825942249694703">Ezek az alapértelmezett Shields beállítások. Minden webhelyre vonatkoznak, hacsak nem változtatsz meg valamit a Shields panelben egy adott oldalon. Ezek változtatása nincs hatással a meglévő oldalankénti beállításokra.</translation>
-<translation id="8754605759692119662">Ez letiltja a weboldalakon a legtöbb reklámot, de a privát hirdetéseket nem — azok kezelési helye a</translation>
+<translation id="1485394570478670912">Ez blokkolni fogja a weboldalakon található legtöbb hirdetést, kivéve a Brave Private Ads-eket, amelyeket a következő vezérel:</translation>
 <translation id="6388201778088078932">beállítások.</translation>
 <translation id="9185018653595759199">Közösségi média blokkolása</translation>
 <translation id="7390783310074170337">Alapértelmezett nézet</translation>
@@ -187,7 +196,6 @@ Ennek a bővítménynek a telepítésével elfogadja a Google Widevine felhaszn�
 <translation id="1834467296210148203">A Brave Wallet ikon megjelenítése az eszköztárban</translation>
 <translation id="6864914031231797928">Google bejelentkezés engedélyezése a bővítmények számára</translation>
 <translation id="5927916530277631319">Módszer az Unstoppable Domains megoldására</translation>
-<translation id="8412057160793088103"><ph name="BEGIN_LINK"/>Tudjon meg többet<ph name="END_LINK"/> a DNS-over-HTTPS-ről és az Ethereum adatvédelmi szempontjairól.</translation>
 <translation id="5248318250177143470">Módszer az Ethereum Name Service (ENS) megoldására</translation>
 <translation id="7024553202001112871">IPNS-kulcsok beállítása</translation>
 <translation id="951216659045543447">A tartalom aláírása a megfelelő privát kulccsal, és közzététel IPNS-en</translation>
@@ -219,7 +227,6 @@ Ennek a bővítménynek a telepítésével elfogadja a Google Widevine felhaszn�
 <translation id="1327977588028644528">Átjáró</translation>
 <translation id="80225669816651290">Helyi node</translation>
 <translation id="4927734062756955434">IPFS nyilvános átjáró címe</translation>
-<translation id="3399481770463167943"><ph name="BEGIN_LINK_MPL"/>Tudjon meg többet<ph name="END_LINK_MPL"/> a helyi IPFS csomópontról és a gateway-adatvédelmi szempontokról.</translation>
 <translation id="8425213833346101688">Módosítás</translation>
 <translation id="557281710253742286">IPFS átjáró beállítása</translation>
 <translation id="8571837315037233299">Átjáró címe</translation>
@@ -233,7 +240,6 @@ Ennek a bővítménynek a telepítésével elfogadja a Google Widevine felhaszn�
 <translation id="8655170717758778983">Ha lehetséges, DNSLink segítségével automatikusan átirányít IPFS oldalakra.</translation>
 <translation id="2233724520223030977">Ha lehetséges, DNSLink segítségével automatikusan a weboldalak IPFS verziójára navigál.</translation>
 <translation id="6554397389149987360">Hangouts komponenseket használ, hogy lehetővé tegye a képernyőmegosztást és más funkciókat a böngészőben.</translation>
-<translation id="1765684547504191670">Média-útválasztó komponens használatával engedélyezi a Chromecastot a böngészőben.</translation>
 <translation id="9156965752763025780">Módosításai a Brave újraindítása után lépnek érvénybe.</translation>
 <translation id="7179921470347911571">Indítsd újra most</translation>
 <translation id="8068526464562249859">IPFS Companion kiterjesztést használ a bővített IPFS támogatáshoz Brave-ben, beleértve a közönséges IPFS feladatokhoz a böngészősávból.</translation>
@@ -294,8 +300,16 @@ Ennek a bővítménynek a telepítésével elfogadja a Google Widevine felhaszn�
 <translation id="1391855377994926460">Böngésszen gyorsabban az interneten – a főbb híroldalakon akár 6x gyorsabban.</translation>
 <translation id="9218430445555521422">Beállítás alapértelmezettként</translation>
 <translation id="3479552764303398839">Ne most</translation>
+<translation id="5039804452771397117">Engedélyezés</translation>
+<translation id="7053983685419859001">Letiltás</translation>
+<translation id="7815301689257843278">Küldjön a rendszer automatikusan jelentéseket az összeomlásról, hogy a Brave meg tudja előzni a probléma újbóli előfordulását?</translation>
+<translation id="660171790038410175">A <ph name="BROWSER_NAME"/> váratlanul leállt</translation>
+<translation id="1324417023773393937">Brave böngésző</translation>
+<translation id="1068069727470515940">Módosíthatja <ph name="SETTING_TEXT"/> később bármikor.</translation>
+<translation id="6873781976650514089">ezt a beállítást</translation>
 <translation id="6040143037577758943">Bezárás</translation>
 <translation id="5600566490506283344">Brave Ad értesítés</translation>
+<translation id="1516554614404600536">Brave elemleírás</translation>
 <translation id="4877147287319222750">Hozzáadás az oldalsávhoz</translation>
 <translation id="4233010476457917696">Oldalsáv mutatása</translation>
 <translation id="5404213409401164238">Oldalsáv mutatása</translation>
@@ -336,6 +350,7 @@ Ennek a bővítménynek a telepítésével elfogadja a Google Widevine felhaszn�
  Elolvashatja a <ph name="BEGIN_LINK_BUILD_INSTRUCTIONS"/>útmutatót a letöltéshez és a saját építéshez<ph name="END_LINK_BUILD_INSTRUCTIONS"/> the specific <ph name="BEGIN_LINK_SOURCE_CODE"/>ennek a példánynak a készítéséhez használt forráskód<ph name="END_LINK_SOURCE_CODE"/>.</translation>
 <translation id="4474155171896946103">Összes lap hozzáadása a könyvjelzőkhöz...</translation>
 <translation id="2336228925368920074">Összes lap hozzáadása a könyvjelzőkhöz...</translation>
+<translation id="7705524343798198388">VPN</translation>
 <translation id="796831669370432378">Könyvjelző hozzáadásához kattintson a címsorban szereplő könyvjelző gombra</translation>
 <translation id="4989337484121655457">Teljes körű lemezhozzáférés szükséges</translation>
 <translation id="8025559074845816210">A Brave-nek teljes lemezhozzáférésre van szüksége a Safari-könyvjelzők importálásához.</translation>
@@ -345,6 +360,6 @@ Ennek a bővítménynek a telepítésével elfogadja a Google Widevine felhaszn�
 <translation id="8487693399751278191">Importáld a könyvjelzőket...</translation>
 <translation id="2557899542277210112">A gyors eléréshez, tedd könyvjelzőidet ide, a könyvjelzősávba.</translation>
 <translation id="2808630562319398131">Brave Rewards adatok újraállítása...</translation>
-<translation id="1224064034972923114">Segíts a Brave fejlesztésében automatikus összeomlási jelentések küldésével</translation>
-<translation id="3738833060602717053">Segíts a <ph name="PRODUCT_NAME"/> fejlesztésében összeomlási jelentések automatikus küldésével.</translation>
+<translation id="2273851479262317744">A Brave beállítása alapértelmezett böngészőként</translation>
+<translation id="8581710194025054669">A lehető legjobb online adatvédelem biztosítása érdekében fontolja meg a Brave alapértelmezett böngészőként való beállítását számítógépén. Ha a Brave az alapértelmezett böngésző, bármely webes hivatkozás, amelyre rákattint, a Brave adatvédelmi beállításainak védelmével fog megnyílni.</translation>
 </translationbundle>

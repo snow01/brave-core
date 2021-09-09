@@ -121,7 +121,7 @@ const locale = {
 
   // Wallet More Popup
   walletPopupSettings: 'Settings',
-  walletPopupLock: 'Lock Crypto Wallet',
+  walletPopupLock: 'Lock Crypto',
   walletPopupBackup: 'Backup Wallet',
 
   // Backup Warning
@@ -135,6 +135,7 @@ const locale = {
   restoreError: 'The recovery phrase entered is invalid.',
   restorePlaceholder: 'Paste recovery phrase from clipboard',
   restoreShowPhrase: 'Show recovery phrase',
+  restoreLegacyCheckBox: 'Import from legacy Brave Crypto Wallet?',
   restoreFormText: 'New Password',
 
   // Tool Tips
@@ -144,8 +145,8 @@ const locale = {
   accountsPrimary: 'Primary Crypto Accounts',
   accountsSecondary: 'Secondary Accounts',
   accountsSecondaryDisclaimer: 'These accounts can be used with web 3 dapps and can be shown in your portfolio, however, they cannot not be restored via recovery phrase from your primary account backup. Enable Brave Sync accounts to auto-restore secondary accounts.',
-  accountsWatchlist: 'Watchlist',
-  accountsEditWatchList: 'Edit Watchlist',
+  accountsAssets: 'Assets',
+  accountsEditVisibleAssets: 'Edit visible assets',
 
   // Add Account Options
   addAccountCreate: 'Create',
@@ -170,14 +171,26 @@ const locale = {
   connectHardwareInfo3: 'Unlock your device and select the Ethereum app.',
   connectHardwareTrezor: 'Trezor',
   connectHardwareLedger: 'Ledger',
+  connectingHardwareWallet: 'Connecting...',
+  addCheckedAccountsHardwareWallet: 'Add Checked Accounts',
+  loadMoreAccountsHardwareWallet: 'Load more',
+  searchScannedAccounts: 'Search account 0x',
+  switchHDPathTextHardwareWallet: 'Try switching HD path (above) if you cannot find the account you are looking for.',
+  ledgerLiveDerivationPath: 'Ledger Live',
+  ledgerLegacyDerivationPath: 'Legacy (MEW/MyCrypto)',
 
   // Account Settings Modal
   accountSettingsDetails: 'Details',
-  accountSettingsWatchlist: 'Watchlist',
+  accountSettingsWatchlist: 'Visible Assets',
+  accountSettingsPrivateKey: 'Private Key',
   accountSettingsSave: 'Save',
   accountSettingsRemove: 'Remove Account',
   watchlistButton: 'Save Account Watchlist',
   watchListSearchPlaceholder: 'Search tokens or contract address',
+  accountSettingsDisclaimer: 'Warning: Never disclose this key. Anyone with your private key can steal any assets held in your account.',
+  accountSettingsShowKey: 'Show Key',
+  accountSettingsHideKey: 'Hide Key',
+  accountSettingsUpdateError: 'Failed to update account name, please try again.',
 
   // AmountPresets
   preset25: '25%',
@@ -190,11 +203,12 @@ const locale = {
   networkMain: 'Mainnet',
   networkTest: 'Test Network',
   networkRopsten: 'Roptsten',
-  networkKavan: 'Kavan',
+  networkKovan: 'Kovan',
   networkRinkeby: 'Rinkeby',
   networkGoerli: 'Goerli',
   networkBinance: 'Binance Smart Chain',
   networkBinanceAbbr: 'BSC',
+  networkLocalhost: 'Localhost',
 
   // Select Screens
   selectAccount: 'Select Account',
@@ -209,7 +223,57 @@ const locale = {
   swapEstimate: 'estimate',
   swapMarket: 'Market',
   swapLimit: 'Limit',
-  swapPriceIn: 'Price in'
+  swapPriceIn: 'Price in',
+
+  // Buy
+  buyTitle: 'Test Faucet',
+  buyDescription: 'Get Ether from a faucet for',
+  buyWyreButton: 'Continue to Wyre',
+  buyFaucetButton: 'Get Ether',
+
+  // Sign Transaction Panel
+  signTransactionTitle: 'Your signature is being requested',
+  signTransactionMessageTitle: 'Message',
+  signTransactionButton: 'Sign',
+
+  // Allow Spend ERC20 Panel
+  allowSpendTitle: 'Allow this app to spend your',
+  allowSpendDescriptionFirstHalf: 'By granting this permission, you are allowing this app to withdraw your ',
+  allowSpendDescriptionSecondHalf: ' and automate transactions for you.',
+  allowSpendBoxTitle: 'Edit Permissions',
+  allowSpendTransactionFee: 'Transaction Fee',
+  allowSpendEditButton: 'Edit',
+  allowSpendDetailsButton: 'View details',
+  allowSpendRejectButton: 'Reject',
+  allowSpendConfirmButton: 'Confirm',
+
+  // Allow Add Network Panel
+  allowAddNetworkTitle: 'Allow this site to add a network?',
+  allowAddNetworkDescription: 'This will allow this network to be used within Brave Wallet.',
+  allowAddNetworkLearnMoreButton: 'Learn More.',
+  allowAddNetworkName: 'Network Name',
+  allowAddNetworkUrl: 'Network URL',
+  allowAddNetworkDetailsButton: 'View all details',
+  allowAddNetworkApproveButton: 'Approve',
+  allowAddNetworkChainID: 'Chain ID',
+  allowAddNetworkCurrencySymbol: 'Currency Symbol',
+  allowAddNetworkExplorer: 'Block Explorer URL',
+
+  // Confirm Transaction Panel
+  confirmTransactionTotal: 'Total',
+  confirmTransactionGasFee: 'Gas Fee',
+  confrimTransactionBid: 'Bid',
+  confirmTransactionAmountGas: 'Amount + Gas',
+
+  // Wallet Main Panel
+  panelTitle: 'Crypto',
+  panelConnected: 'Connected',
+  panelNotConnected: 'Not Connected',
+
+  // Transaction Detail Box
+  transactionDetailBoxFunction: 'FUNCTION TYPE',
+  transactionDetailBoxHex: 'HEX DATA',
+  transactionDetailBoxBytes: 'BYTES'
 }
 
 export default locale

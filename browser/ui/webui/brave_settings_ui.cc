@@ -18,18 +18,16 @@
 #include "brave/browser/ui/webui/settings/brave_privacy_handler.h"
 #include "brave/browser/ui/webui/settings/brave_sync_handler.h"
 #include "brave/browser/ui/webui/settings/default_brave_shields_handler.h"
-#include "brave/components/brave_sync/buildflags/buildflags.h"
+#include "brave/components/brave_vpn/buildflags/buildflags.h"
+#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/ntp_background_images/browser/view_counter_service.h"
 #include "brave/components/sidebar/buildflags/buildflags.h"
 #include "brave/components/speedreader/buildflags.h"
 #include "brave/components/version_info/version_info.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/webui/settings/metrics_reporting_handler.h"
-#include "content/public/browser/web_ui_data_source.h"
-
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
 #include "components/sync/driver/sync_driver_switches.h"
-#endif
+#include "content/public/browser/web_ui_data_source.h"
 
 #if BUILDFLAG(ENABLE_SPARKLE)
 #include "brave/browser/ui/webui/settings/brave_relaunch_handler_mac.h"
@@ -43,13 +41,21 @@
 #include "brave/components/speedreader/features.h"
 #endif
 
+#if BUILDFLAG(BRAVE_WALLET_ENABLED)
+#include "brave/components/brave_wallet/common/features.h"
+#endif
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+#include "brave/components/brave_vpn/brave_vpn_utils.h"
+#endif
+
 using ntp_background_images::ViewCounterServiceFactory;
 
 BraveSettingsUI::BraveSettingsUI(content::WebUI* web_ui,
                                  const std::string& host)
     : SettingsUI(web_ui) {
   web_ui->AddMessageHandler(
-    std::make_unique<settings::MetricsReportingHandler>());
+      std::make_unique<settings::MetricsReportingHandler>());
   web_ui->AddMessageHandler(std::make_unique<BravePrivacyHandler>());
   web_ui->AddMessageHandler(std::make_unique<DefaultBraveShieldsHandler>());
   web_ui->AddMessageHandler(std::make_unique<BraveDefaultExtensionsHandler>());
@@ -61,8 +67,7 @@ BraveSettingsUI::BraveSettingsUI(content::WebUI* web_ui,
 #endif
 }
 
-BraveSettingsUI::~BraveSettingsUI() {
-}
+BraveSettingsUI::~BraveSettingsUI() {}
 
 // static
 void BraveSettingsUI::AddResources(content::WebUIDataSource* html_source,
@@ -72,14 +77,10 @@ void BraveSettingsUI::AddResources(content::WebUIDataSource* html_source,
                                  kBraveSettingsResources[i].id);
   }
 
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
-  html_source->AddBoolean("isSyncDisabled",
-                          !switches::IsSyncAllowedByFlag());
-#else
-  html_source->AddBoolean("isSyncDisabled", true);
-#endif
-  html_source->AddString("braveProductVersion",
-    version_info::GetBraveVersionWithoutChromiumMajorVersion());
+  html_source->AddBoolean("isSyncDisabled", !switches::IsSyncAllowedByFlag());
+  html_source->AddString(
+      "braveProductVersion",
+      version_info::GetBraveVersionWithoutChromiumMajorVersion());
   NavigationBarDataProvider::Initialize(html_source);
   if (auto* service = ViewCounterServiceFactory::GetForProfile(profile))
     service->InitializeWebUIDataSource(html_source);
@@ -89,10 +90,19 @@ void BraveSettingsUI::AddResources(content::WebUIDataSource* html_source,
   html_source->AddBoolean("isSidebarFeatureEnabled",
                           sidebar::CanUseSidebar(profile));
 #endif
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+  html_source->AddBoolean("isBraveVPNEnabled", brave_vpn::IsBraveVPNEnabled());
+#endif
 #if BUILDFLAG(ENABLE_SPEEDREADER)
   // TODO(keur): Remove this when Speedreader feature enabled by default.
   html_source->AddBoolean(
       "isSpeedreaderFeatureEnabled",
       base::FeatureList::IsEnabled(speedreader::kSpeedreaderFeature));
+#endif
+#if BUILDFLAG(BRAVE_WALLET_ENABLED)
+  html_source->AddBoolean(
+      "isNativeBraveWalletFeatureEnabled",
+      base::FeatureList::IsEnabled(
+          brave_wallet::features::kNativeBraveWalletFeature));
 #endif
 }

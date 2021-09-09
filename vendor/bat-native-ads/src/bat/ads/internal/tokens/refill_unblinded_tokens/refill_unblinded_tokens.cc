@@ -9,11 +9,15 @@
 #include <functional>
 #include <utility>
 
+#include "base/bind.h"
+#include "base/check.h"
 #include "base/json/json_reader.h"
+#include "base/notreached.h"
 #include "base/time/time.h"
 #include "bat/ads/internal/account/confirmations/confirmations_state.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/logging.h"
+#include "bat/ads/internal/logging_util.h"
 #include "bat/ads/internal/privacy/challenge_bypass_ristretto_util.h"
 #include "bat/ads/internal/privacy/privacy_util.h"
 #include "bat/ads/internal/privacy/tokens/token_generator.h"
@@ -23,7 +27,9 @@
 #include "bat/ads/internal/time_formatting_util.h"
 #include "bat/ads/internal/tokens/refill_unblinded_tokens/get_signed_tokens_url_request_builder.h"
 #include "bat/ads/internal/tokens/refill_unblinded_tokens/request_signed_tokens_url_request_builder.h"
+#include "brave/components/brave_adaptive_captcha/buildflags/buildflags.h"
 #include "net/http/http_status_code.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace ads {
 
@@ -43,7 +49,7 @@ const int kMaximumUnblindedTokens = 50;
 
 RefillUnblindedTokens::RefillUnblindedTokens(
     privacy::TokenGeneratorInterface* token_generator)
-    : token_generator_(token_generator) {
+    : token_generator_(token_generator), weak_ptr_factory_(this) {
   DCHECK(token_generator_);
 }
 
@@ -107,7 +113,37 @@ void RefillUnblindedTokens::Refill() {
 
   nonce_ = "";
 
+  MaybeGetScheduledCaptcha();
+}
+
+void RefillUnblindedTokens::MaybeGetScheduledCaptcha() {
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+  GetScheduledCaptcha();
+#else
   RequestSignedTokens();
+#endif
+}
+
+void RefillUnblindedTokens::GetScheduledCaptcha() {
+  BLOG(1, "GetScheduledCaptcha");
+
+  AdsClientHelper::Get()->GetScheduledCaptcha(
+      wallet_.id, base::BindOnce(&RefillUnblindedTokens::OnGetScheduledCaptcha,
+                                 weak_ptr_factory_.GetWeakPtr()));
+}
+
+void RefillUnblindedTokens::OnGetScheduledCaptcha(
+    const std::string& captcha_id) {
+  BLOG(1, "OnGetScheduledCaptcha");
+
+  if (captcha_id.empty()) {
+    RequestSignedTokens();
+    return;
+  }
+
+  if (delegate_) {
+    delegate_->OnCaptchaRequiredToRefillUnblindedTokens(captcha_id);
+  }
 }
 
 void RefillUnblindedTokens::RequestSignedTokens() {
@@ -121,7 +157,7 @@ void RefillUnblindedTokens::RequestSignedTokens() {
 
   RequestSignedTokensUrlRequestBuilder url_request_builder(wallet_,
                                                            blinded_tokens_);
-  UrlRequestPtr url_request = url_request_builder.Build();
+  mojom::UrlRequestPtr url_request = url_request_builder.Build();
   BLOG(5, UrlRequestToString(url_request));
   BLOG(7, UrlRequestHeadersToString(url_request));
 
@@ -131,7 +167,7 @@ void RefillUnblindedTokens::RequestSignedTokens() {
 }
 
 void RefillUnblindedTokens::OnRequestSignedTokens(
-    const UrlResponse& url_response) {
+    const mojom::UrlResponse& url_response) {
   BLOG(1, "OnRequestSignedTokens");
 
   BLOG(6, UrlResponseToString(url_response));
@@ -170,7 +206,7 @@ void RefillUnblindedTokens::GetSignedTokens() {
   BLOG(2, "GET /v1/confirmation/token/{payment_id}?nonce={nonce}");
 
   GetSignedTokensUrlRequestBuilder url_request_builder(wallet_, nonce_);
-  UrlRequestPtr url_request = url_request_builder.Build();
+  mojom::UrlRequestPtr url_request = url_request_builder.Build();
   BLOG(5, UrlRequestToString(url_request));
   BLOG(7, UrlRequestHeadersToString(url_request));
 
@@ -179,7 +215,8 @@ void RefillUnblindedTokens::GetSignedTokens() {
   AdsClientHelper::Get()->UrlRequest(std::move(url_request), callback);
 }
 
-void RefillUnblindedTokens::OnGetSignedTokens(const UrlResponse& url_response) {
+void RefillUnblindedTokens::OnGetSignedTokens(
+    const mojom::UrlResponse& url_response) {
   BLOG(1, "OnGetSignedTokens");
 
   BLOG(6, UrlResponseToString(url_response));
@@ -348,7 +385,7 @@ void RefillUnblindedTokens::OnRetry() {
   }
 
   if (nonce_.empty()) {
-    RequestSignedTokens();
+    MaybeGetScheduledCaptcha();
   } else {
     GetSignedTokens();
   }

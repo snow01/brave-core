@@ -27,7 +27,7 @@
 #include "brave/common/pref_names.h"
 #include "brave/common/webui_url_constants.h"
 #include "brave/components/binance/browser/buildflags/buildflags.h"
-#include "brave/components/brave_rewards/browser/buildflags/buildflags.h"
+#include "brave/components/brave_rewards/browser/rewards_protocol_handler.h"
 #include "brave/components/brave_search/browser/brave_search_default_host.h"
 #include "brave/components/brave_search/browser/brave_search_default_host_private.h"
 #include "brave/components/brave_search/browser/brave_search_fallback_host.h"
@@ -37,6 +37,8 @@
 #include "brave/components/brave_shields/browser/brave_shields_util.h"
 #include "brave/components/brave_shields/browser/domain_block_navigation_throttle.h"
 #include "brave/components/brave_shields/common/brave_shield_constants.h"
+#include "brave/components/brave_shields/common/features.h"
+#include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/brave_webtorrent/browser/buildflags/buildflags.h"
 #include "brave/components/cosmetic_filters/browser/cosmetic_filters_resources.h"
@@ -46,6 +48,7 @@
 #include "brave/components/gemini/browser/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/speedreader/buildflags.h"
+#include "brave/components/speedreader/speedreader_util.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "brave/grit/brave_generated_resources.h"
 #include "chrome/browser/browser_process.h"
@@ -60,6 +63,7 @@
 #include "components/content_settings/core/browser/host_content_settings_map.h"
 #include "components/prefs/pref_service.h"
 #include "components/services/heap_profiling/public/mojom/heap_profiling_client.mojom.h"
+#include "components/user_prefs/user_prefs.h"
 #include "components/version_info/version_info.h"
 #include "content/browser/renderer_host/render_frame_host_impl.h"
 #include "content/browser/service_worker/service_worker_host.h"
@@ -73,11 +77,13 @@
 #include "content/public/common/content_switches.h"
 #include "extensions/buildflags/buildflags.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
+#include "mojo/public/cpp/bindings/self_owned_receiver.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "net/cookies/site_for_cookies.h"
 #include "third_party/blink/public/common/associated_interfaces/associated_interface_registry.h"
 #include "third_party/blink/public/common/loader/url_loader_throttle.h"
 #include "third_party/blink/public/mojom/webpreferences/web_preferences.mojom.h"
+#include "third_party/widevine/cdm/buildflags.h"
 #include "ui/base/l10n/l10n_util.h"
 
 using blink::web_pref::WebPreferences;
@@ -101,20 +107,15 @@ using extensions::ChromeContentBrowserClientExtensionsPart;
 #include "brave/components/brave_webtorrent/browser/content_browser_client_helper.h"
 #endif
 
-#if BUILDFLAG(IPFS_ENABLED)
+#if BUILDFLAG(ENABLE_IPFS)
 #include "brave/browser/ipfs/content_browser_client_helper.h"
 #include "brave/browser/ipfs/ipfs_service_factory.h"
 #include "brave/components/ipfs/ipfs_constants.h"
 #include "brave/components/ipfs/ipfs_navigation_throttle.h"
-#include "components/user_prefs/user_prefs.h"
 #endif
 
 #if BUILDFLAG(DECENTRALIZED_DNS_ENABLED)
 #include "brave/components/decentralized_dns/decentralized_dns_navigation_throttle.h"
-#endif
-
-#if BUILDFLAG(BRAVE_REWARDS_ENABLED)
-#include "brave/components/brave_rewards/browser/rewards_protocol_handler.h"
 #endif
 
 #if BUILDFLAG(ENABLE_TOR)
@@ -142,6 +143,10 @@ using extensions::ChromeContentBrowserClientExtensionsPart;
 #include "brave/browser/ftx/ftx_protocol_handler.h"
 #endif
 
+#if BUILDFLAG(ENABLE_WIDEVINE)
+#include "brave/browser/brave_drm_tab_helper.h"
+#endif
+
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
 #include "brave/browser/brave_wallet/brave_wallet_context_utils.h"
 #include "brave/browser/brave_wallet/rpc_controller_factory.h"
@@ -155,6 +160,12 @@ using extensions::ChromeContentBrowserClientExtensionsPart;
 #else
 #include "brave/browser/brave_wallet/brave_wallet_provider_delegate_impl_android.h"
 #endif
+#endif
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN) && !defined(OS_ANDROID)
+#include "brave/browser/ui/webui/brave_vpn/vpn_panel_ui.h"
+#include "brave/components/brave_vpn/brave_vpn.mojom.h"
+#include "brave/components/brave_vpn/brave_vpn_utils.h"
 #endif
 
 #if BUILDFLAG(ETHEREUM_REMOTE_CLIENT_ENABLED)
@@ -206,7 +217,7 @@ void BindCosmeticFiltersResources(
 void MaybeBindBraveWalletProvider(
     content::RenderFrameHost* const frame_host,
     mojo::PendingReceiver<brave_wallet::mojom::BraveWalletProvider> receiver) {
-  auto* rpc_controller = brave_wallet::RpcControllerFactory::GetForContext(
+  auto rpc_controller = brave_wallet::RpcControllerFactory::GetForContext(
       frame_host->GetBrowserContext());
 
   if (!rpc_controller)
@@ -216,14 +227,15 @@ void MaybeBindBraveWalletProvider(
       content::WebContents::FromRenderFrameHost(frame_host);
   mojo::MakeSelfOwnedReceiver(
       std::make_unique<brave_wallet::BraveWalletProviderImpl>(
-          rpc_controller,
+          std::move(rpc_controller),
 #if defined(OS_ANDROID)
           std::make_unique<
               brave_wallet::BraveWalletProviderDelegateImplAndroid>(
 #else
           std::make_unique<brave_wallet::BraveWalletProviderDelegateImpl>(
 #endif
-              web_contents)),
+              web_contents, frame_host),
+          user_prefs::UserPrefs::Get(web_contents->GetBrowserContext())),
       std::move(receiver));
 }
 #endif
@@ -292,7 +304,7 @@ void BraveContentBrowserClient::BrowserURLHandlerCreated(
   handler->AddHandlerPair(&webtorrent::HandleTorrentURLRewrite,
                           &webtorrent::HandleTorrentURLReverseRewrite);
 #endif
-#if BUILDFLAG(IPFS_ENABLED)
+#if BUILDFLAG(ENABLE_IPFS)
   handler->AddHandlerPair(&ipfs::HandleIPFSURLRewrite,
                           &ipfs::HandleIPFSURLReverseRewrite);
 #endif
@@ -306,6 +318,36 @@ void BraveContentBrowserClient::RenderProcessWillLaunch(
   BraveRendererUpdaterFactory::GetForProfile(profile)->InitializeRenderer(host);
 
   ChromeContentBrowserClient::RenderProcessWillLaunch(host);
+}
+
+bool BraveContentBrowserClient::BindAssociatedReceiverFromFrame(
+    content::RenderFrameHost* render_frame_host,
+    const std::string& interface_name,
+    mojo::ScopedInterfaceEndpointHandle* handle) {
+  if (ChromeContentBrowserClient::BindAssociatedReceiverFromFrame(
+          render_frame_host, interface_name, handle)) {
+    return true;
+  }
+
+#if BUILDFLAG(ENABLE_WIDEVINE)
+  if (interface_name == brave_drm::mojom::BraveDRM::Name_) {
+    BraveDrmTabHelper::BindBraveDRM(
+        mojo::PendingAssociatedReceiver<brave_drm::mojom::BraveDRM>(
+            std::move(*handle)),
+        render_frame_host);
+    return true;
+  }
+#endif  // BUILDFLAG(ENABLE_WIDEVINE)
+
+  if (interface_name == brave_shields::mojom::BraveShieldsHost::Name_) {
+    brave_shields::BraveShieldsWebContentsObserver::BindBraveShieldsHost(
+        mojo::PendingAssociatedReceiver<brave_shields::mojom::BraveShieldsHost>(
+            std::move(*handle)),
+        render_frame_host);
+    return true;
+  }
+
+  return false;
 }
 
 content::ContentBrowserClient::AllowWebBluetoothResult
@@ -350,11 +392,17 @@ void BraveContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
       brave_wallet::mojom::PageHandlerFactory, WalletPageUI>(map);
 #endif
 #endif
+#if BUILDFLAG(ENABLE_BRAVE_VPN) && !defined(OS_ANDROID)
+  if (brave_vpn::IsBraveVPNEnabled()) {
+    chrome::internal::RegisterWebUIControllerInterfaceBinder<
+        brave_vpn::mojom::PanelHandlerFactory, VPNPanelUI>(map);
+  }
+#endif
 }
 
 bool BraveContentBrowserClient::HandleExternalProtocol(
     const GURL& url,
-    content::WebContents::OnceGetter web_contents_getter,
+    content::WebContents::Getter web_contents_getter,
     int child_id,
     int frame_tree_node_id,
     content::NavigationUIData* navigation_data,
@@ -365,51 +413,46 @@ bool BraveContentBrowserClient::HandleExternalProtocol(
     mojo::PendingRemote<network::mojom::URLLoaderFactory>* out_factory) {
 #if BUILDFLAG(ENABLE_BRAVE_WEBTORRENT)
   if (webtorrent::IsMagnetProtocol(url)) {
-    webtorrent::HandleMagnetProtocol(url, std::move(web_contents_getter),
-                                     page_transition, has_user_gesture,
-                                     initiating_origin);
+    webtorrent::HandleMagnetProtocol(url, web_contents_getter, page_transition,
+                                     has_user_gesture, initiating_origin);
     return true;
   }
 #endif
 
-#if BUILDFLAG(BRAVE_REWARDS_ENABLED)
   if (brave_rewards::IsRewardsProtocol(url)) {
-    brave_rewards::HandleRewardsProtocol(url, std::move(web_contents_getter),
+    brave_rewards::HandleRewardsProtocol(url, web_contents_getter,
                                          page_transition, has_user_gesture);
     return true;
   }
-#endif
 
 #if BUILDFLAG(BINANCE_ENABLED)
   if (binance::IsBinanceProtocol(url)) {
-    binance::HandleBinanceProtocol(url, std::move(web_contents_getter),
-                                   page_transition, has_user_gesture,
-                                   initiating_origin);
+    binance::HandleBinanceProtocol(url, web_contents_getter, page_transition,
+                                   has_user_gesture, initiating_origin);
     return true;
   }
 #endif
 
 #if BUILDFLAG(GEMINI_ENABLED)
   if (gemini::IsGeminiProtocol(url)) {
-    gemini::HandleGeminiProtocol(url, std::move(web_contents_getter),
-                                 page_transition, has_user_gesture,
-                                 initiating_origin);
+    gemini::HandleGeminiProtocol(url, web_contents_getter, page_transition,
+                                 has_user_gesture, initiating_origin);
     return true;
   }
 #endif
 
 #if BUILDFLAG(ENABLE_FTX)
   if (ftx::IsFTXProtocol(url)) {
-    ftx::HandleFTXProtocol(url, std::move(web_contents_getter), page_transition,
+    ftx::HandleFTXProtocol(url, web_contents_getter, page_transition,
                            has_user_gesture, initiating_origin);
     return true;
   }
 #endif
 
   return ChromeContentBrowserClient::HandleExternalProtocol(
-      url, std::move(web_contents_getter), child_id, frame_tree_node_id,
-      navigation_data, is_main_frame, page_transition, has_user_gesture,
-      initiating_origin, out_factory);
+      url, web_contents_getter, child_id, frame_tree_node_id, navigation_data,
+      is_main_frame, page_transition, has_user_gesture, initiating_origin,
+      out_factory);
 }
 
 void BraveContentBrowserClient::AppendExtraCommandLineSwitches(
@@ -422,7 +465,15 @@ void BraveContentBrowserClient::AppendExtraCommandLineSwitches(
   if (process_type == switches::kRendererProcess) {
     uint64_t session_token =
         12345;  // the kinda thing an idiot would have on his luggage
-    if (!command_line->HasSwitch(switches::kTestType)) {
+
+    // Command line parameters from the browser process are propagated to the
+    // renderers *after* ContentBrowserClient::AppendExtraCommandLineSwitches()
+    // is called from RenderProcessHostImpl::AppendRendererCommandLine(). This
+    // means we have to inspect the main browser process' parameters for the
+    // |switches::kTestType| as it will be too soon to find it on command_line.
+    const base::CommandLine& browser_command_line =
+        *base::CommandLine::ForCurrentProcess();
+    if (!browser_command_line.HasSwitch(switches::kTestType)) {
       content::RenderProcessHost* process =
           content::RenderProcessHost::FromID(child_process_id);
       Profile* profile =
@@ -443,14 +494,14 @@ std::vector<std::unique_ptr<blink::URLLoaderThrottle>>
 BraveContentBrowserClient::CreateURLLoaderThrottles(
     const network::ResourceRequest& request,
     content::BrowserContext* browser_context,
-    const base::RepeatingCallback<content::WebContents*()>& wc_getter,
+    const content::WebContents::Getter& wc_getter,
     content::NavigationUIData* navigation_ui_data,
     int frame_tree_node_id) {
   auto result = ChromeContentBrowserClient::CreateURLLoaderThrottles(
       request, browser_context, wc_getter, navigation_ui_data,
       frame_tree_node_id);
 #if BUILDFLAG(ENABLE_SPEEDREADER)
-  using DistillState = speedreader::SpeedreaderTabHelper::DistillState;
+  using DistillState = speedreader::DistillState;
   content::WebContents* contents = wc_getter.Run();
   if (!contents) {
     return result;
@@ -459,15 +510,18 @@ BraveContentBrowserClient::CreateURLLoaderThrottles(
       speedreader::SpeedreaderTabHelper::FromWebContents(contents);
   if (tab_helper) {
     const auto state = tab_helper->PageDistillState();
-    if (speedreader::SpeedreaderTabHelper::PageStateIsDistilled(state) &&
+    if (speedreader::PageWantsDistill(state) &&
         request.resource_type ==
             static_cast<int>(blink::mojom::ResourceType::kMainFrame)) {
+      // Only check for disabled sites if we are in Speedreader mode
+      const bool check_disabled_sites =
+          state == DistillState::kSpeedreaderModePending;
       std::unique_ptr<speedreader::SpeedReaderThrottle> throttle =
           speedreader::SpeedReaderThrottle::MaybeCreateThrottleFor(
               g_brave_browser_process->speedreader_rewriter_service(),
               HostContentSettingsMapFactory::GetForProfile(
                   Profile::FromBrowserContext(browser_context)),
-              request.url, state == DistillState::kSpeedreaderMode,
+              tab_helper->GetWeakPtr(), request.url, check_disabled_sites,
               base::ThreadTaskRunnerHandle::Get());
       if (throttle)
         result.push_back(std::move(throttle));
@@ -656,7 +710,7 @@ BraveContentBrowserClient::CreateThrottlesForNavigation(
     throttles.push_back(std::move(onion_location_navigation_throttle));
 #endif
 
-#if BUILDFLAG(IPFS_ENABLED)
+#if BUILDFLAG(ENABLE_IPFS)
   std::unique_ptr<content::NavigationThrottle> ipfs_navigation_throttle =
       ipfs::IpfsNavigationThrottle::MaybeCreateThrottleFor(
           handle, ipfs::IpfsServiceFactory::GetForContext(context),
@@ -704,7 +758,9 @@ bool BraveContentBrowserClient::OverrideWebPreferencesAfterNavigation(
       HostContentSettingsMapFactory::GetForProfile(profile), url);
   // https://github.com/brave/brave-browser/issues/15265
   // Always use color scheme Light if fingerprinting mode strict
-  if (shields_up && fingerprinting_type == ControlType::BLOCK) {
+  if (base::FeatureList::IsEnabled(
+          brave_shields::features::kBraveDarkModeBlock) &&
+      shields_up && fingerprinting_type == ControlType::BLOCK) {
     prefs->preferred_color_scheme = blink::mojom::PreferredColorScheme::kLight;
     changed = true;
   }

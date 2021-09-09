@@ -39,14 +39,14 @@ TEST_F(BatAdsCreativeAdNotificationsDatabaseTableIntegrationTest,
   // Act
 
   // Assert
-  const std::vector<std::string> segments = {"Technology & Computing"};
+  const std::vector<std::string> segments = {"technology & computing"};
 
   database::table::CreativeAdNotifications creative_ad_notifications;
   creative_ad_notifications.GetForSegments(
       segments,
-      [](const Result result, const SegmentList& segments,
+      [](const bool success, const SegmentList& segments,
          const CreativeAdNotificationList& creative_ad_notifications) {
-        EXPECT_EQ(Result::SUCCESS, result);
+        EXPECT_TRUE(success);
         EXPECT_EQ(2UL, creative_ad_notifications.size());
       });
 }

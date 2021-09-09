@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { AssetOptionType, OrderTypes, SlippagePresetObjectType, ExpirationPresetObjectType } from '../../../constants/types'
+import { AccountAssetOptionType, OrderTypes, SlippagePresetObjectType, ExpirationPresetObjectType } from '../../../constants/types'
 import { AmountPresetOptions } from '../../../options/amount-preset-options'
 import { SlippagePresetOptions } from '../../../options/slippage-preset-options'
 import { ExpirationPresetOptions } from '../../../options/expiration-preset-options'
@@ -38,7 +38,7 @@ export type BuySendSwapInputType =
 export interface Props {
   componentType: BuySendSwapInputType
   selectedAssetBalance?: string
-  selectedAsset?: AssetOptionType
+  selectedAsset?: AccountAssetOptionType
   selectedAssetInputAmount?: string
   toAddress?: string
   inputName?: string
@@ -123,9 +123,9 @@ function SwapInputComponent (props: Props) {
         return locale.buy
       case 'exchange':
         if (orderType === 'market') {
-          return `${locale.swapMarket} ${locale.swapPriceIn} ${selectedAsset?.symbol}`
+          return `${locale.swapMarket} ${locale.swapPriceIn} ${selectedAsset?.asset.symbol}`
         } else {
-          return `${locale.swapPriceIn} ${selectedAsset?.symbol}`
+          return `${locale.swapPriceIn} ${selectedAsset?.asset.symbol}`
         }
       case 'selector':
         if (orderType === 'market') {
@@ -157,7 +157,7 @@ function SwapInputComponent (props: Props) {
             {componentType === 'exchange' &&
               <MarketLimitButton onClick={onToggleOrderType}>{orderType === 'market' ? locale.swapLimit : locale.swapMarket}</MarketLimitButton>
             }
-            {componentType !== 'exchange' && componentType !== 'toAddress' &&
+            {componentType !== 'exchange' && componentType !== 'toAddress' && componentType !== 'buyAmount' &&
               <FromBalanceText>{locale.balance}: {selectedAssetBalance}</FromBalanceText>
             }
             {componentType === 'toAddress' &&
@@ -167,6 +167,9 @@ function SwapInputComponent (props: Props) {
             }
           </Row>
           <Row componentType={componentType}>
+            {componentType === 'buyAmount' &&
+              <AssetTicker>$</AssetTicker>
+            }
             <Input
               componentType={componentType}
               type={componentType === 'toAddress' ? 'text' : 'number'}
@@ -188,8 +191,8 @@ function SwapInputComponent (props: Props) {
             }
             {componentType !== 'exchange' && componentType !== 'toAddress' &&
               <AssetButton onClick={onShowSelection}>
-                <AssetIcon icon={selectedAsset?.icon} />
-                <AssetTicker>{selectedAsset?.symbol}</AssetTicker>
+                <AssetIcon icon={selectedAsset?.asset.icon} />
+                <AssetTicker>{selectedAsset?.asset.symbol}</AssetTicker>
                 <CaratDownIcon />
               </AssetButton>
             }

@@ -11,12 +11,15 @@
 #include <vector>
 
 #include "brave/components/brave_wallet/browser/brave_wallet_types.h"
+#include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 
 class PrefService;
 namespace base {
 class Value;
 }  // namespace base
+
+class GURL;
 
 namespace brave_wallet {
 
@@ -62,6 +65,7 @@ std::string GenerateMnemonicForTest(const std::vector<uint8_t>& entropy);
 std::unique_ptr<std::vector<uint8_t>> MnemonicToSeed(
     const std::string& mnemonic,
     const std::string& passphrase);
+bool IsValidMnemonic(const std::string& mnemonic);
 
 bool EncodeString(const std::string& input, std::string* output);
 bool EncodeStringArray(const std::vector<std::string>& input,
@@ -91,6 +95,15 @@ base::Value TransactionReceiptToValue(const TransactionReceipt& tx_receipt);
 absl::optional<TransactionReceipt> ValueToTransactionReceipt(
     const base::Value& value);
 
+void GetAllKnownChains(std::vector<mojom::EthereumChainPtr>* chains);
+const std::vector<mojom::EthereumChain> GetAllKnownNetworks();
+void GetAllCustomChains(PrefService* prefs,
+                        std::vector<mojom::EthereumChainPtr>* result);
+void GetAllChains(PrefService* prefs,
+                  std::vector<mojom::EthereumChainPtr>* result);
+GURL GetNetworkURL(PrefService* prefs, const std::string& chain_id);
+std::string GetInfuraSubdomainForKnownChainId(const std::string& chain_id);
+mojom::EthereumChainPtr GetKnownChain(const std::string& chain_id);
 }  // namespace brave_wallet
 
 #endif  // BRAVE_COMPONENTS_BRAVE_WALLET_BROWSER_BRAVE_WALLET_UTILS_H_

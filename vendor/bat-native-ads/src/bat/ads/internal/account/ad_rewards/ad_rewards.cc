@@ -8,16 +8,18 @@
 #include <functional>
 #include <utility>
 
-#include "base/time/time.h"
+#include "base/check.h"
+#include "bat/ads/internal/account/ad_rewards/ad_rewards_delegate.h"
 #include "bat/ads/internal/account/ad_rewards/payments/payments.h"
 #include "bat/ads/internal/account/ad_rewards/payments/payments_url_request_builder.h"
 #include "bat/ads/internal/account/confirmations/confirmations_state.h"
 #include "bat/ads/internal/account/transactions/transactions.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/logging.h"
+#include "bat/ads/internal/logging_util.h"
+#include "bat/ads/internal/privacy/unblinded_tokens/unblinded_tokens.h"
 #include "bat/ads/internal/time_formatting_util.h"
 #include "bat/ads/pref_names.h"
-#include "bat/ads/transaction_info.h"
 #include "net/http/http_status_code.h"
 
 namespace ads {
@@ -197,6 +199,20 @@ bool AdRewards::SetFromDictionary(base::Value* dictionary) {
   return true;
 }
 
+void AdRewards::Reset() {
+  payments_->reset();
+
+  ConfirmationsState::Get()->reset_failed_confirmations();
+
+  ConfirmationsState::Get()->reset_transactions();
+
+  privacy::UnblindedTokens* unblinded_payment_tokens =
+      ConfirmationsState::Get()->get_unblinded_payment_tokens();
+  unblinded_payment_tokens->RemoveAllTokens();
+
+  ConfirmationsState::Get()->Save();
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void AdRewards::Reconcile() {
@@ -214,7 +230,7 @@ void AdRewards::GetPayments() {
   BLOG(2, "GET /v1/confirmation/payment/{payment_id}");
 
   PaymentsUrlRequestBuilder url_request_builder(wallet_);
-  UrlRequestPtr url_request = url_request_builder.Build();
+  mojom::UrlRequestPtr url_request = url_request_builder.Build();
   BLOG(5, UrlRequestToString(url_request));
   BLOG(7, UrlRequestHeadersToString(url_request));
 
@@ -223,7 +239,7 @@ void AdRewards::GetPayments() {
   AdsClientHelper::Get()->UrlRequest(std::move(url_request), callback);
 }
 
-void AdRewards::OnGetPayments(const UrlResponse& url_response) {
+void AdRewards::OnGetPayments(const mojom::UrlResponse& url_response) {
   BLOG(1, "OnGetPayments");
 
   BLOG(6, UrlResponseToString(url_response));

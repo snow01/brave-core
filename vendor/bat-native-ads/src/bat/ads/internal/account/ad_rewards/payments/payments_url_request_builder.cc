@@ -8,10 +8,10 @@
 #include <cstdint>
 
 #include "base/base64.h"
+#include "base/check.h"
 #include "base/json/json_writer.h"
 #include "base/strings/stringprintf.h"
 #include "base/values.h"
-#include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/security/crypto_util.h"
 #include "bat/ads/internal/server/confirmations_server_util.h"
 
@@ -26,12 +26,12 @@ PaymentsUrlRequestBuilder::~PaymentsUrlRequestBuilder() = default;
 
 // GET /v1/confirmation/payment/{payment_id}
 
-UrlRequestPtr PaymentsUrlRequestBuilder::Build() {
-  UrlRequestPtr url_request = UrlRequest::New();
+mojom::UrlRequestPtr PaymentsUrlRequestBuilder::Build() {
+  mojom::UrlRequestPtr url_request = mojom::UrlRequest::New();
   url_request->url = BuildUrl();
   const std::string body = BuildBody();
   url_request->headers = BuildHeaders(body);
-  url_request->method = UrlRequestMethod::GET;
+  url_request->method = mojom::UrlRequestMethod::kGet;
 
   return url_request;
 }

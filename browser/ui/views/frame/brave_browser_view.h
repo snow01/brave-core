@@ -10,8 +10,13 @@
 #include <string>
 
 #include "brave/browser/ui/tabs/brave_tab_strip_model.h"
+#include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "brave/components/sidebar/buildflags/buildflags.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+#include "brave/browser/ui/views/brave_vpn_panel_host.h"
+#endif
 
 #if BUILDFLAG(ENABLE_SIDEBAR)
 class ContentsLayoutManager;
@@ -49,7 +54,9 @@ class BraveBrowserView : public BrowserView {
   void CreateWalletBubble();
   void CloseWalletBubble();
   WalletButton* GetWalletButton();
+  views::View* GetWalletButtonAnchorView();
   void StartTabCycling() override;
+  views::View* GetAnchorViewForBraveVPNPanel();
 
 #if BUILDFLAG(ENABLE_SIDEBAR)
   views::View* sidebar_host_view() { return sidebar_host_view_; }
@@ -63,8 +70,11 @@ class BraveBrowserView : public BrowserView {
       TabStripModel* tab_strip_model,
       const TabStripModelChange& change,
       const TabStripSelectionChange& selection) override;
+  void ShowBraveVPNBubble() override;
 
   void StopTabCycling();
+  void UpdateSearchTabsButtonState();
+  void OnPreferenceChanged(const std::string& pref_name);
 
 #if BUILDFLAG(ENABLE_SIDEBAR)
   sidebar::Sidebar* InitSidebar() override;
@@ -80,7 +90,12 @@ class BraveBrowserView : public BrowserView {
   views::View* sidebar_host_view_ = nullptr;
 #endif
 
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+  BraveVPNPanelHost vpn_panel_host_{this};
+#endif
+
   std::unique_ptr<TabCyclingEventHandler> tab_cycling_event_handler_;
+  PrefChangeRegistrar pref_change_registrar_;
 
   DISALLOW_COPY_AND_ASSIGN(BraveBrowserView);
 };

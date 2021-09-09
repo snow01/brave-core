@@ -12,6 +12,18 @@ export const StyledExtensionWrapper = styled.div`
   height: 400px;
 `
 
+export const StyledExtensionWrapperLonger = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #F8F9FA;
+  border-radius: 4px;
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.25);
+  width: 320px;
+  height: 475px;
+`
+
 export const ChildComponentWrapper = styled.div`
   flex: 1;
   display: flex;
@@ -28,6 +40,19 @@ export const SelectContainer = styled.div`
   width: 100%;
   height: 100%;
   padding: 12px 12px 0px 12px;
+  position: relative;
+  box-sizing: border-box;
+  background-color: ${(p) => p.theme.color.background01};
+`
+
+export const SignContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  padding: 0px 12px 0px 12px;
   position: relative;
   box-sizing: border-box;
   background-color: ${(p) => p.theme.color.background01};

@@ -6,21 +6,19 @@
 #include "bat/ads/internal/ads/ad_notifications/ad_notifications.h"
 
 #include <functional>
-#include <memory>
 #include <utility>
 
+#include "base/check_op.h"
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "base/time/time.h"
-#include "bat/ads/ad_notification_info.h"
 #include "bat/ads/ad_type.h"
 #include "bat/ads/internal/ad_events/ad_event_info.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/client/client.h"
 #include "bat/ads/internal/database/tables/ad_events_database_table.h"
 #include "bat/ads/internal/logging.h"
-#include "bat/ads/pref_names.h"
-#include "bat/ads/result.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 #if defined(OS_ANDROID)
 #include "base/android/build_info.h"
@@ -182,8 +180,8 @@ uint64_t AdNotifications::Count() const {
 #if defined(OS_ANDROID)
 void AdNotifications::RemoveAllAfterReboot() {
   database::table::AdEvents database_table;
-  database_table.GetAll([=](const Result result, const AdEventList& ad_events) {
-    if (result != Result::SUCCESS) {
+  database_table.GetAll([=](const bool success, const AdEventList& ad_events) {
+    if (!success) {
       BLOG(1, "New tab page ad: Failed to get ad events");
       return;
     }
@@ -386,8 +384,8 @@ void AdNotifications::Save() {
   AdsClientHelper::Get()->Save(kNotificationsFilename, json, callback);
 }
 
-void AdNotifications::OnSaved(const Result result) {
-  if (result != SUCCESS) {
+void AdNotifications::OnSaved(const bool success) {
+  if (!success) {
     BLOG(0, "Failed to save ad notifications state");
     return;
   }
@@ -403,8 +401,8 @@ void AdNotifications::Load() {
   AdsClientHelper::Get()->Load(kNotificationsFilename, callback);
 }
 
-void AdNotifications::OnLoaded(const Result result, const std::string& json) {
-  if (result != SUCCESS) {
+void AdNotifications::OnLoaded(const bool success, const std::string& json) {
+  if (!success) {
     BLOG(3, "Ad notifications state does not exist, creating default state");
 
     is_initialized_ = true;
@@ -417,7 +415,7 @@ void AdNotifications::OnLoaded(const Result result, const std::string& json) {
 
       BLOG(3, "Failed to parse ad notifications state: " << json);
 
-      callback_(FAILED);
+      callback_(/* success */ false);
       return;
     }
 
@@ -426,7 +424,7 @@ void AdNotifications::OnLoaded(const Result result, const std::string& json) {
     is_initialized_ = true;
   }
 
-  callback_(SUCCESS);
+  callback_(/* success */ true);
 }
 
 bool AdNotifications::FromJson(const std::string& json) {

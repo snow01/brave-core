@@ -6,8 +6,10 @@
 #include "brave/browser/brave_drm_tab_helper.h"
 
 #include <algorithm>
+#include <utility>
 #include <vector>
 
+#include "brave/browser/widevine/constants.h"
 #include "brave/browser/widevine/widevine_utils.h"
 #include "brave/common/pref_names.h"
 #include "chrome/browser/browser_process_impl.h"
@@ -26,8 +28,7 @@ bool IsAlreadyRegistered(ComponentUpdateService* cus) {
   std::vector<std::string> component_ids;
   component_ids = cus->GetComponentIDs();
   return std::find(component_ids.begin(), component_ids.end(),
-                   BraveDrmTabHelper::kWidevineComponentId) !=
-         component_ids.end();
+                   kWidevineComponentId) != component_ids.end();
 }
 #if !defined(OS_LINUX)
 content::WebContents* GetActiveWebContents() {
@@ -44,12 +45,8 @@ void ReloadIfActive(content::WebContents* web_contents) {
 
 }  // namespace
 
-// static
-const char BraveDrmTabHelper::kWidevineComponentId[] =
-    "oimompecagnajdejgnnjijobebaeigek";
-
 BraveDrmTabHelper::BraveDrmTabHelper(content::WebContents* contents)
-    : WebContentsObserver(contents), receivers_(contents, this) {
+    : WebContentsObserver(contents), brave_drm_receivers_(contents, this) {
   auto* updater = g_browser_process->component_updater();
   // We don't need to observe if widevine is already registered.
   if (!IsAlreadyRegistered(updater))
@@ -57,6 +54,20 @@ BraveDrmTabHelper::BraveDrmTabHelper(content::WebContents* contents)
 }
 
 BraveDrmTabHelper::~BraveDrmTabHelper() {}
+
+// static
+void BraveDrmTabHelper::BindBraveDRM(
+    mojo::PendingAssociatedReceiver<brave_drm::mojom::BraveDRM> receiver,
+    content::RenderFrameHost* rfh) {
+  auto* web_contents = content::WebContents::FromRenderFrameHost(rfh);
+  if (!web_contents)
+    return;
+
+  auto* tab_helper = BraveDrmTabHelper::FromWebContents(web_contents);
+  if (!tab_helper)
+    return;
+  tab_helper->brave_drm_receivers_.Bind(rfh, std::move(receiver));
+}
 
 bool BraveDrmTabHelper::ShouldShowWidevineOptIn() const {
   // If the user already opted in, don't offer it.

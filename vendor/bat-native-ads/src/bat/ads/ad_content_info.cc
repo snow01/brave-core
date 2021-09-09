@@ -19,7 +19,7 @@ bool AdContentInfo::operator==(const AdContentInfo& rhs) const {
          creative_instance_id == rhs.creative_instance_id &&
          creative_set_id == rhs.creative_set_id &&
          campaign_id == rhs.campaign_id && brand == rhs.brand &&
-         brand_info == rhs.brand_info && brand_logo == rhs.brand_logo &&
+         brand_info == rhs.brand_info &&
          brand_display_url == rhs.brand_display_url &&
          brand_url == rhs.brand_url && like_action == rhs.like_action &&
          ad_action == rhs.ad_action && saved_ad == rhs.saved_ad &&
@@ -36,13 +36,13 @@ std::string AdContentInfo::ToJson() const {
   return json;
 }
 
-Result AdContentInfo::FromJson(const std::string& json) {
+bool AdContentInfo::FromJson(const std::string& json) {
   rapidjson::Document document;
   document.Parse(json.c_str());
 
   if (document.HasParseError()) {
     BLOG(1, helper::JSON::GetLastError(&document));
-    return FAILED;
+    return false;
   }
 
   if (document.HasMember("type") && document["type"].IsString()) {
@@ -75,10 +75,6 @@ Result AdContentInfo::FromJson(const std::string& json) {
     brand_info = document["brand_info"].GetString();
   }
 
-  if (document.HasMember("brand_logo")) {
-    brand_logo = document["brand_logo"].GetString();
-  }
-
   if (document.HasMember("brand_display_url")) {
     brand_display_url = document["brand_display_url"].GetString();
   }
@@ -104,7 +100,7 @@ Result AdContentInfo::FromJson(const std::string& json) {
     flagged_ad = document["flagged_ad"].GetBool();
   }
 
-  return SUCCESS;
+  return true;
 }
 
 void SaveToJson(JsonWriter* writer, const AdContentInfo& ad_content) {
@@ -131,9 +127,6 @@ void SaveToJson(JsonWriter* writer, const AdContentInfo& ad_content) {
 
   writer->String("brand_info");
   writer->String(ad_content.brand_info.c_str());
-
-  writer->String("brand_logo");
-  writer->String(ad_content.brand_logo.c_str());
 
   writer->String("brand_display_url");
   writer->String(ad_content.brand_display_url.c_str());

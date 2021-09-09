@@ -9,9 +9,12 @@
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "chrome/browser/ui/browser_command_controller.h"
-#if BUILDFLAG(IPFS_ENABLED)
+#if BUILDFLAG(ENABLE_IPFS)
 #include "components/prefs/pref_change_registrar.h"
 #endif
+
+class BraveAppMenuBrowserTest;
+class BraveBrowserCommandControllerTest;
 
 // This namespace is needed for a chromium_src override
 namespace chrome {
@@ -25,6 +28,9 @@ class BraveBrowserCommandController : public chrome::BrowserCommandController {
 #endif
 
  private:
+  friend class ::BraveAppMenuBrowserTest;
+  friend class ::BraveBrowserCommandControllerTest;
+
   // Overriden from CommandUpdater:
   bool SupportsCommand(int id) const override;
   bool IsCommandEnabled(int id) const override;
@@ -44,6 +50,7 @@ class BraveBrowserCommandController : public chrome::BrowserCommandController {
   void UpdateCommandForBraveSync();
   void UpdateCommandForBraveWallet();
   void UpdateCommandForSidebar();
+  void UpdateCommandForBraveVPN();
   bool ExecuteBraveCommandWithDisposition(int id,
                                           WindowOpenDisposition disposition,
                                           base::TimeTicks time_stamp);

@@ -8,8 +8,10 @@
 #include <cstdint>
 #include <utility>
 
+#include "base/check_op.h"
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
+#include "base/notreached.h"
 #include "base/strings/string_number_conversions.h"
 #include "bat/ads/internal/account/ad_rewards/ad_rewards.h"
 #include "bat/ads/internal/ads_client_helper.h"
@@ -17,6 +19,7 @@
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/privacy/challenge_bypass_ristretto_util.h"
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_tokens.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "wrapper.hpp"
 
 namespace ads {
@@ -69,9 +72,8 @@ void ConfirmationsState::Load() {
   BLOG(3, "Loading confirmations state");
 
   AdsClientHelper::Get()->Load(
-      kConfirmationsFilename,
-      [=](const Result result, const std::string& json) {
-        if (result != SUCCESS) {
+      kConfirmationsFilename, [=](const bool success, const std::string& json) {
+        if (!success) {
           BLOG(3, "Confirmations state does not exist, creating default state");
 
           is_initialized_ = true;
@@ -83,7 +85,7 @@ void ConfirmationsState::Load() {
 
             BLOG(3, "Failed to parse confirmations state: " << json);
 
-            callback_(FAILED);
+            callback_(/* success */ false);
             return;
           }
 
@@ -92,7 +94,7 @@ void ConfirmationsState::Load() {
           is_initialized_ = true;
         }
 
-        callback_(SUCCESS);
+        callback_(/* success */ true);
       });
 }
 
@@ -105,8 +107,8 @@ void ConfirmationsState::Save() {
 
   const std::string json = ToJson();
   AdsClientHelper::Get()->Save(
-      kConfirmationsFilename, json, [](const Result result) {
-        if (result != SUCCESS) {
+      kConfirmationsFilename, json, [](const bool success) {
+        if (!success) {
           BLOG(0, "Failed to save confirmations state");
           return;
         }

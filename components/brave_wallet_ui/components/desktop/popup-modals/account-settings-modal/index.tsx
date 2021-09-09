@@ -3,19 +3,19 @@ import * as qr from 'qr-image'
 import {
   AccountSettingsNavTypes,
   WalletAccountType,
-  UserAssetOptionType,
-  AssetOptionType
+  UpdateAccountNamePayloadType
 } from '../../../../constants/types'
 import {
   PopupModal,
-  TopTabNav,
-  AssetWatchlistItem
+  TopTabNav
 } from '../..'
-import { AccountSettingsNavOptions } from '../../../../options/account-settings-nav-options'
-import { AssetOptions } from '../../../../options/asset-options'
+import {
+  AccountSettingsNavOptions
+} from '../../../../options/account-settings-nav-options'
 import { reduceAddress } from '../../../../utils/reduce-address'
+import { copyToClipboard } from '../../../../utils/copy-to-clipboard'
 import { NavButton } from '../../../extension'
-import { Tooltip, SearchBar } from '../../../shared'
+import { Tooltip } from '../../../shared'
 import locale from '../../../../constants/locale'
 
 // Styled Components
@@ -26,17 +26,25 @@ import {
   AddressButton,
   ButtonRow,
   CopyIcon,
-  WatchlistScrollContainer
+  PrivateKeyWrapper,
+  WarningText,
+  WarningWrapper,
+  PrivateKeyBubble,
+  ButtonWrapper,
+  ErrorText
 } from './style'
 
 export interface Props {
   onClose: () => void
-  onUpdateAccountName: (name: string) => void
-  onUpdateWatchList: (list: string[]) => void
+  onUpdateAccountName: (payload: UpdateAccountNamePayloadType) => { success: boolean }
   onCopyToClipboard: () => void
   onChangeTab: (id: AccountSettingsNavTypes) => void
-  userAssetList: UserAssetOptionType[]
-  userWatchList: string[]
+  onRemoveAccount: (address: string) => void
+  onViewPrivateKey: (address: string, isDefault: boolean) => void
+  onDoneViewingPrivateKey: () => void
+  onToggleNav: () => void
+  privateKey: string
+  hideNav: boolean
   tab: AccountSettingsNavTypes
   title: string
   account: WalletAccountType
@@ -47,59 +55,35 @@ const AddAccountModal = (props: Props) => {
     title,
     account,
     tab,
-    userWatchList,
+    hideNav,
+    privateKey,
     onClose,
+    onToggleNav,
     onUpdateAccountName,
-    onUpdateWatchList,
     onCopyToClipboard,
-    onChangeTab
+    onChangeTab,
+    onRemoveAccount,
+    onViewPrivateKey,
+    onDoneViewingPrivateKey
   } = props
   const [accountName, setAccountName] = React.useState<string>(account.name)
-  const [filteredWatchlist, setFilteredWatchlist] = React.useState<AssetOptionType[]>(AssetOptions)
-  const [selectedWatchlist, setSelectedWatchlist] = React.useState<string[]>(userWatchList)
+  const [showPrivateKey, setShowPrivateKey] = React.useState<boolean>(false)
+  const [updateError, setUpdateError] = React.useState<boolean>(false)
   const [qrCode, setQRCode] = React.useState<string>('')
-
-  const filterWatchlist = (event: any) => {
-    const search = event.target.value
-    if (search === '') {
-      setFilteredWatchlist(AssetOptions)
-    } else {
-      const filteredList = AssetOptions.filter((item) => {
-        return (
-          item.name.toLowerCase() === search.toLowerCase() ||
-          item.name.toLowerCase().startsWith(search.toLowerCase()) ||
-          item.symbol.toLocaleLowerCase() === search.toLowerCase() ||
-          item.symbol.toLowerCase().startsWith(search.toLowerCase())
-        )
-      })
-      setFilteredWatchlist(filteredList)
-    }
-  }
-
-  const onClickUpdateWatchlist = () => {
-    onUpdateWatchList(selectedWatchlist)
-  }
-
-  const onCheckWatchlistItem = (key: string, selected: boolean) => {
-    if (selected) {
-      const newList = [...selectedWatchlist, key]
-      setSelectedWatchlist(newList)
-    } else {
-      const newList = selectedWatchlist.filter((id) => id !== key)
-      setSelectedWatchlist(newList)
-    }
-  }
-
-  const isAssetSelected = (key: string) => {
-    return selectedWatchlist.includes(key)
-  }
 
   const handleAccountNameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAccountName(event.target.value)
+    setUpdateError(false)
   }
 
   const onSubmitUpdateName = () => {
-    onUpdateAccountName(accountName)
+    const isDerived = account?.accountType === 'Primary'
+    const payload = {
+      address: account.address,
+      name: accountName,
+      isDerived: isDerived
+    }
+    onUpdateAccountName(payload).success ? onClose() : setUpdateError(true)
   }
 
   const generateQRData = () => {
@@ -116,14 +100,50 @@ const AddAccountModal = (props: Props) => {
     generateQRData()
   })
 
-  return (
-    <PopupModal title={title} onClose={onClose}>
-      <TopTabNav
-        tabList={AccountSettingsNavOptions}
-        onSubmit={onChangeTab}
-        selectedTab={tab}
-      />
+  const changeTab = (id: AccountSettingsNavTypes) => {
+    onChangeTab(id)
+  }
 
+  const removeAccount = () => {
+    onRemoveAccount(account.address)
+    onToggleNav()
+    onClose()
+  }
+
+  const onShowPrivateKey = () => {
+    if (onViewPrivateKey) {
+      const isDefault = account?.accountType === 'Primary'
+      onViewPrivateKey(account?.address ?? '', isDefault)
+    }
+    setShowPrivateKey(true)
+  }
+
+  const onHidePrivateKey = () => {
+    onDoneViewingPrivateKey()
+    setShowPrivateKey(false)
+  }
+
+  const onClickClose = () => {
+    onHidePrivateKey()
+    setUpdateError(false)
+    onClose()
+  }
+
+  const onCopyPrivateKey = async () => {
+    if (privateKey) {
+      await copyToClipboard(privateKey)
+    }
+  }
+
+  return (
+    <PopupModal title={title} onClose={onClickClose}>
+      {!hideNav &&
+        <TopTabNav
+          tabList={AccountSettingsNavOptions}
+          onSubmit={changeTab}
+          selectedTab={tab}
+        />
+      }
       <StyledWrapper>
         {tab === 'details' &&
           <>
@@ -132,6 +152,9 @@ const AddAccountModal = (props: Props) => {
               placeholder={locale.addAccountPlaceholder}
               onChange={handleAccountNameChanged}
             />
+            {updateError &&
+              <ErrorText>{locale.accountSettingsUpdateError}</ErrorText>
+            }
             <QRCodeWrapper src={qrCode} />
             <Tooltip text={locale.toolTipCopyToClipboard}>
               <AddressButton onClick={onCopyToClipboard}>{reduceAddress(account.address)}<CopyIcon /></AddressButton>
@@ -143,40 +166,34 @@ const AddAccountModal = (props: Props) => {
                 text={locale.accountSettingsSave}
                 buttonType='secondary'
               />
-              {/* <NavButton
-                onSubmit={onRemoveAccount}
-                text={locale.accountSettingsRemove}
-                buttonType='danger'
-              /> */}
+              {account?.accountType === 'Secondary' &&
+                <NavButton
+                  onSubmit={removeAccount}
+                  text={locale.accountSettingsRemove}
+                  buttonType='danger'
+                />
+              }
             </ButtonRow>
           </>
         }
-        {tab === 'watchlist' &&
-          <>
-            <SearchBar
-              placeholder={locale.watchListSearchPlaceholder}
-              action={filterWatchlist}
-            />
-            <WatchlistScrollContainer>
-              {filteredWatchlist.map((item) =>
-                <AssetWatchlistItem
-                  key={item.id}
-                  id={item.id}
-                  assetBalance='0'
-                  icon={item.icon}
-                  name={item.name}
-                  symbol={item.symbol}
-                  isSelected={isAssetSelected(item.id)}
-                  onSelectAsset={onCheckWatchlistItem}
-                />
-              )}
-            </WatchlistScrollContainer>
-            <NavButton
-              onSubmit={onClickUpdateWatchlist}
-              text={locale.watchlistButton}
-              buttonType='primary'
-            />
-          </>
+        {tab === 'privateKey' &&
+          <PrivateKeyWrapper>
+            <WarningWrapper>
+              <WarningText>{locale.accountSettingsDisclaimer}</WarningText>
+            </WarningWrapper>
+            {showPrivateKey &&
+              <Tooltip text={locale.toolTipCopyToClipboard}>
+                <PrivateKeyBubble onClick={onCopyPrivateKey}>{privateKey}</PrivateKeyBubble>
+              </Tooltip>
+            }
+            <ButtonWrapper>
+              <NavButton
+                onSubmit={showPrivateKey === false ? onShowPrivateKey : onHidePrivateKey}
+                text={showPrivateKey === false ? locale.accountSettingsShowKey : locale.accountSettingsHideKey}
+                buttonType='primary'
+              />
+            </ButtonWrapper>
+          </PrivateKeyWrapper>
         }
       </StyledWrapper>
     </PopupModal>

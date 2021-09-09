@@ -13,8 +13,8 @@
 #include "bat/ads/internal/account/account_observer.h"
 #include "bat/ads/internal/account/ad_rewards/ad_rewards_delegate.h"
 #include "bat/ads/internal/account/confirmations/confirmations_observer.h"
-#include "bat/ads/internal/privacy/tokens/token_generator_interface.h"
 #include "bat/ads/internal/tokens/redeem_unblinded_payment_tokens/redeem_unblinded_payment_tokens_delegate.h"
+#include "bat/ads/internal/tokens/refill_unblinded_tokens/refill_unblinded_tokens_delegate.h"
 #include "bat/ads/transaction_info.h"
 
 namespace ads {
@@ -30,9 +30,14 @@ struct CatalogIssuersInfo;
 struct StatementInfo;
 struct WalletInfo;
 
+namespace privacy {
+class TokenGeneratorInterface;
+}  // namespace privacy
+
 class Account : public AdRewardsDelegate,
                 public ConfirmationsObserver,
-                public RedeemUnblindedPaymentTokensDelegate {
+                public RedeemUnblindedPaymentTokensDelegate,
+                public RefillUnblindedTokensDelegate {
  public:
   explicit Account(privacy::TokenGeneratorInterface* token_generator);
 
@@ -74,14 +79,12 @@ class Account : public AdRewardsDelegate,
 
   void ProcessUnclearedTransactions();
 
-  void NotifyWalletChanged(const WalletInfo& wallet) const;
-  void NotifyWalletRestored(const WalletInfo& wallet) const;
-  void NotifyWalletInvalid() const;
-  void NotifyCatalogIssuersChanged(
+  void NotifyWalletDidUpdate(const WalletInfo& wallet) const;
+  void NotifyWalletDidChange(const WalletInfo& wallet) const;
+  void NotifyInvalidWallet() const;
+  void NotifyCatalogIssuersDidChange(
       const CatalogIssuersInfo& catalog_issuers) const;
-  void NotifyAdRewardsChanged() const;
-  void NotifyTransactionsChanged() const;
-  void NotifyUnclearedTransactionsProcessed() const;
+  void NotifyStatementOfAccountsDidChange() const;
 
   // AdRewardsDelegate implementation
   void OnDidReconcileAdRewards() override;
@@ -96,6 +99,11 @@ class Account : public AdRewardsDelegate,
       const privacy::UnblindedTokenList unblinded_tokens) override;
   void OnFailedToRedeemUnblindedPaymentTokens() override;
   void OnDidRetryRedeemingUnblindedPaymentTokens() override;
+
+  // RedeemUnblindedTokensDelegate implementation
+  void OnDidRefillUnblindedTokens() override;
+  void OnCaptchaRequiredToRefillUnblindedTokens(
+      const std::string& captcha_id) override;
 };
 
 }  // namespace ads

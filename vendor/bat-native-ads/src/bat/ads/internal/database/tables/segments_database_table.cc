@@ -5,15 +5,17 @@
 
 #include "bat/ads/internal/database/tables/segments_database_table.h"
 
+#include <algorithm>
+#include <functional>
 #include <utility>
 
+#include "base/check.h"
 #include "base/strings/string_util.h"
 #include "base/strings/stringprintf.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/database/database_statement_util.h"
 #include "bat/ads/internal/database/database_table_util.h"
 #include "bat/ads/internal/database/database_util.h"
-#include "bat/ads/internal/logging.h"
 
 namespace ads {
 namespace database {
@@ -27,7 +29,7 @@ Segments::Segments() = default;
 
 Segments::~Segments() = default;
 
-void Segments::InsertOrUpdate(DBTransaction* transaction,
+void Segments::InsertOrUpdate(mojom::DBTransaction* transaction,
                               const CreativeAdList& creative_ads) {
   DCHECK(transaction);
 
@@ -35,15 +37,15 @@ void Segments::InsertOrUpdate(DBTransaction* transaction,
     return;
   }
 
-  DBCommandPtr command = DBCommand::New();
-  command->type = DBCommand::Type::RUN;
+  mojom::DBCommandPtr command = mojom::DBCommand::New();
+  command->type = mojom::DBCommand::Type::RUN;
   command->command = BuildInsertOrUpdateQuery(command.get(), creative_ads);
 
   transaction->commands.push_back(std::move(command));
 }
 
 void Segments::Delete(ResultCallback callback) {
-  DBTransactionPtr transaction = DBTransaction::New();
+  mojom::DBTransactionPtr transaction = mojom::DBTransaction::New();
 
   util::Delete(transaction.get(), get_table_name());
 
@@ -56,12 +58,13 @@ std::string Segments::get_table_name() const {
   return kTableName;
 }
 
-void Segments::Migrate(DBTransaction* transaction, const int to_version) {
+void Segments::Migrate(mojom::DBTransaction* transaction,
+                       const int to_version) {
   DCHECK(transaction);
 
   switch (to_version) {
-    case 15: {
-      MigrateToV15(transaction);
+    case 16: {
+      MigrateToV16(transaction);
       break;
     }
 
@@ -73,7 +76,7 @@ void Segments::Migrate(DBTransaction* transaction, const int to_version) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int Segments::BindParameters(DBCommand* command,
+int Segments::BindParameters(mojom::DBCommand* command,
                              const CreativeAdList& creative_ads) {
   DCHECK(command);
 
@@ -91,7 +94,7 @@ int Segments::BindParameters(DBCommand* command,
 }
 
 std::string Segments::BuildInsertOrUpdateQuery(
-    DBCommand* command,
+    mojom::DBCommand* command,
     const CreativeAdList& creative_ads) {
   const int count = BindParameters(command, creative_ads);
 
@@ -103,7 +106,7 @@ std::string Segments::BuildInsertOrUpdateQuery(
       BuildBindingParameterPlaceholders(2, count).c_str());
 }
 
-void Segments::CreateTableV15(DBTransaction* transaction) {
+void Segments::CreateTableV16(mojom::DBTransaction* transaction) {
   DCHECK(transaction);
 
   const std::string query = base::StringPrintf(
@@ -114,19 +117,19 @@ void Segments::CreateTableV15(DBTransaction* transaction) {
       "UNIQUE(creative_set_id, segment) ON CONFLICT REPLACE)",
       get_table_name().c_str());
 
-  DBCommandPtr command = DBCommand::New();
-  command->type = DBCommand::Type::EXECUTE;
+  mojom::DBCommandPtr command = mojom::DBCommand::New();
+  command->type = mojom::DBCommand::Type::EXECUTE;
   command->command = query;
 
   transaction->commands.push_back(std::move(command));
 }
 
-void Segments::MigrateToV15(DBTransaction* transaction) {
+void Segments::MigrateToV16(mojom::DBTransaction* transaction) {
   DCHECK(transaction);
 
   util::Drop(transaction, get_table_name());
 
-  CreateTableV15(transaction);
+  CreateTableV16(transaction);
 }
 
 }  // namespace table

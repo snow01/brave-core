@@ -5,14 +5,10 @@
 
 #include "bat/ads/internal/tokens/redeem_unblinded_token/create_confirmation_url_request_builder.h"
 
-#include "base/base64.h"
-#include "base/base64url.h"
-#include "base/json/json_writer.h"
+#include "base/check.h"
 #include "base/strings/stringprintf.h"
-#include "base/values.h"
 #include "bat/ads/internal/account/ad_rewards/ad_rewards_util.h"
 #include "bat/ads/internal/locale/country_code_util.h"
-#include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/platform/platform_helper.h"
 #include "bat/ads/internal/server/confirmations_server_util.h"
 #include "bat/ads/internal/server/via_header_util.h"
@@ -33,13 +29,13 @@ CreateConfirmationUrlRequestBuilder::~CreateConfirmationUrlRequestBuilder() =
 
 // POST /v1/confirmation/{confirmation_id}/{credential}
 
-UrlRequestPtr CreateConfirmationUrlRequestBuilder::Build() {
-  UrlRequestPtr url_request = UrlRequest::New();
+mojom::UrlRequestPtr CreateConfirmationUrlRequestBuilder::Build() {
+  mojom::UrlRequestPtr url_request = mojom::UrlRequest::New();
   url_request->url = BuildUrl();
   url_request->headers = BuildHeaders();
   url_request->content = BuildBody();
   url_request->content_type = "application/json";
-  url_request->method = UrlRequestMethod::POST;
+  url_request->method = mojom::UrlRequestMethod::kPost;
 
   return url_request;
 }

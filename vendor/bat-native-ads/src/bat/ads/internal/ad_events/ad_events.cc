@@ -16,6 +16,7 @@
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/container_util.h"
 #include "bat/ads/internal/database/tables/ad_events_database_table.h"
+#include "bat/ads/internal/logging.h"
 
 namespace ads {
 
@@ -40,30 +41,30 @@ void LogAdEvent(const AdEventInfo& ad_event, AdEventCallback callback) {
 
   database::table::AdEvents database_table;
   database_table.LogEvent(
-      ad_event, [callback](const Result result) { callback(result); });
+      ad_event, [callback](const bool success) { callback(success); });
 }
 
 void PurgeExpiredAdEvents(AdEventCallback callback) {
   database::table::AdEvents database_table;
-  database_table.PurgeExpired([callback](const Result result) {
+  database_table.PurgeExpired([callback](const bool success) {
     RebuildAdEventsFromDatabase();
-    callback(result);
+    callback(success);
   });
 }
 
-void PurgeOrphanedAdEvents(const mojom::BraveAdsAdType ad_type,
+void PurgeOrphanedAdEvents(const mojom::AdType ad_type,
                            AdEventCallback callback) {
   database::table::AdEvents database_table;
-  database_table.PurgeOrphaned(ad_type, [callback](const Result result) {
+  database_table.PurgeOrphaned(ad_type, [callback](const bool success) {
     RebuildAdEventsFromDatabase();
-    callback(result);
+    callback(success);
   });
 }
 
 void RebuildAdEventsFromDatabase() {
   database::table::AdEvents database_table;
-  database_table.GetAll([=](const Result result, const AdEventList& ad_events) {
-    if (result != Result::SUCCESS) {
+  database_table.GetAll([=](const bool success, const AdEventList& ad_events) {
+    if (!success) {
       BLOG(1, "Failed to get ad events");
       return;
     }
@@ -89,11 +90,6 @@ void RecordAdEvent(const AdEventInfo& ad_event) {
 
 std::deque<uint64_t> GetAdEvents(const AdType& ad_type,
                                  const ConfirmationType& confirmation_type) {
-  const std::string ad_type_as_string = std::string(ad_type);
-
-  const std::string confirmation_type_as_string =
-      std::string(confirmation_type);
-
   const std::vector<uint64_t> ad_events =
       AdsClientHelper::Get()->GetAdEvents(ad_type, confirmation_type);
 

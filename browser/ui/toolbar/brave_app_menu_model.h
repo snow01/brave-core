@@ -11,12 +11,13 @@
 #include <unordered_map>
 #include <vector>
 
+#include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/sidebar/buildflags/buildflags.h"
 #include "chrome/browser/ui/toolbar/app_menu_model.h"
 #include "ui/base/models/simple_menu_model.h"
 
-#if BUILDFLAG(IPFS_ENABLED)
+#if BUILDFLAG(ENABLE_IPFS)
 namespace ipfs {
 class IpnsKeysManager;
 }  // namespace ipfs
@@ -38,15 +39,19 @@ class BraveAppMenuModel : public AppMenuModel {
   void ExecuteCommand(int id, int event_flags) override;
   bool IsCommandIdEnabled(int id) const override;
 
+  int GetProperItemIndex(std::vector<int> commands_to_check,
+                         bool insert_next) const;
+
   void InsertBraveMenuItems();
   void InsertAlternateProfileItems();
   int GetIndexOfBraveRewardsItem() const;
   int GetIndexOfBraveAdBlockItem() const;
   int GetIndexOfBraveSyncItem() const;
+  int GetIndexOfBraveVPNItem() const;
 #if BUILDFLAG(ENABLE_SIDEBAR)
   int GetIndexOfBraveSidebarItem() const;
 #endif
-#if BUILDFLAG(IPFS_ENABLED)
+#if BUILDFLAG(ENABLE_IPFS)
   int FindCommandIndex(int command_id) const;
   int AddIpnsKeysToSubMenu(ui::SimpleMenuModel* submenu,
                            ipfs::IpnsKeysManager* manager,

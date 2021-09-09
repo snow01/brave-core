@@ -6,12 +6,14 @@ import {
   AppObjectType,
   AppsListType,
   PriceDataObjectType,
-  AssetOptionType,
-  UserAssetOptionType,
+  AccountAssetOptionType,
   RPCTransactionType,
   AssetPriceInfo,
   WalletAccountType,
-  AssetPriceTimeframe
+  AssetPriceTimeframe,
+  EthereumChain,
+  TokenInfo,
+  UpdateAccountNamePayloadType
 } from '../../../../constants/types'
 import { TopNavOptions } from '../../../../options/top-nav-options'
 import { TopTabNav, BackupWarningBanner, AddAccountModal } from '../../'
@@ -20,32 +22,48 @@ import locale from '../../../../constants/locale'
 import { AppsList } from '../../../../options/apps-list-options'
 import { filterAppList } from '../../../../utils/filter-app-list'
 import { PortfolioView, AccountsView } from '../'
+import {
+  HardwareWalletAccount,
+  HardwareWalletConnectOpts
+} from '../../popup-modals/add-account-modal/hardware-wallet-connect/types'
+import * as Result from '../../../../common/types/result'
 
 export interface Props {
   onLockWallet: () => void
   onShowBackup: () => void
   onChangeTimeline: (path: AssetPriceTimeframe) => void
-  onSelectAsset: (asset: AssetOptionType | undefined) => void
+  onSelectAsset: (asset: TokenInfo | undefined) => void
   onCreateAccount: (name: string) => void
-  onImportAccount: (name: string, key: string) => void
-  onConnectHardwareWallet: (hardware: 'Ledger' | 'Trezor') => void
-  onUpdateAccountName: (name: string) => void
+  onImportAccount: (accountName: string, privateKey: string) => void
+  onConnectHardwareWallet: (opts: HardwareWalletConnectOpts) => Result.Type<HardwareWalletAccount[]>
+  onUpdateAccountName: (payload: UpdateAccountNamePayloadType) => { success: boolean }
   onToggleAddModal: () => void
-  onUpdateWatchList: (list: string[]) => void
+  onUpdateVisibleTokens: (list: string[]) => void
+  onSelectNetwork: (network: EthereumChain) => void
+  fetchFullTokenList: () => void
+  onRemoveAccount: (address: string) => void
+  onViewPrivateKey: (address: string, isDefault: boolean) => void
+  onDoneViewingPrivateKey: () => void
+  privateKey: string
+  fullAssetList: TokenInfo[]
   needsBackup: boolean
   accounts: WalletAccountType[]
+  networkList: EthereumChain[]
   selectedTimeline: AssetPriceTimeframe
+  selectedPortfolioTimeline: AssetPriceTimeframe
   portfolioPriceHistory: PriceDataObjectType[]
   selectedAssetPriceHistory: PriceDataObjectType[]
   selectedUSDAssetPrice: AssetPriceInfo | undefined
   selectedBTCAssetPrice: AssetPriceInfo | undefined
-  selectedAsset: AssetOptionType | undefined
+  selectedAsset: TokenInfo | undefined
   portfolioBalance: string
   transactions: (RPCTransactionType | undefined)[]
-  userAssetList: UserAssetOptionType[]
+  userAssetList: AccountAssetOptionType[]
   userWatchList: string[]
   isLoading: boolean
   showAddModal: boolean
+  selectedNetwork: EthereumChain
+  isFetchingPortfolioPriceHistory: boolean
 }
 
 const CryptoView = (props: Props) => {
@@ -55,17 +73,28 @@ const CryptoView = (props: Props) => {
     onChangeTimeline,
     onSelectAsset,
     onCreateAccount,
-    onImportAccount,
     onConnectHardwareWallet,
+    onImportAccount,
     onUpdateAccountName,
-    onUpdateWatchList,
+    onUpdateVisibleTokens,
+    fetchFullTokenList,
+    onSelectNetwork,
+    onToggleAddModal,
+    onRemoveAccount,
+    onViewPrivateKey,
+    onDoneViewingPrivateKey,
+    privateKey,
+    selectedNetwork,
+    fullAssetList,
     portfolioPriceHistory,
     userAssetList,
     userWatchList,
     selectedTimeline,
+    selectedPortfolioTimeline,
     selectedAssetPriceHistory,
     needsBackup,
     accounts,
+    networkList,
     selectedAsset,
     portfolioBalance,
     transactions,
@@ -73,7 +102,7 @@ const CryptoView = (props: Props) => {
     selectedBTCAssetPrice,
     isLoading,
     showAddModal,
-    onToggleAddModal
+    isFetchingPortfolioPriceHistory
   } = props
   const [selectedTab, setSelectedTab] = React.useState<TopTabNavTypes>('portfolio')
   const [favoriteApps, setFavoriteApps] = React.useState<AppObjectType[]>([
@@ -162,11 +191,16 @@ const CryptoView = (props: Props) => {
         <PortfolioView
           toggleNav={toggleNav}
           accounts={accounts}
+          networkList={networkList}
           onChangeTimeline={onChangeTimeline}
           selectedAssetPriceHistory={selectedAssetPriceHistory}
           selectedTimeline={selectedTimeline}
+          selectedPortfolioTimeline={selectedPortfolioTimeline}
           onSelectAsset={onSelectAsset}
           onClickAddAccount={onClickAddAccount}
+          onSelectNetwork={onSelectNetwork}
+          onUpdateVisibleTokens={onUpdateVisibleTokens}
+          fetchFullTokenList={fetchFullTokenList}
           selectedAsset={selectedAsset}
           portfolioBalance={portfolioBalance}
           portfolioPriceHistory={portfolioPriceHistory}
@@ -175,6 +209,10 @@ const CryptoView = (props: Props) => {
           selectedBTCAssetPrice={selectedBTCAssetPrice}
           userAssetList={userAssetList}
           isLoading={isLoading}
+          selectedNetwork={selectedNetwork}
+          fullAssetList={fullAssetList}
+          userWatchList={userWatchList}
+          isFetchingPortfolioPriceHistory={isFetchingPortfolioPriceHistory}
         />
       }
       {selectedTab === 'accounts' &&
@@ -184,9 +222,10 @@ const CryptoView = (props: Props) => {
           onClickBackup={onShowBackup}
           onClickAddAccount={onClickAddAccount}
           onUpdateAccountName={onUpdateAccountName}
-          onUpdateWatchList={onUpdateWatchList}
-          userAssetList={userAssetList}
-          userWatchList={userWatchList}
+          onRemoveAccount={onRemoveAccount}
+          onDoneViewingPrivateKey={onDoneViewingPrivateKey}
+          onViewPrivateKey={onViewPrivateKey}
+          privateKey={privateKey}
           transactions={transactions}
         />
       }

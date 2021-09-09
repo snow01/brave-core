@@ -11,11 +11,10 @@
 #include <string>
 
 #include "base/values.h"
+#include "bat/ads/ad_notification_info.h"
 #include "bat/ads/ads.h"
 
 namespace ads {
-
-struct AdNotificationInfo;
 
 class AdNotifications {
  public:
@@ -87,10 +86,10 @@ class AdNotifications {
                                std::string* string) const;
 
   void Save();
-  void OnSaved(const Result result);
+  void OnSaved(const bool success);
 
   void Load();
-  void OnLoaded(const Result result, const std::string& json);
+  void OnLoaded(const bool success, const std::string& json);
 
   bool FromJson(const std::string& json);
   bool GetNotificationsFromDictionary(base::DictionaryValue* dictionary);

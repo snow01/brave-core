@@ -13,12 +13,12 @@
 #include "bat/ledger/internal/gemini/gemini_util.h"
 #include "bat/ledger/internal/ledger_impl.h"
 #include "bat/ledger/internal/logging/event_log_keys.h"
+#include "bat/ledger/internal/notifications/notification_keys.h"
 #include "crypto/sha2.h"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
-using std::placeholders::_4;
 
 namespace ledger {
 namespace gemini {
@@ -58,19 +58,6 @@ void GeminiAuthorization::Authorize(
     return;
   }
 
-  auto it = args.find("error_description");
-  if (it != args.end()) {
-    const std::string message = args.at("error_description");
-    BLOG(1, message);
-    if (message == "User does not meet minimum requirements") {
-      callback(type::Result::NOT_FOUND, {});
-      return;
-    }
-
-    callback(type::Result::LEDGER_ERROR, {});
-    return;
-  }
-
   if (args.empty()) {
     BLOG(0, "Arguments are empty");
     callback(type::Result::LEDGER_ERROR, {});
@@ -78,7 +65,7 @@ void GeminiAuthorization::Authorize(
   }
 
   std::string code;
-  it = args.find("code");
+  auto it = args.find("code");
   if (it != args.end()) {
     code = args.at("code");
   }
@@ -151,6 +138,12 @@ void GeminiAuthorization::OnFetchRecipientId(
     const std::string& recipient_id,
     const std::string& token,
     ledger::ExternalWalletAuthorizationCallback callback) {
+  if (result == type::Result::NOT_FOUND) {
+    BLOG(0, "Unverified User");
+    callback(type::Result::NOT_FOUND, {});
+    return;
+  }
+
   if (result == type::Result::EXPIRED_TOKEN) {
     BLOG(0, "Expired token");
     callback(type::Result::EXPIRED_TOKEN, {});
@@ -169,7 +162,7 @@ void GeminiAuthorization::OnFetchRecipientId(
   ledger_->gemini()->SetWallet(wallet_ptr->Clone());
 
   auto url_callback = std::bind(&GeminiAuthorization::OnPostAccount, this, _1,
-                                _2, _3, _4, token, callback);
+                                _2, _3, token, callback);
   gemini_server_->post_account()->Request(token, url_callback);
 }
 
@@ -177,7 +170,6 @@ void GeminiAuthorization::OnPostAccount(
     const type::Result result,
     const std::string& linking_info,
     const std::string& name,
-    const bool& verified,
     const std::string& token,
     ledger::ExternalWalletAuthorizationCallback callback) {
   if (result == type::Result::EXPIRED_TOKEN) {
@@ -197,8 +189,6 @@ void GeminiAuthorization::OnPostAccount(
 
   wallet_ptr->token = token;
   wallet_ptr->user_name = name;
-  wallet_ptr->status =
-      verified ? type::WalletStatus::VERIFIED : type::WalletStatus::CONNECTED;
 
   ledger_->gemini()->SetWallet(wallet_ptr->Clone());
 
@@ -212,18 +202,35 @@ void GeminiAuthorization::OnClaimWallet(
     const type::Result result,
     const std::string& token,
     ledger::ExternalWalletAuthorizationCallback callback) {
-  if (result == type::Result::ALREADY_EXISTS) {
-    BLOG(0, "Wallet linking limit reached");
-    ledger_->ledger_client()->ShowNotification("wallet_device_limit_reached",
-                                               {}, [](type::Result) {});
+  auto wallet_ptr = ledger_->gemini()->GetWallet();
+  if (!wallet_ptr) {
+    BLOG(0, "Gemini wallet is null!");
+    return callback(type::Result::LEDGER_ERROR, {});
+  }
 
-    std::string event_text = "gemini";
-    if (auto wallet_ptr = ledger_->gemini()->GetWallet())
-      event_text += "/" + wallet_ptr->address.substr(0, 5);
+  const std::string event_text = std::string(constant::kWalletGemini) +
+                                 (!wallet_ptr->address.empty() ? "/" : "") +
+                                 wallet_ptr->address.substr(0, 5);
+
+  if (result == type::Result::ALREADY_EXISTS) {
+    BLOG(0, "Wallet linking limit reached!");
+
+    ledger_->ledger_client()->ShowNotification(
+        ledger::notifications::kWalletDeviceLimitReached, {},
+        [](type::Result) {});
 
     ledger_->database()->SaveEventLog(log::kDeviceLimitReached, event_text);
-    callback(result, {});
-    return;
+
+    return callback(type::Result::ALREADY_EXISTS, {});
+  }
+
+  if (result == type::Result::TOO_MANY_RESULTS) {
+    BLOG(0, "Mismatched Gemini accounts!");
+
+    ledger_->database()->SaveEventLog(log::kMismatchedProviderAccounts,
+                                      event_text);
+
+    return callback(type::Result::TOO_MANY_RESULTS, {});
   }
 
   if (result != type::Result::LEDGER_OK) {
@@ -231,8 +238,6 @@ void GeminiAuthorization::OnClaimWallet(
     callback(type::Result::LEDGER_ERROR, {});
     return;
   }
-
-  auto wallet_ptr = ledger_->gemini()->GetWallet();
 
   switch (wallet_ptr->status) {
     case type::WalletStatus::NOT_CONNECTED:

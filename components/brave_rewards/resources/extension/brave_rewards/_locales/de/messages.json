@@ -219,9 +219,55 @@
     "message": "Bitte erstellen Sie ein Backup Ihrer Brave-Wallet.",
     "description": "Description for backup wallet notification"
   },
-  "deviceLimitReachedLearnMore": {
+  "learnMore": {
     "message": "Mehr...",
-    "description": "Notification button text to learn more about device limit"
+    "description": "Notification button text to learn more about a specific use-case"
+  },
+  "mismatchedProviderAccountsTitle": {
+    "message": "Fehler: Anderes Konto",
+    "description": "Title for mismatched provider accounts notification"
+  },
+  "mismatchedProviderAccountsNotification": {
+    "message": "Hmm, es sieht so aus, als ob Ihre Brave Rewards-Wallet bereits mit einem anderen $name$-Konto verifiziert wurde. Bitte versuchen Sie es erneut mit Ihrem vorherigen Konto.",
+    "description": "Description for mismatched provider accounts notification",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Uphold"
+      }
+    }
+  },
+  "upholdBATNotAllowedForUserTitle": {
+    "message": "Fehler: BAT nicht verfügbar",
+    "description": "Title for BAT not allowed for user notification"
+  },
+  "upholdBATNotAllowedForUserNotification": {
+    "message": "BAT wird in Ihrer Region auf Uphold noch nicht unterstützt.",
+    "description": "Description for BAT not allowed for user notification"
+  },
+  "upholdBlockedUserTitle": {
+    "message": "Fehler: Gesperrtes Konto",
+    "description": "Title for blocked user notification"
+  },
+  "upholdBlockedUserNotification": {
+    "message": "Ihr Konto bei Uphold ist derzeit gesperrt.",
+    "description": "Description for blocked user notification"
+  },
+  "upholdPendingUserTitle": {
+    "message": "Fehler: Ausstehendes Konto",
+    "description": "Title for pending user notification"
+  },
+  "upholdPendingUserNotification": {
+    "message": "Ihr Konto bei Uphold ist noch ausstehend.",
+    "description": "Description for pending user notification"
+  },
+  "upholdRestrictedUserTitle": {
+    "message": "Fehler: Eingeschränktes Konto",
+    "description": "Title for restricted user notification"
+  },
+  "upholdRestrictedUserNotification": {
+    "message": "Ihr Konto bei Uphold ist derzeit eingeschränkt.",
+    "description": "Description for restricted user notification"
   },
   "deviceLimitReachedTitle": {
     "message": "Gerätelimit erreicht",
@@ -487,10 +533,6 @@
     "message": "Ihr Belohnungsbetrag",
     "description": "Token title on success screen for ads"
   },
-  "rewardsPanelTextVerify":  {
-    "message": "verifiziert",
-    "description": "CTA in the footer to verify"
-  },
   "walletButtonDisconnected":  {
     "message": "Verbindung getrennt",
     "description": "CTA status button"
@@ -504,8 +546,18 @@
     "description": "Displayed in wallet that tells users that he is verified"
   },
   "walletGoToProvider":  {
-    "message": "Zu meinem $provider$-Konto wechseln ",
+    "message": "Zum $provider$-Konto gehen",
     "description": "CTA to open an external wallet account",
+    "placeholders": {
+      "provider": {
+        "content": "$1",
+        "example": "Uphold"
+      }
+    }
+  },
+  "walletLogInWithProvider":  {
+    "message": "Beim $provider$-Konto anmelden",
+    "description": "CTA to log in with a wallet provider",
     "placeholders": {
       "provider": {
         "content": "$1",
@@ -610,6 +662,10 @@
   "walletConnected":  {
     "message": "Verbunden",
     "description": "Status button that tells user that he is connected"
+  },
+  "walletDisconnected":  {
+    "message": "Verbindung getrennt",
+    "description": "Status button that tells user that he is disconnected"
   },
   "walletPending":  {
     "message": "Ausstehend",

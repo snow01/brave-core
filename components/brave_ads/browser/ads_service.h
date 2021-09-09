@@ -12,6 +12,7 @@
 #include "base/callback_forward.h"
 #include "base/macros.h"
 #include "base/observer_list.h"
+#include "brave/components/brave_adaptive_captcha/buildflags/buildflags.h"
 #include "brave/components/brave_ads/browser/ads_service_observer.h"
 #include "brave/vendor/bat-native-ads/include/bat/ads/public/interfaces/ads.mojom.h"
 #include "build/build_config.h"
@@ -59,6 +60,9 @@ using GetAccountStatementCallback = base::OnceCallback<void(const bool,
                                                             const double,
                                                             const double)>;
 
+using GetAdDiagnosticsCallback =
+    base::OnceCallback<void(const bool, const std::string&)>;
+
 class AdsService : public KeyedService {
  public:
   AdsService();
@@ -71,7 +75,6 @@ class AdsService : public KeyedService {
   void RemoveObserver(AdsServiceObserver* observer);
 
   virtual bool IsSupportedLocale() const = 0;
-  virtual bool IsNewlySupportedLocale() = 0;
 
   virtual bool IsEnabled() const = 0;
   virtual void SetEnabled(const bool is_enabled) = 0;
@@ -88,6 +91,12 @@ class AdsService : public KeyedService {
   virtual std::string GetAutoDetectedAdsSubdivisionTargetingCode() const = 0;
   virtual void SetAutoDetectedAdsSubdivisionTargetingCode(
       const std::string& subdivision_targeting_code) = 0;
+
+#if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
+  virtual void ShowScheduledCaptcha(const std::string& payment_id,
+                                    const std::string& captcha_id) = 0;
+  virtual void SnoozeScheduledCaptcha() = 0;
+#endif
 
   virtual void OnShowAdNotification(const std::string& notification_id) = 0;
   virtual void OnCloseAdNotification(const std::string& notification_id,
@@ -121,12 +130,12 @@ class AdsService : public KeyedService {
   virtual void OnNewTabPageAdEvent(
       const std::string& uuid,
       const std::string& creative_instance_id,
-      const ads::mojom::BraveAdsNewTabPageAdEventType event_type) = 0;
+      const ads::mojom::NewTabPageAdEventType event_type) = 0;
 
   virtual void OnPromotedContentAdEvent(
       const std::string& uuid,
       const std::string& creative_instance_id,
-      const ads::mojom::BraveAdsPromotedContentAdEventType event_type) = 0;
+      const ads::mojom::PromotedContentAdEventType event_type) = 0;
 
   virtual void GetInlineContentAd(const std::string& dimensions,
                                   OnGetInlineContentAdCallback callback) = 0;
@@ -134,10 +143,10 @@ class AdsService : public KeyedService {
   virtual void OnInlineContentAdEvent(
       const std::string& uuid,
       const std::string& creative_instance_id,
-      const ads::mojom::BraveAdsInlineContentAdEventType event_type) = 0;
+      const ads::mojom::InlineContentAdEventType event_type) = 0;
 
   virtual void PurgeOrphanedAdEventsForType(
-      const ads::mojom::BraveAdsAdType ad_type) = 0;
+      const ads::mojom::AdType ad_type) = 0;
 
   virtual void ReconcileAdRewards() = 0;
 
@@ -146,6 +155,8 @@ class AdsService : public KeyedService {
                              OnGetAdsHistoryCallback callback) = 0;
 
   virtual void GetAccountStatement(GetAccountStatementCallback callback) = 0;
+
+  virtual void GetAdDiagnostics(GetAdDiagnosticsCallback callback) = 0;
 
   virtual void ToggleAdThumbUp(const std::string& creative_instance_id,
                                const std::string& creative_set_id,

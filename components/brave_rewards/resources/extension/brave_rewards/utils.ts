@@ -4,6 +4,7 @@
 
 import BigNumber from 'bignumber.js'
 
+import { lookupExternalWalletProviderName } from '../../shared/lib/external_wallet'
 import { getMessage } from './background/api/locale_api'
 import { WalletState } from '../../ui/components/walletWrapper'
 
@@ -138,6 +139,10 @@ export const handleExternalWalletLink = (balance: RewardsExtension.Balance, exte
 
   chrome.tabs.create({
     url: link
+  }, () => {
+    if (chrome.runtime.lastError) {
+      console.error('tabs.create failed: ' + chrome.runtime.lastError.message)
+    }
   })
 }
 
@@ -154,9 +159,5 @@ export const getExternalWallet = (actions: any, externalWallet?: RewardsExtensio
 }
 
 export const getWalletProviderName = (wallet?: RewardsExtension.ExternalWallet) => {
-  switch (wallet ? wallet.type : '') {
-    case 'uphold' : return 'Uphold'
-    case 'bitflyer': return 'bitFlyer'
-    default: return ''
-  }
+  return lookupExternalWalletProviderName(wallet ? wallet.type : '')
 }

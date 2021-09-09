@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <utility>
 
+#include "base/check.h"
 #include "brave_base/random.h"
 
 namespace ads {
@@ -51,12 +52,14 @@ void Timer::FireNow() {
   return timer_->FireNow();
 }
 
-void Timer::Stop() {
+bool Timer::Stop() {
   if (!IsRunning()) {
-    return;
+    return false;
   }
 
   timer_->Stop();
+
+  return true;
 }
 
 }  // namespace ads

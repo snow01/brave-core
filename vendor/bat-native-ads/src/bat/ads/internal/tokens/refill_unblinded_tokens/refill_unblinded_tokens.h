@@ -9,12 +9,12 @@
 #include <string>
 #include <vector>
 
+#include "base/memory/weak_ptr.h"
 #include "bat/ads/internal/account/wallet/wallet_info.h"
 #include "bat/ads/internal/backoff_timer.h"
 #include "bat/ads/internal/privacy/tokens/token_generator_interface.h"
 #include "bat/ads/internal/tokens/refill_unblinded_tokens/refill_unblinded_tokens_delegate.h"
-#include "bat/ads/mojom.h"
-#include "bat/ads/result.h"
+#include "bat/ads/public/interfaces/ads.mojom.h"
 #include "wrapper.hpp"
 
 namespace ads {
@@ -45,11 +45,15 @@ class RefillUnblindedTokens {
 
   void Refill();
 
+  void MaybeGetScheduledCaptcha();
+  void GetScheduledCaptcha();
+  void OnGetScheduledCaptcha(const std::string& captcha_id);
+
   void RequestSignedTokens();
-  void OnRequestSignedTokens(const UrlResponse& url_response);
+  void OnRequestSignedTokens(const mojom::UrlResponse& url_response);
 
   void GetSignedTokens();
-  void OnGetSignedTokens(const UrlResponse& url_response);
+  void OnGetSignedTokens(const mojom::UrlResponse& url_response);
 
   void OnDidRefillUnblindedTokens();
 
@@ -68,6 +72,8 @@ class RefillUnblindedTokens {
   privacy::TokenGeneratorInterface* token_generator_;  // NOT OWNED
 
   RefillUnblindedTokensDelegate* delegate_ = nullptr;
+
+  base::WeakPtrFactory<RefillUnblindedTokens> weak_ptr_factory_;
 };
 
 }  // namespace ads

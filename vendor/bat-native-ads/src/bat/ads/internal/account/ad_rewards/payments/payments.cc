@@ -7,6 +7,7 @@
 
 #include <utility>
 
+#include "base/check.h"
 #include "base/json/json_reader.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/stringprintf.h"
@@ -16,6 +17,7 @@
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/number_util.h"
 #include "bat/ads/pref_names.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/re2/src/re2/re2.h"
 
 namespace ads {
@@ -38,7 +40,7 @@ bool Payments::SetFromJson(const std::string& json) {
   }
 
   const PaymentList payments = GetFromList(list);
-  if (!DidReconcile(payments)) {
+  if (!ShouldForceReconciliation(payments) && !DidReconcile(payments)) {
     BLOG(0, "Payment balance not ready");
     return false;
   }
@@ -205,6 +207,10 @@ double Payments::GetBalanceForPayments(const PaymentList& payments) const {
   }
 
   return balance;
+}
+
+bool Payments::ShouldForceReconciliation(const PaymentList& payments) const {
+  return payments.size() != payments_.size();
 }
 
 bool Payments::DidReconcile(const PaymentList& payments) const {

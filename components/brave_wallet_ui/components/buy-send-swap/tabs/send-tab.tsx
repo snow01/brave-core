@@ -1,42 +1,41 @@
 import * as React from 'react'
 import {
   UserAccountType,
-  AssetOptionType,
-  NetworkOptionsType,
+  AccountAssetOptionType,
   BuySendSwapViewTypes,
-  ToOrFromType
+  ToOrFromType,
+  EthereumChain
 } from '../../../constants/types'
-import { AssetOptions } from '../../../options/asset-options'
-import { NetworkOptions } from '../../../options/network-options'
 import {
+  AccountsAssetsNetworks,
   Header,
-  SelectAccount,
-  SelectAsset,
-  SelectNetwork,
   Send
 } from '..'
 
 export interface Props {
   accounts: UserAccountType[]
-  selectedAsset: AssetOptionType
-  selectedNetwork: NetworkOptionsType
+  selectedAsset: AccountAssetOptionType
+  selectedNetwork: EthereumChain
   selectedAccount: UserAccountType
   selectedAssetAmount: string
   selectedAssetBalance: string
+  assetOptions: AccountAssetOptionType[]
   toAddress: string
   showHeader?: boolean
   onSubmit: () => void
-  onSelectNetwork: (network: NetworkOptionsType) => void
+  onSelectNetwork: (network: EthereumChain) => void
   onSelectAccount: (account: UserAccountType) => void
-  onSelectAsset: (asset: AssetOptionType, toOrFrom: ToOrFromType) => void
+  onSelectAsset: (asset: AccountAssetOptionType, toOrFrom: ToOrFromType) => void
   onSetSendAmount: (value: string) => void
   onSetToAddress: (value: string) => void
   onSelectPresetAmount: (percent: number) => void
+  networkList: EthereumChain[]
 }
 
 function SendTab (props: Props) {
   const {
     accounts,
+    networkList,
     selectedAsset,
     selectedNetwork,
     selectedAccount,
@@ -44,6 +43,7 @@ function SendTab (props: Props) {
     selectedAssetBalance,
     toAddress,
     showHeader,
+    assetOptions,
     onSubmit,
     onSelectNetwork,
     onSelectAccount,
@@ -58,7 +58,7 @@ function SendTab (props: Props) {
     setSendView(view)
   }
 
-  const onClickSelectNetwork = (network: NetworkOptionsType) => () => {
+  const onClickSelectNetwork = (network: EthereumChain) => () => {
     onSelectNetwork(network)
     setSendView('send')
   }
@@ -68,7 +68,7 @@ function SendTab (props: Props) {
     setSendView('send')
   }
 
-  const onSelectedAsset = (asset: AssetOptionType) => () => {
+  const onSelectedAsset = (asset: AccountAssetOptionType) => () => {
     onSelectAsset(asset, 'from')
     setSendView('send')
   }
@@ -109,25 +109,16 @@ function SendTab (props: Props) {
           />
         </>
       }
-      {sendView === 'acounts' &&
-        <SelectAccount
+      {sendView !== 'send' &&
+        <AccountsAssetsNetworks
           accounts={accounts}
-          onSelectAccount={onClickSelectAccount}
-          onBack={goBack}
-        />
-      }
-      {sendView === 'assets' &&
-        <SelectAsset
-          assets={AssetOptions}
-          onSelectAsset={onSelectedAsset}
-          onBack={goBack}
-        />
-      }
-      {sendView === 'networks' &&
-        <SelectNetwork
-          networks={NetworkOptions}
-          onSelectNetwork={onClickSelectNetwork}
-          onBack={goBack}
+          networkList={networkList}
+          goBack={goBack}
+          assetOptions={assetOptions}
+          onClickSelectAccount={onClickSelectAccount}
+          onClickSelectNetwork={onClickSelectNetwork}
+          onSelectedAsset={onSelectedAsset}
+          selectedView={sendView}
         />
       }
     </>

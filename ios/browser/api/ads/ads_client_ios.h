@@ -35,7 +35,7 @@ class AdsClientIOS : public ads::AdsClient {
       const std::string& ad_type,
       const std::string& confirmation_type) const override;
   void ResetAdEvents() const override;
-  void UrlRequest(ads::UrlRequestPtr url_request,
+  void UrlRequest(ads::mojom::UrlRequestPtr url_request,
                   ads::UrlRequestCallback callback) override;
   void Save(const std::string& name,
             const std::string& value,
@@ -48,11 +48,16 @@ class AdsClientIOS : public ads::AdsClient {
                           const int days_ago,
                           ads::GetBrowsingHistoryCallback callback) override;
   std::string LoadResourceForId(const std::string& id) override;
+  void ClearScheduledCaptcha() override;
+  void GetScheduledCaptcha(const std::string& payment_id,
+                           ads::GetScheduledCaptchaCallback callback) override;
+  void ShowScheduledCaptchaNotification(const std::string& payment_id,
+                                        const std::string& captcha_id) override;
   void Log(const char* file,
            const int line,
            const int verbose_level,
            const std::string& message) override;
-  void RunDBTransaction(ads::DBTransactionPtr transaction,
+  void RunDBTransaction(ads::mojom::DBTransactionPtr transaction,
                         ads::RunDBTransactionCallback callback) override;
   void OnAdRewardsChanged() override;
   void SetBooleanPref(const std::string& path, const bool value) override;
@@ -70,7 +75,7 @@ class AdsClientIOS : public ads::AdsClient {
   uint64_t GetUint64Pref(const std::string& path) const override;
   void ClearPref(const std::string& path) override;
   void RecordP2AEvent(const std::string& name,
-                      const ads::P2AEventType type,
+                      const ads::mojom::P2AEventType type,
                       const std::string& value) override;
 };
 

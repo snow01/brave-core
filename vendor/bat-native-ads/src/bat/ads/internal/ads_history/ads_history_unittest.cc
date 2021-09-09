@@ -7,8 +7,10 @@
 
 #include <deque>
 
+#include "base/time/time.h"
 #include "bat/ads/ad_notification_info.h"
 #include "bat/ads/inline_content_ad_info.h"
+#include "bat/ads/internal/client/client.h"
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_util.h"
 #include "bat/ads/new_tab_page_ad_info.h"
@@ -31,7 +33,7 @@ class BatAdsAdsHistoryTest : public UnitTestBase {
   }
 };
 
-TEST_F(BatAdsAdsHistoryTest, AddAdNotificationToEmptyHistory) {
+TEST_F(BatAdsAdsHistoryTest, AddAdNotification) {
   // Arrange
   AdNotificationInfo ad;
 
@@ -56,7 +58,7 @@ TEST_F(BatAdsAdsHistoryTest, AddAdNotificationsToHistory) {
   ASSERT_EQ(2UL, history.size());
 }
 
-TEST_F(BatAdsAdsHistoryTest, AddNewTabPageAdToEmptyHistory) {
+TEST_F(BatAdsAdsHistoryTest, AddNewTabPageAd) {
   // Arrange
   NewTabPageAdInfo ad;
 
@@ -81,7 +83,7 @@ TEST_F(BatAdsAdsHistoryTest, AddNewTabPageAdsToHistory) {
   ASSERT_EQ(2UL, history.size());
 }
 
-TEST_F(BatAdsAdsHistoryTest, AddPromotedContentAdToEmptyHistory) {
+TEST_F(BatAdsAdsHistoryTest, AddPromotedContentAd) {
   // Arrange
   PromotedContentAdInfo ad;
 
@@ -106,7 +108,7 @@ TEST_F(BatAdsAdsHistoryTest, AddPromotedContentAdsToHistory) {
   ASSERT_EQ(2UL, history.size());
 }
 
-TEST_F(BatAdsAdsHistoryTest, AddInlineContentAdToEmptyHistory) {
+TEST_F(BatAdsAdsHistoryTest, AddInlineContentAd) {
   // Arrange
   InlineContentAdInfo ad;
 

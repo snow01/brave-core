@@ -8,10 +8,10 @@
 #include <algorithm>
 #include <vector>
 
+#include "base/test/scoped_feature_list.h"
 #include "brave/browser/ui/brave_browser_command_controller.h"
 #include "brave/browser/ui/browser_commands.h"
-#include "brave/components/brave_rewards/browser/buildflags/buildflags.h"
-#include "brave/components/brave_sync/buildflags/buildflags.h"
+#include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "chrome/app/chrome_command_ids.h"
@@ -24,15 +24,39 @@
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
+#include "components/sync/driver/sync_driver_switches.h"
 #include "content/public/browser/notification_service.h"
 #include "content/public/test/browser_test.h"
 #include "content/public/test/test_utils.h"
 
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
-#include "components/sync/driver/sync_driver_switches.h"
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+#include "brave/browser/brave_vpn/brave_vpn_service_factory.h"
+#include "brave/components/brave_vpn/brave_vpn_service_desktop.h"
+#include "brave/components/brave_vpn/features.h"
 #endif
 
-using BraveAppMenuBrowserTest = InProcessBrowserTest;
+class BraveAppMenuBrowserTest : public InProcessBrowserTest {
+ public:
+  BraveAppMenuBrowserTest() {
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+    scoped_feature_list_.InitAndEnableFeature(brave_vpn::features::kBraveVPN);
+#endif
+  }
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+  void SetPurchasedUserForBraveVPN(Browser* browser, bool purchased) {
+    auto* service = BraveVpnServiceFactory::GetForProfile(browser->profile());
+    service->set_is_purchased_user_for_test(purchased);
+    // TODO(simonhong): Delete this explicit update call.
+    // This should be called implicitely whenever purchased state is changed.
+    static_cast<chrome::BraveBrowserCommandController*>(
+        browser->command_controller())
+        ->UpdateCommandForBraveVPN();
+  }
+
+  base::test::ScopedFeatureList scoped_feature_list_;
+#endif
+};
 
 void CheckCommandsAreDisabledInMenuModel(
     Browser* browser,
@@ -73,9 +97,7 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
 #if BUILDFLAG(ENABLE_TOR)
     IDC_NEW_OFFTHERECORD_WINDOW_TOR,
 #endif
-#if BUILDFLAG(BRAVE_REWARDS_ENABLED)
     IDC_SHOW_BRAVE_REWARDS,
-#endif
     IDC_RECENT_TABS_MENU,
     IDC_BOOKMARKS_MENU,
     IDC_SHOW_DOWNLOADS,
@@ -83,8 +105,9 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
     IDC_SHOW_BRAVE_WALLET,
 #endif
     IDC_MANAGE_EXTENSIONS,
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
     IDC_SHOW_BRAVE_SYNC,
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+    IDC_SHOW_BRAVE_VPN_PANEL,
 #endif
     IDC_SHOW_BRAVE_ADBLOCK,
     IDC_ADD_NEW_PROFILE,
@@ -92,9 +115,8 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
     IDC_SHOW_BRAVE_WEBCOMPAT_REPORTER
   };
   std::vector<int> commands_disabled_for_normal_profile = {
-    IDC_NEW_TOR_CONNECTION_FOR_SITE,
+      IDC_NEW_TOR_CONNECTION_FOR_SITE,
   };
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
   if (!switches::IsSyncAllowedByFlag()) {
     commands_in_order_for_normal_profile.erase(
         std::remove(commands_in_order_for_normal_profile.begin(),
@@ -103,7 +125,6 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
         commands_in_order_for_normal_profile.end());
     commands_disabled_for_normal_profile.push_back(IDC_SHOW_BRAVE_SYNC);
   }
-#endif
   CheckCommandsAreInOrderInMenuModel(browser(),
                                      commands_in_order_for_normal_profile);
   CheckCommandsAreDisabledInMenuModel(browser(),
@@ -117,17 +138,16 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
 #if BUILDFLAG(ENABLE_TOR)
     IDC_NEW_OFFTHERECORD_WINDOW_TOR,
 #endif
-#if BUILDFLAG(BRAVE_REWARDS_ENABLED)
     IDC_SHOW_BRAVE_REWARDS,
-#endif
     IDC_BOOKMARKS_MENU,
     IDC_SHOW_DOWNLOADS,
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
     IDC_SHOW_BRAVE_WALLET,
 #endif
     IDC_MANAGE_EXTENSIONS,
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
     IDC_SHOW_BRAVE_SYNC,
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+    IDC_SHOW_BRAVE_VPN_PANEL,
 #endif
     IDC_SHOW_BRAVE_ADBLOCK,
     IDC_ADD_NEW_PROFILE,
@@ -135,10 +155,9 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
     IDC_SHOW_BRAVE_WEBCOMPAT_REPORTER
   };
   std::vector<int> commands_disabled_for_private_profile = {
-    IDC_NEW_TOR_CONNECTION_FOR_SITE,
-    IDC_RECENT_TABS_MENU,
+      IDC_NEW_TOR_CONNECTION_FOR_SITE,
+      IDC_RECENT_TABS_MENU,
   };
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
   if (!switches::IsSyncAllowedByFlag()) {
     commands_in_order_for_private_profile.erase(
         std::remove(commands_in_order_for_private_profile.begin(),
@@ -147,7 +166,6 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
         commands_in_order_for_private_profile.end());
     commands_disabled_for_private_profile.push_back(IDC_SHOW_BRAVE_SYNC);
   }
-#endif
   CheckCommandsAreInOrderInMenuModel(private_browser,
                                      commands_in_order_for_private_profile);
   CheckCommandsAreDisabledInMenuModel(private_browser,
@@ -164,6 +182,9 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
     IDC_NEW_TAB,
     IDC_NEW_WINDOW,
     IDC_SHOW_DOWNLOADS,
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+    IDC_SHOW_BRAVE_VPN_PANEL,
+#endif
     IDC_SHOW_BRAVE_ADBLOCK,
     IDC_SHOW_BRAVE_WEBCOMPAT_REPORTER
   };
@@ -174,9 +195,7 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
 #if BUILDFLAG(ENABLE_TOR)
     IDC_NEW_OFFTHERECORD_WINDOW_TOR,
 #endif
-#if BUILDFLAG(BRAVE_REWARDS_ENABLED)
     IDC_SHOW_BRAVE_REWARDS,
-#endif
     IDC_RECENT_TABS_MENU,
     IDC_BOOKMARKS_MENU,
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
@@ -202,16 +221,15 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
     IDC_NEW_WINDOW,
     IDC_NEW_INCOGNITO_WINDOW,
     IDC_NEW_OFFTHERECORD_WINDOW_TOR,
-#if BUILDFLAG(BRAVE_REWARDS_ENABLED)
     IDC_SHOW_BRAVE_REWARDS,
-#endif
     IDC_BOOKMARKS_MENU,
     IDC_SHOW_DOWNLOADS,
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
     IDC_SHOW_BRAVE_WALLET,
 #endif
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
     IDC_SHOW_BRAVE_SYNC,
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+    IDC_SHOW_BRAVE_VPN_PANEL,
 #endif
     IDC_SHOW_BRAVE_ADBLOCK,
     IDC_ADD_NEW_PROFILE,
@@ -219,9 +237,8 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
     IDC_SHOW_BRAVE_WEBCOMPAT_REPORTER
   };
   std::vector<int> commands_disabled_for_tor_profile = {
-    IDC_RECENT_TABS_MENU,
+      IDC_RECENT_TABS_MENU,
   };
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
   if (!switches::IsSyncAllowedByFlag()) {
     commands_in_order_for_tor_profile.erase(
         std::remove(commands_in_order_for_tor_profile.begin(),
@@ -230,10 +247,39 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
         commands_in_order_for_tor_profile.end());
     commands_disabled_for_tor_profile.push_back(IDC_SHOW_BRAVE_SYNC);
   }
-#endif
   CheckCommandsAreInOrderInMenuModel(tor_browser,
                                      commands_in_order_for_tor_profile);
   CheckCommandsAreDisabledInMenuModel(tor_browser,
                                       commands_disabled_for_tor_profile);
 #endif
 }
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+// Check vpn menu based on purchased status.
+IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, BraveVPNMenuTest) {
+  std::vector<int> commands_enabled_for_non_purchased = {
+      IDC_SHOW_BRAVE_VPN_PANEL,
+  };
+  std::vector<int> commands_disabled_for_non_purchased = {
+      IDC_BRAVE_VPN_MENU,
+  };
+
+  SetPurchasedUserForBraveVPN(browser(), false);
+  CheckCommandsAreInOrderInMenuModel(browser(),
+                                     commands_enabled_for_non_purchased);
+  CheckCommandsAreDisabledInMenuModel(browser(),
+                                      commands_disabled_for_non_purchased);
+
+  std::vector<int> commands_enabled_for_purchased = {
+      IDC_BRAVE_VPN_MENU,
+  };
+  std::vector<int> commands_disabled_for_purchased = {
+      IDC_SHOW_BRAVE_VPN_PANEL,
+  };
+
+  SetPurchasedUserForBraveVPN(browser(), true);
+  CheckCommandsAreInOrderInMenuModel(browser(), commands_enabled_for_purchased);
+  CheckCommandsAreDisabledInMenuModel(browser(),
+                                      commands_disabled_for_purchased);
+}
+#endif

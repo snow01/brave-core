@@ -15,12 +15,6 @@
 
 namespace brave_wallet {
 
-FORWARD_DECLARE_TEST(HDKeyUnitTest, GenerateFromExtendedKey);
-FORWARD_DECLARE_TEST(HDKeyUnitTest, SetPrivateKey);
-FORWARD_DECLARE_TEST(HDKeyUnitTest, SetPublicKey);
-FORWARD_DECLARE_TEST(HDKeyUnitTest, DeriveChildFromPath);
-FORWARD_DECLARE_TEST(HDKeyUnitTest, SignAndVerifyAndRecover);
-
 // This class implement basic functionality of bip32 spec
 class HDKey {
  public:
@@ -32,11 +26,20 @@ class HDKey {
       const std::vector<uint8_t>& seed);
 
   static std::unique_ptr<HDKey> GenerateFromExtendedKey(const std::string& key);
+  static std::unique_ptr<HDKey> GenerateFromPrivateKey(
+      const std::vector<uint8_t>& private_key);
+  // https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition
+  static std::unique_ptr<HDKey> GenerateFromV3UTC(const std::string& password,
+                                                  const std::string& json);
 
   // value must be 32 bytes
   void SetPrivateKey(const std::vector<uint8_t>& value);
   // base58 encoded of hash160 of private key
   std::string GetPrivateExtendedKey() const;
+  std::string GetHexEncodedPrivateKey() const;
+  const std::vector<uint8_t>& private_key() const { return private_key_; }
+  // TODO(darkdh): For exporting private key as keystore file
+  // std::string GetPrivateKeyinV3UTC() const;
 
   // value must be 33 bytes valid public key (compressed)
   void SetPublicKey(const std::vector<uint8_t>& value);
@@ -77,7 +80,6 @@ class HDKey {
   FRIEND_TEST_ALL_PREFIXES(HDKeyUnitTest, GenerateFromExtendedKey);
   FRIEND_TEST_ALL_PREFIXES(HDKeyUnitTest, SetPrivateKey);
   FRIEND_TEST_ALL_PREFIXES(HDKeyUnitTest, SetPublicKey);
-  FRIEND_TEST_ALL_PREFIXES(HDKeyUnitTest, DeriveChildFromPath);
   FRIEND_TEST_ALL_PREFIXES(HDKeyUnitTest, SignAndVerifyAndRecover);
 
   void GeneratePublicKey();

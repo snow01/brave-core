@@ -5,6 +5,7 @@
 
 #include "bat/ads/internal/account/account.h"
 
+#include "base/check.h"
 #include "bat/ads/internal/account/ad_rewards/ad_rewards.h"
 #include "bat/ads/internal/account/ad_rewards/ad_rewards_util.h"
 #include "bat/ads/internal/account/confirmations/confirmation_info.h"
@@ -13,11 +14,13 @@
 #include "bat/ads/internal/account/transactions/transactions.h"
 #include "bat/ads/internal/account/wallet/wallet.h"
 #include "bat/ads/internal/account/wallet/wallet_info.h"
+#include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/privacy/tokens/token_generator_interface.h"
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_tokens.h"
 #include "bat/ads/internal/tokens/redeem_unblinded_payment_tokens/redeem_unblinded_payment_tokens.h"
 #include "bat/ads/internal/tokens/refill_unblinded_tokens/refill_unblinded_tokens.h"
+#include "bat/ads/statement_info.h"
 
 namespace ads {
 
@@ -38,12 +41,14 @@ Account::Account(privacy::TokenGeneratorInterface* token_generator)
 
   ad_rewards_->set_delegate(this);
   redeem_unblinded_payment_tokens_->set_delegate(this);
+  refill_unblinded_tokens_->set_delegate(this);
 }
 
 Account::~Account() {
   confirmations_->RemoveObserver(this);
   ad_rewards_->set_delegate(nullptr);
   redeem_unblinded_payment_tokens_->set_delegate(nullptr);
+  refill_unblinded_tokens_->set_delegate(nullptr);
 }
 
 void Account::AddObserver(AccountObserver* observer) {
@@ -60,17 +65,19 @@ bool Account::SetWallet(const std::string& id, const std::string& seed) {
   const WalletInfo last_wallet = wallet_->Get();
 
   if (!wallet_->Set(id, seed)) {
-    BLOG(0, "Invalid wallet");
+    NotifyInvalidWallet();
     return false;
   }
 
   const WalletInfo wallet = wallet_->Get();
 
   if (last_wallet.IsValid() && last_wallet != wallet) {
-    NotifyWalletRestored(wallet);
+    ad_rewards_->Reset();
+
+    NotifyWalletDidChange(wallet);
   }
 
-  NotifyWalletChanged(wallet);
+  NotifyWalletDidUpdate(wallet);
 
   return true;
 }
@@ -81,6 +88,7 @@ WalletInfo Account::GetWallet() const {
 
 void Account::SetCatalogIssuers(const CatalogIssuersInfo& catalog_issuers) {
   confirmations_->SetCatalogIssuers(catalog_issuers);
+  NotifyCatalogIssuersDidChange(catalog_issuers);
 }
 
 void Account::Deposit(const std::string& creative_instance_id,
@@ -129,53 +137,41 @@ void Account::ProcessUnclearedTransactions() {
   redeem_unblinded_payment_tokens_->MaybeRedeemAfterDelay(wallet);
 }
 
-void Account::NotifyWalletChanged(const WalletInfo& wallet) const {
+void Account::NotifyWalletDidUpdate(const WalletInfo& wallet) const {
   for (AccountObserver& observer : observers_) {
-    observer.OnWalletChanged(wallet);
+    observer.OnWalletDidUpdate(wallet);
   }
 }
 
-void Account::NotifyWalletRestored(const WalletInfo& wallet) const {
+void Account::NotifyWalletDidChange(const WalletInfo& wallet) const {
   for (AccountObserver& observer : observers_) {
-    observer.OnWalletRestored(wallet);
+    observer.OnWalletDidChange(wallet);
   }
 }
 
-void Account::NotifyWalletInvalid() const {
+void Account::NotifyInvalidWallet() const {
   for (AccountObserver& observer : observers_) {
-    observer.OnWalletInvalid();
+    observer.OnInvalidWallet();
   }
 }
 
-void Account::NotifyCatalogIssuersChanged(
+void Account::NotifyCatalogIssuersDidChange(
     const CatalogIssuersInfo& catalog_issuers) const {
   for (AccountObserver& observer : observers_) {
-    observer.OnCatalogIssuersChanged(catalog_issuers);
+    observer.OnCatalogIssuersDidChange(catalog_issuers);
   }
 }
 
-void Account::NotifyAdRewardsChanged() const {
+void Account::NotifyStatementOfAccountsDidChange() const {
   for (AccountObserver& observer : observers_) {
-    observer.OnAdRewardsChanged();
-  }
-}
-
-void Account::NotifyTransactionsChanged() const {
-  for (AccountObserver& observer : observers_) {
-    observer.OnTransactionsChanged();
-  }
-}
-
-void Account::NotifyUnclearedTransactionsProcessed() const {
-  for (AccountObserver& observer : observers_) {
-    observer.OnUnclearedTransactionsProcessed();
+    observer.OnStatementOfAccountsDidChange();
   }
 }
 
 void Account::OnConfirmAd(const double estimated_redemption_value,
                           const ConfirmationInfo& confirmation) {
   transactions::Add(estimated_redemption_value, confirmation);
-  NotifyTransactionsChanged();
+  NotifyStatementOfAccountsDidChange();
 
   TopUpUnblindedTokens();
 }
@@ -187,7 +183,7 @@ void Account::OnConfirmAdFailed(const ConfirmationInfo& confirmation) {
 }
 
 void Account::OnDidReconcileAdRewards() {
-  NotifyAdRewardsChanged();
+  NotifyStatementOfAccountsDidChange();
 }
 
 void Account::OnDidRedeemUnblindedPaymentTokens(
@@ -206,6 +202,21 @@ void Account::OnFailedToRedeemUnblindedPaymentTokens() {
 
 void Account::OnDidRetryRedeemingUnblindedPaymentTokens() {
   BLOG(1, "Retry redeeming unblinded payment tokens");
+}
+
+void Account::OnDidRefillUnblindedTokens() {
+  BLOG(1, "Successfully refilled unblinded tokens");
+
+  AdsClientHelper::Get()->ClearScheduledCaptcha();
+}
+
+void Account::OnCaptchaRequiredToRefillUnblindedTokens(
+    const std::string& captcha_id) {
+  BLOG(1, "Captcha required to refill unblinded tokens");
+
+  const WalletInfo wallet = GetWallet();
+  AdsClientHelper::Get()->ShowScheduledCaptchaNotification(wallet.id,
+                                                           captcha_id);
 }
 
 }  // namespace ads

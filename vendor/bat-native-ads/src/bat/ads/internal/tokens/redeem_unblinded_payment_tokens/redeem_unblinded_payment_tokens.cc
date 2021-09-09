@@ -9,18 +9,22 @@
 #include <functional>
 #include <utility>
 
-#include "bat/ads/ads.h"
+#include "base/check.h"
 #include "bat/ads/internal/account/confirmations/confirmations.h"
 #include "bat/ads/internal/account/confirmations/confirmations_state.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/logging.h"
+#include "bat/ads/internal/logging_util.h"
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_tokens.h"
 #include "bat/ads/internal/time_formatting_util.h"
+#include "bat/ads/internal/tokens/redeem_unblinded_payment_tokens/redeem_unblinded_payment_tokens_delegate.h"
 #include "bat/ads/internal/tokens/redeem_unblinded_payment_tokens/redeem_unblinded_payment_tokens_url_request_builder.h"
 #include "brave_base/random.h"
 #include "net/http/http_status_code.h"
 
 namespace ads {
+
+class RedeemUnblindedPaymentTokensDelegate;
 
 namespace {
 
@@ -94,7 +98,7 @@ void RedeemUnblindedPaymentTokens::Redeem() {
 
   RedeemUnblindedPaymentTokensUrlRequestBuilder url_request_builder(
       wallet_, unblinded_tokens);
-  UrlRequestPtr url_request = url_request_builder.Build();
+  mojom::UrlRequestPtr url_request = url_request_builder.Build();
   BLOG(5, UrlRequestToString(url_request));
   BLOG(7, UrlRequestHeadersToString(url_request));
 
@@ -104,7 +108,7 @@ void RedeemUnblindedPaymentTokens::Redeem() {
 }
 
 void RedeemUnblindedPaymentTokens::OnRedeem(
-    const UrlResponse& url_response,
+    const mojom::UrlResponse& url_response,
     const privacy::UnblindedTokenList unblinded_tokens) {
   BLOG(1, "OnRedeemUnblindedPaymentTokens");
 

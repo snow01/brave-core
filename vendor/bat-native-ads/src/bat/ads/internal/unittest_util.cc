@@ -5,25 +5,23 @@
 
 #include "bat/ads/internal/unittest_util.h"
 
-#include <limits>
-
 #include "base/base_paths.h"
+#include "base/check_op.h"
 #include "base/containers/flat_map.h"
 #include "base/files/file_util.h"
+#include "base/notreached.h"
 #include "base/path_service.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_split.h"
 #include "base/strings/string_util.h"
 #include "base/strings/stringprintf.h"
-#include "base/strings/utf_string_conversions.h"
 #include "base/time/time_to_iso8601.h"
+#include "bat/ads/ads.h"
 #include "bat/ads/internal/ads_client_mock.h"
-#include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/time_formatting_util.h"
 #include "bat/ads/internal/url_util.h"
 #include "bat/ads/pref_names.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
-#include "net/http/http_status_code.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "third_party/re2/src/re2/re2.h"
 #include "url/gurl.h"
@@ -455,11 +453,11 @@ absl::optional<std::string> ReadFileFromResourcePathToString(
   return value;
 }
 
-void SetEnvironment(const Environment environment) {
+void SetEnvironment(const mojom::Environment environment) {
   g_environment = environment;
 }
 
-void SetSysInfo(const SysInfo& sys_info) {
+void SetSysInfo(const mojom::SysInfo& sys_info) {
   g_sys_info.is_uncertain_future = sys_info.is_uncertain_future;
 }
 
@@ -618,9 +616,9 @@ void MockGetBrowsingHistory(const std::unique_ptr<AdsClientMock>& mock) {
 
 void MockSave(const std::unique_ptr<AdsClientMock>& mock) {
   ON_CALL(*mock, Save(_, _, _))
-      .WillByDefault(
-          Invoke([](const std::string& name, const std::string& value,
-                    ResultCallback callback) { callback(SUCCESS); }));
+      .WillByDefault(Invoke(
+          [](const std::string& name, const std::string& value,
+             ResultCallback callback) { callback(/* success */ true); }));
 }
 
 void MockLoad(const std::unique_ptr<AdsClientMock>& mock,
@@ -636,11 +634,11 @@ void MockLoad(const std::unique_ptr<AdsClientMock>& mock,
 
             std::string value;
             if (!base::ReadFileToString(path, &value)) {
-              callback(FAILED, value);
+              callback(/* success */ false, value);
               return;
             }
 
-            callback(SUCCESS, value);
+            callback(/* success */ true, value);
           }));
 }
 
@@ -654,11 +652,11 @@ void MockLoadAdsResource(const std::unique_ptr<AdsClientMock>& mock) {
 
             std::string value;
             if (!base::ReadFileToString(path, &value)) {
-              callback(FAILED, value);
+              callback(/* success */ false, value);
               return;
             }
 
-            callback(SUCCESS, value);
+            callback(/* success */ true, value);
           }));
 }
 
@@ -678,8 +676,9 @@ void MockLoadResourceForId(const std::unique_ptr<AdsClientMock>& mock) {
 void MockUrlRequest(const std::unique_ptr<AdsClientMock>& mock,
                     const URLEndpoints& endpoints) {
   ON_CALL(*mock, UrlRequest(_, _))
-      .WillByDefault(Invoke([&endpoints](const UrlRequestPtr& url_request,
-                                         UrlRequestCallback callback) {
+      .WillByDefault(Invoke([&endpoints](
+                                const mojom::UrlRequestPtr& url_request,
+                                UrlRequestCallback callback) {
         int status_code = -1;
 
         std::string body;
@@ -707,7 +706,7 @@ void MockUrlRequest(const std::unique_ptr<AdsClientMock>& mock,
           }
         }
 
-        UrlResponse url_response;
+        mojom::UrlResponse url_response;
         url_response.url = url_request->url;
         url_response.status_code = status_code;
         url_response.body = body;
@@ -719,12 +718,12 @@ void MockUrlRequest(const std::unique_ptr<AdsClientMock>& mock,
 void MockRunDBTransaction(const std::unique_ptr<AdsClientMock>& mock,
                           const std::unique_ptr<Database>& database) {
   ON_CALL(*mock, RunDBTransaction(_, _))
-      .WillByDefault(Invoke([&database](DBTransactionPtr transaction,
+      .WillByDefault(Invoke([&database](mojom::DBTransactionPtr transaction,
                                         RunDBTransactionCallback callback) {
-        DBCommandResponsePtr response = DBCommandResponse::New();
+        mojom::DBCommandResponsePtr response = mojom::DBCommandResponse::New();
 
         if (!database) {
-          response->status = DBCommandResponse::Status::RESPONSE_ERROR;
+          response->status = mojom::DBCommandResponse::Status::RESPONSE_ERROR;
         } else {
           database->RunTransaction(std::move(transaction), response.get());
         }

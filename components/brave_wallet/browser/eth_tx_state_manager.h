@@ -8,11 +8,13 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "base/time/time.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_types.h"
 #include "brave/components/brave_wallet/browser/eth_address.h"
+#include "brave/components/brave_wallet/browser/eth_json_rpc_controller.h"
 #include "brave/components/brave_wallet/browser/eth_transaction.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 
@@ -24,18 +26,10 @@ class Value;
 
 namespace brave_wallet {
 
-class EthTxStateManager {
- public:
-  enum class TransactionStatus {
-    UNAPPROVED,
-    APPROVED,
-    REJECTED,
-    SUBMITTED,
-    FAILED,
-    DROPPED,
-    CONFIRMED
-  };
+class EthJsonRpcController;
 
+class EthTxStateManager : public mojom::EthJsonRpcControllerObserver {
+ public:
   struct TxMeta {
     TxMeta();
     explicit TxMeta(std::unique_ptr<EthTransaction> tx);
@@ -44,7 +38,7 @@ class EthTxStateManager {
     bool operator==(const TxMeta&) const;
 
     std::string id;
-    TransactionStatus status = TransactionStatus::UNAPPROVED;
+    mojom::TransactionStatus status = mojom::TransactionStatus::Unapproved;
     EthAddress from;
     uint256_t last_gas_price = 0;
     base::Time created_time;
@@ -55,14 +49,16 @@ class EthTxStateManager {
     std::unique_ptr<EthTransaction> tx;
   };
 
-  explicit EthTxStateManager(PrefService* prefs);
-  ~EthTxStateManager();
+  explicit EthTxStateManager(
+      PrefService* prefs,
+      mojo::PendingRemote<mojom::EthJsonRpcController> rpc_controller);
+  ~EthTxStateManager() override;
   EthTxStateManager(const EthTxStateManager&) = delete;
   EthTxStateManager operator=(const EthTxStateManager&) = delete;
 
   static std::string GenerateMetaID();
-  // id will be excluded because it is used as key of dictionary
   static base::Value TxMetaToValue(const TxMeta& meta);
+  static mojom::TransactionInfoPtr TxMetaToTransactionInfo(const TxMeta& meta);
   static std::unique_ptr<TxMeta> ValueToTxMeta(const base::Value& value);
 
   void AddOrUpdateTx(const TxMeta& meta);
@@ -71,11 +67,34 @@ class EthTxStateManager {
   void WipeTxs();
 
   std::vector<std::unique_ptr<TxMeta>> GetTransactionsByStatus(
-      TransactionStatus status,
+      absl::optional<mojom::TransactionStatus> status,
       absl::optional<EthAddress> from);
 
+  // mojom::EthJsonRpcControllerObserver
+  void ChainChangedEvent(const std::string& chain_id) override;
+  void OnAddEthereumChainRequestCompleted(const std::string& chain_id,
+                                          const std::string& error) override;
+
+  void SetChainCallbackForTesting(base::OnceClosure callback) {
+    chain_callback_for_testing_ = std::move(callback);
+  }
+
  private:
+  std::string GetNetworkId() const;
+  // only support REJECTED and CONFIRMED
+  void RetireTxByStatus(mojom::TransactionStatus status, size_t max_num);
+
+  void OnConnectionError();
+  void OnGetNetworkUrl(const std::string& url);
+  void OnGetChainId(const std::string& chain_id);
+
   PrefService* prefs_;
+  mojo::Remote<mojom::EthJsonRpcController> rpc_controller_;
+  mojo::Receiver<mojom::EthJsonRpcControllerObserver> observer_receiver_{this};
+  std::string chain_id_;
+  std::string network_url_;
+  base::OnceClosure chain_callback_for_testing_;
+  base::WeakPtrFactory<EthTxStateManager> weak_factory_;
 };
 
 }  // namespace brave_wallet

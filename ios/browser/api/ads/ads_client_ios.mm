@@ -63,7 +63,7 @@ void AdsClientIOS::ResetAdEvents() const {
   [bridge_ resetAdEvents];
 }
 
-void AdsClientIOS::UrlRequest(ads::UrlRequestPtr url_request,
+void AdsClientIOS::UrlRequest(ads::mojom::UrlRequestPtr url_request,
                               ads::UrlRequestCallback callback) {
   [bridge_ UrlRequest:std::move(url_request) callback:callback];
 }
@@ -95,6 +95,22 @@ std::string AdsClientIOS::LoadResourceForId(const std::string& id) {
   return [bridge_ loadResourceForId:id];
 }
 
+void AdsClientIOS::ClearScheduledCaptcha() {
+  [bridge_ clearScheduledCaptcha];
+}
+
+void AdsClientIOS::GetScheduledCaptcha(
+    const std::string& payment_id,
+    ads::GetScheduledCaptchaCallback callback) {
+  [bridge_ getScheduledCaptcha:payment_id callback:std::move(callback)];
+}
+
+void AdsClientIOS::ShowScheduledCaptchaNotification(
+    const std::string& payment_id,
+    const std::string& captcha_id) {
+  [bridge_ showScheduledCaptchaNotification:payment_id captchaId:captcha_id];
+}
+
 void AdsClientIOS::Log(const char* file,
                        const int line,
                        const int verbose_level,
@@ -102,7 +118,7 @@ void AdsClientIOS::Log(const char* file,
   [bridge_ log:file line:line verboseLevel:verbose_level message:message];
 }
 
-void AdsClientIOS::RunDBTransaction(ads::DBTransactionPtr transaction,
+void AdsClientIOS::RunDBTransaction(ads::mojom::DBTransactionPtr transaction,
                                     ads::RunDBTransactionCallback callback) {
   [bridge_ runDBTransaction:std::move(transaction) callback:callback];
 }
@@ -166,7 +182,7 @@ void AdsClientIOS::ClearPref(const std::string& path) {
 }
 
 void AdsClientIOS::RecordP2AEvent(const std::string& name,
-                                  const ads::P2AEventType type,
+                                  const ads::mojom::P2AEventType type,
                                   const std::string& value) {
   [bridge_ recordP2AEvent:name type:type value:value];
 }

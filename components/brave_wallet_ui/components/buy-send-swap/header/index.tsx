@@ -1,7 +1,11 @@
 import * as React from 'react'
-import { UserAccountType, NetworkOptionsType, BuySendSwapViewTypes } from '../../../constants/types'
+import { UserAccountType, BuySendSwapViewTypes, EthereumChain } from '../../../constants/types'
 import { reduceAddress } from '../../../utils/reduce-address'
+import { reduceNetworkDisplayName } from '../../../utils/network-utils'
 import { create } from 'ethereum-blockies'
+import { copyToClipboard } from '../../../utils/copy-to-clipboard'
+import { Tooltip } from '../../shared'
+import locale from '../../../constants/locale'
 // Styled Components
 import {
   StyledWrapper,
@@ -17,7 +21,7 @@ import {
 
 export interface Props {
   selectedAccount: UserAccountType
-  selectedNetwork: NetworkOptionsType
+  selectedNetwork: EthereumChain
   onChangeSwapView: (view: BuySendSwapViewTypes) => void
 }
 
@@ -32,6 +36,10 @@ function SwapHeader (props: Props) {
     onChangeSwapView('networks')
   }
 
+  const onCopyToClipboard = async () => {
+    await copyToClipboard(selectedAccount.address)
+  }
+
   const orb = React.useMemo(() => {
     return create({ seed: selectedAccount.address, size: 8, scale: 16 }).toDataURL()
   }, [selectedAccount])
@@ -39,15 +47,17 @@ function SwapHeader (props: Props) {
   return (
     <StyledWrapper>
       <NameAndIcon>
-        <AccountCircle orb={orb} />
-        <AccountAndAddress onClick={onShowAccounts}>
-          <AccountName>{selectedAccount.name}</AccountName>
-          <AccountAddress>{reduceAddress(selectedAccount.address)}</AccountAddress>
-        </AccountAndAddress>
+        <AccountCircle onClick={onShowAccounts} orb={orb} />
+        <Tooltip text={locale.toolTipCopyToClipboard}>
+          <AccountAndAddress onClick={onCopyToClipboard}>
+            <AccountName>{selectedAccount.name}</AccountName>
+            <AccountAddress>{reduceAddress(selectedAccount.address)}</AccountAddress>
+          </AccountAndAddress>
+        </Tooltip>
       </NameAndIcon>
 
       <OvalButton onClick={onShowNetworks}>
-        <OvalButtonText>{selectedNetwork.abbr}</OvalButtonText>
+        <OvalButtonText>{reduceNetworkDisplayName(selectedNetwork.chainName)}</OvalButtonText>
         <CaratDownIcon />
       </OvalButton>
     </StyledWrapper >
