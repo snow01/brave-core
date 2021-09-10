@@ -100,12 +100,13 @@ function Container (props: Props) {
     setupStillInProgress,
     isFetchingPriceHistory,
     showIsRestoring,
-    privateKey
+    privateKey,
+    importError,
+    showAddModal
   } = props.page
 
   // const [view, setView] = React.useState<NavTypes>('crypto')
   const [inputValue, setInputValue] = React.useState<string>('')
-  const [showAddModal, setShowAddModal] = React.useState<boolean>(false)
   const [exchangeRate, setExchangeRate] = React.useState('')
   const [toAddress, setToAddress] = React.useState('')
   const [buyAmount, setBuyAmount] = React.useState('')
@@ -310,9 +311,7 @@ function Container (props: Props) {
     if (selectedAsset) {
       props.walletPageActions.selectAsset({ asset: selectedAsset, timeFrame: timeline })
     } else {
-      if (parseFloat(fullPortfolioBalance) !== 0) {
-        props.walletActions.selectPortfolioTimeline(timeline)
-      }
+      props.walletActions.selectPortfolioTimeline(timeline)
     }
   }
 
@@ -349,7 +348,7 @@ function Container (props: Props) {
   }
 
   const onToggleAddModal = () => {
-    setShowAddModal(!showAddModal)
+    props.walletPageActions.setShowAddModal(!showAddModal)
   }
 
   const onCreateAccount = (name: string) => {
@@ -373,10 +372,15 @@ function Container (props: Props) {
   }
 
   const onImportAccount = (accountName: string, privateKey: string) => {
-    const imported = props.walletPageActions.importAccount({ accountName, privateKey })
-    if (imported) {
-      onToggleAddModal()
-    }
+    props.walletPageActions.importAccount({ accountName, privateKey })
+  }
+
+  const onImportAccountFromJson = (accountName: string, password: string, json: string) => {
+    props.walletPageActions.importAccountFromJson({ accountName, password, json })
+  }
+
+  const onSetImportError = (hasError: boolean) => {
+    props.walletPageActions.setImportError(hasError)
   }
 
   const onRemoveAccount = (address: string) => {
@@ -500,6 +504,9 @@ function Container (props: Props) {
                   privateKey={privateKey ?? ''}
                   onDoneViewingPrivateKey={onDoneViewingPrivateKey}
                   onViewPrivateKey={onViewPrivateKey}
+                  onImportAccountFromJson={onImportAccountFromJson}
+                  onSetImportError={onSetImportError}
+                  hasImportError={importError}
                 />
               )}
             </>
@@ -508,6 +515,7 @@ function Container (props: Props) {
       )
     }
   }, [
+    importError,
     privateKey,
     fullTokenList,
     isWalletCreated,

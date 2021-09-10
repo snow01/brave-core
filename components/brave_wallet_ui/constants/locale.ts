@@ -163,6 +163,7 @@ const locale = {
   importAccountFile: 'JSON File',
   importAccountUploadButton: 'Choose File',
   importAccountUploadPlaceholder: 'No file chosen',
+  importAccountError: 'Failed to import account, please try again.',
 
   // Connect Hardware Wallet
   connectHardwareTitle: 'Select your hardware wallet device',
@@ -218,7 +219,7 @@ const locale = {
   searchAsset: 'Search Coins',
 
   // Swap
-  swapFrom: 'From',
+  swapFrom: 'Amount',
   swapTo: 'To',
   swapEstimate: 'estimate',
   swapMarket: 'Market',
@@ -264,6 +265,7 @@ const locale = {
   confirmTransactionGasFee: 'Gas Fee',
   confrimTransactionBid: 'Bid',
   confirmTransactionAmountGas: 'Amount + Gas',
+  confirmTransactionNoData: 'No Data.',
 
   // Wallet Main Panel
   panelTitle: 'Crypto',
