@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "base/observer_list.h"
 #include "base/scoped_observation.h"
 #include "brave/components/brave_vpn/brave_vpn.mojom-shared.h"
 #include "brave/components/brave_vpn/brave_vpn.mojom.h"
@@ -31,16 +30,6 @@ class BraveVpnServiceDesktop
       public brave_vpn::BraveVPNOSConnectionAPI::Observer,
       public brave_vpn::mojom::ServiceHandler {
  public:
-  class Observer : public base::CheckedObserver {
-   public:
-    virtual void OnConnectionStateChanged(ConnectionState state) = 0;
-    virtual void OnConnectionCreated() = 0;
-    virtual void OnConnectionRemoved() = 0;
-
-   protected:
-    ~Observer() override = default;
-  };
-
   explicit BraveVpnServiceDesktop(
       scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory);
   ~BraveVpnServiceDesktop() override;
@@ -50,12 +39,12 @@ class BraveVpnServiceDesktop
 
   void RemoveVPNConnnection();
 
-  void AddObserver(Observer* observer);
-  void RemoveObserver(Observer* observer);
-
   bool is_connected() const { return state_ == ConnectionState::CONNECTED; }
-  void CheckPurchasedStatus();
   bool is_purchased_user() const { return is_purchased_user_; }
+  ConnectionState connection_state() const { return state_; }
+
+  void CheckPurchasedStatus();
+  void ToggleConnection();
 
   void BindInterface(
       mojo::PendingReceiver<brave_vpn::mojom::ServiceHandler> receiver);
@@ -97,12 +86,11 @@ class BraveVpnServiceDesktop
   std::vector<brave_vpn::mojom::Region> regions_;
   ConnectionState state_ = ConnectionState::DISCONNECTED;
   bool is_purchased_user_ = false;
-  base::ObserverList<Observer> observers_;
   base::ScopedObservation<brave_vpn::BraveVPNOSConnectionAPI,
                           brave_vpn::BraveVPNOSConnectionAPI::Observer>
       observed_{this};
   mojo::ReceiverSet<brave_vpn::mojom::ServiceHandler> receivers_;
-  mojo::RemoteSet<brave_vpn::mojom::ServiceObserver> mojo_observers_;
+  mojo::RemoteSet<brave_vpn::mojom::ServiceObserver> observers_;
 };
 
 #endif  // BRAVE_COMPONENTS_BRAVE_VPN_BRAVE_VPN_SERVICE_DESKTOP_H_
