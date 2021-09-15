@@ -10,6 +10,7 @@
 
 @class BraveBookmarksAPI;
 @class BraveHistoryAPI;
+@class BravePasswordAPI;
 @class BraveSyncAPI;
 @class BraveSyncProfileServiceIOS;
 @protocol BraveWalletERCTokenRegistry;
@@ -32,6 +33,8 @@ OBJC_EXPORT
 @property(nonatomic, readonly) BraveSyncAPI* syncAPI;
 
 @property(nonatomic, readonly) BraveSyncProfileServiceIOS* syncProfileService;
+
+@property(nonatomic, readonly) BravePasswordAPI* passwordAPI;
 
 + (void)setLogHandler:(nullable BraveCoreLogHandler)logHandler;
 
