@@ -19,6 +19,7 @@
 #include "brave/browser/brave_browser_process.h"
 #include "brave/browser/brave_shields/brave_shields_web_contents_observer.h"
 #include "brave/browser/debounce/debounce_service_factory.h"
+#include "brave/browser/ephemeral_storage/ephemeral_storage_service_factory.h"
 #include "brave/browser/ethereum_remote_client/buildflags/buildflags.h"
 #include "brave/browser/net/brave_proxying_url_loader_factory.h"
 #include "brave/browser/net/brave_proxying_web_socket.h"
@@ -817,6 +818,7 @@ BraveContentBrowserClient::CreateThrottlesForNavigation(
           brave_shields::DomainBlockNavigationThrottle::MaybeCreateThrottleFor(
               handle, g_brave_browser_process->ad_block_service(),
               g_brave_browser_process->ad_block_custom_filters_service(),
+              EphemeralStorageServiceFactory::GetForContext(context),
               HostContentSettingsMapFactory::GetForProfile(
                   Profile::FromBrowserContext(context)),
               g_browser_process->GetApplicationLocale()))

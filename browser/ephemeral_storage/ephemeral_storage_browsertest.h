@@ -14,7 +14,10 @@
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/web_contents.h"
 #include "net/test/embedded_test_server/http_request.h"
+#include "services/network/public/mojom/cookie_manager.mojom.h"
 #include "url/gurl.h"
+
+class HostContentSettingsMap;
 
 class EphemeralStorageBrowserTest : public InProcessBrowserTest {
  public:
@@ -85,6 +88,16 @@ class EphemeralStorageBrowserTest : public InProcessBrowserTest {
                             base::StringPiece message);
   void ClearBroadcastMessage(content::RenderFrameHost* frame);
   content::EvalJsResult GetBroadcastMessage(content::RenderFrameHost* frame);
+
+  void SetCookieSetting(const GURL& url, ContentSetting content_setting);
+
+  // Helper to load easy-to-use Indexed DB API.
+  void LoadIndexedDbHelper(content::RenderFrameHost* host);
+  bool SetIDBValue(content::RenderFrameHost* host);
+
+  HostContentSettingsMap* content_settings();
+  network::mojom::CookieManager* CookieManager();
+  std::vector<net::CanonicalCookie> GetAllCookies();
 
  protected:
   void SetUpHttpsServer();
