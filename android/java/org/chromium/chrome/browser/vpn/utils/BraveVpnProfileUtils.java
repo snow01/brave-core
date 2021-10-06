@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package org.chromium.chrome.browser.vpn;
+package org.chromium.chrome.browser.vpn.utils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -19,7 +19,7 @@ import android.os.Build;
 
 import org.chromium.base.Log;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.vpn.BraveVpnUtils;
+import org.chromium.chrome.browser.vpn.utils.BraveVpnUtils;
 import org.chromium.ui.widget.Toast;
 
 public class BraveVpnProfileUtils {
