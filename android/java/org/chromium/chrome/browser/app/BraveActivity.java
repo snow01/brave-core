@@ -122,6 +122,7 @@ import org.chromium.chrome.browser.vpn.BraveVpnCalloutDialogFragment;
 import org.chromium.chrome.browser.vpn.BraveVpnNativeWorker;
 import org.chromium.chrome.browser.vpn.BraveVpnObserver;
 import org.chromium.chrome.browser.vpn.BraveVpnPrefUtils;
+import org.chromium.chrome.browser.vpn.BraveVpnProfileActivity;
 import org.chromium.chrome.browser.vpn.BraveVpnProfileUtils;
 import org.chromium.chrome.browser.vpn.BraveVpnUtils;
 import org.chromium.chrome.browser.vpn.InAppPurchaseWrapper;
@@ -267,7 +268,7 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
 
     private void verifySubscription() {
         List<Purchase> purchases = InAppPurchaseWrapper.getInstance().queryPurchases();
-        if (purchases.size() == 1) {
+        if (purchases != null && purchases.size() == 1) {
             Purchase purchase = purchases.get(0);
             mPurchaseToken = purchase.getPurchaseToken();
             mProductId = purchase.getSkus().get(0).toString();
@@ -291,6 +292,16 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
                     BraveVpnProfileUtils.getInstance().startStopVpn(BraveActivity.this);
                 } else {
                     mIsVerification = false;
+                    if (BraveVpnProfileUtils.getInstance().isVPNConnected(BraveActivity.this)
+                            && !TextUtils.isEmpty(BraveVpnPrefUtils.getHostname())
+                            && !TextUtils.isEmpty(BraveVpnPrefUtils.getUsername())
+                            && !TextUtils.isEmpty(BraveVpnPrefUtils.getSubscriberCredential())
+                            && !TextUtils.isEmpty(BraveVpnPrefUtils.getApiAuthToken())) {
+                        BraveVpnNativeWorker.getInstance().verifyCredentials(
+                                BraveVpnPrefUtils.getHostname(), BraveVpnPrefUtils.getUsername(),
+                                BraveVpnPrefUtils.getSubscriberCredential(),
+                                BraveVpnPrefUtils.getApiAuthToken());
+                    }
                 }
             } else {
                 braveVpnVerificationFailed();
@@ -299,6 +310,20 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
             mProductId = "";
         }
     };
+
+    @Override
+    public void onVerifyCredentials(String jsonVerifyCredentials, boolean isSuccess) {
+        if (isSuccess) {
+            if (BraveVpnProfileUtils.getInstance().isVPNConnected(BraveActivity.this)) {
+                BraveVpnProfileUtils.getInstance().stopVpn(BraveActivity.this);
+            }
+            Intent braveVpnProfileIntent =
+                    new Intent(BraveActivity.this, BraveVpnProfileActivity.class);
+            braveVpnProfileIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            braveVpnProfileIntent.putExtra(BraveVpnUtils.VERIFY_CREDENTIALS_FAILED, true);
+            startActivity(braveVpnProfileIntent);
+        }
+    }
 
     private void braveVpnVerificationFailed() {
         BraveVpnPrefUtils.setPurchaseToken("");
@@ -312,6 +337,7 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
         Toast.makeText(BraveActivity.this, R.string.purchase_token_verification_failed,
                      Toast.LENGTH_LONG)
                 .show();
+        BraveVpnUtils.dismissProgressDialog();
         BraveVpnUtils.openBraveVpnPlansActivity(BraveActivity.this);
     }
 
