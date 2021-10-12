@@ -11,6 +11,7 @@
 #include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/frequency_capping/frequency_capping_features.h"
+#include "bat/ads/internal/frequency_capping/frequency_capping_util.h"
 #include "bat/ads/pref_names.h"
 
 namespace ads {
@@ -24,6 +25,11 @@ ConversionFrequencyCap::ConversionFrequencyCap(const AdEventList& ad_events)
 
 ConversionFrequencyCap::~ConversionFrequencyCap() = default;
 
+std::string ConversionFrequencyCap::GetUuid(
+    const CreativeAdInfo& creative_ad) const {
+  return __PRETTY_FUNCTION__ + creative_ad.creative_set_id;
+}
+
 bool ConversionFrequencyCap::ShouldExclude(const CreativeAdInfo& creative_ad) {
   if (!features::frequency_capping::ShouldExcludeAdIfConverted()) {
     return false;
@@ -31,8 +37,7 @@ bool ConversionFrequencyCap::ShouldExclude(const CreativeAdInfo& creative_ad) {
 
   if (!ShouldAllow(creative_ad)) {
     last_message_ = base::StringPrintf(
-        "creativeSetId %s excluded due to ad conversion tracking being "
-        "disabled",
+        "creativeSetId %s excluded due to disabled ad conversion tracking",
         creative_ad.creative_set_id.c_str());
 
     return true;
@@ -43,7 +48,7 @@ bool ConversionFrequencyCap::ShouldExclude(const CreativeAdInfo& creative_ad) {
 
   if (!DoesRespectCap(filtered_ad_events)) {
     last_message_ = base::StringPrintf(
-        "creativeSetId %s has exceeded the frequency capping for conversions",
+        "creativeSetId %s has exceeded the conversions frequency cap",
         creative_ad.creative_set_id.c_str());
 
     return true;
@@ -81,8 +86,7 @@ AdEventList ConversionFrequencyCap::FilterAdEvents(
   const auto iter = std::remove_if(
       filtered_ad_events.begin(), filtered_ad_events.end(),
       [&creative_ad](const AdEventInfo& ad_event) {
-        return (ad_event.type != AdType::kAdNotification &&
-                ad_event.type != AdType::kInlineContentAd) ||
+        return !DoesAdTypeSupportFrequencyCapping(ad_event.type) ||
                ad_event.creative_set_id != creative_ad.creative_set_id ||
                ad_event.confirmation_type != ConfirmationType::kConversion;
       });

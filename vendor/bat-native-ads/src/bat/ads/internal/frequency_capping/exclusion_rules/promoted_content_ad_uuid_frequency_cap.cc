@@ -22,14 +22,18 @@ PromotedContentAdUuidFrequencyCap::PromotedContentAdUuidFrequencyCap(
 PromotedContentAdUuidFrequencyCap::~PromotedContentAdUuidFrequencyCap() =
     default;
 
+std::string PromotedContentAdUuidFrequencyCap::GetUuid(const AdInfo& ad) const {
+  return __PRETTY_FUNCTION__ + ad.uuid;
+}
+
 bool PromotedContentAdUuidFrequencyCap::ShouldExclude(const AdInfo& ad) {
   const AdEventList filtered_ad_events = FilterAdEvents(ad_events_, ad);
 
   if (!DoesRespectCap(filtered_ad_events)) {
     last_message_ = base::StringPrintf(
-        "uuid %s has exceeded the "
-        "frequency capping for new tab page ad",
+        "uuid %s has exceeded the promoted content ad frequency cap",
         ad.uuid.c_str());
+
     return true;
   }
 

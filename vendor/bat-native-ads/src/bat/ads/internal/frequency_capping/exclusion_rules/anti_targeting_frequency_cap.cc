@@ -40,11 +40,16 @@ AntiTargetingFrequencyCap::AntiTargetingFrequencyCap(
 
 AntiTargetingFrequencyCap::~AntiTargetingFrequencyCap() = default;
 
+std::string AntiTargetingFrequencyCap::GetUuid(
+    const CreativeAdInfo& creative_ad) const {
+  return __PRETTY_FUNCTION__ + creative_ad.creative_set_id;
+}
+
 bool AntiTargetingFrequencyCap::ShouldExclude(
     const CreativeAdInfo& creative_ad) {
   if (!DoesRespectCap(creative_ad)) {
     last_message_ = base::StringPrintf(
-        "creativeSetId %s excluded as previously visited an anti-targeted site",
+        "creativeSetId %s excluded due to visiting an anti-targeted site",
         creative_ad.creative_set_id.c_str());
 
     return true;
