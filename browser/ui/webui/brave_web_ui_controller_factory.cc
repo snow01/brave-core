@@ -36,6 +36,8 @@
 #include "brave/browser/ui/webui/brave_wallet/wallet_panel_ui.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
+#include "brave/browser/ui/webui/brave_shields/shields_panel_ui.h"
+#include "brave/components/brave_shields/common/features.h"
 #endif
 
 #if BUILDFLAG(ENABLE_BRAVE_VPN) && !defined(OS_ANDROID)
@@ -101,6 +103,11 @@ WebUIController* NewWebUI(WebUI* web_ui, const GURL& url) {
       return new VPNPanelUI(web_ui);
     }
 #endif  // BUILDFLAG(ENABLE_BRAVE_VPN)
+  } else if (host == kShieldsPanelHost) {
+    if (base::FeatureList::IsEnabled(
+          brave_shields::features::kBraveShieldsPanelV2)) {
+      return new ShieldsPanelUI(web_ui);
+    }
   } else if (host == kRewardsPageHost) {
     return new BraveRewardsPageUI(web_ui, url.host());
   } else if (host == kRewardsInternalsHost) {
@@ -132,6 +139,8 @@ WebUIFactoryFunction GetWebUIFactoryFunction(WebUI* web_ui,
                                              const GURL& url) {
   if (url.host_piece() == kAdblockHost ||
       url.host_piece() == kWebcompatReporterHost ||
+      (url.host_piece() == kShieldsPanelHost && base::FeatureList::IsEnabled(
+          brave_shields::features::kBraveShieldsPanelV2)) ||
 #if BUILDFLAG(ENABLE_IPFS)
       (url.host_piece() == kIPFSWebUIHost &&
        base::FeatureList::IsEnabled(ipfs::features::kIpfsFeature)) ||
