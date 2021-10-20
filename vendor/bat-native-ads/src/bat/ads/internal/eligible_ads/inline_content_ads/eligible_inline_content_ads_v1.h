@@ -63,7 +63,7 @@ class EligibleAdsV1 final : public EligibleAdsBase {
       const BrowsingHistoryList& browsing_history,
       GetEligibleAdsCallback<CreativeInlineContentAdList> callback);
 
-  void GetForUntargeted(
+  void GetForUntargetedSegment(
       const std::string& dimensions,
       const AdEventList& ad_events,
       const BrowsingHistoryList& browsing_history,

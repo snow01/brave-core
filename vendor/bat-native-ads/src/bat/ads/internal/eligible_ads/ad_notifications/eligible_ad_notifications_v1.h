@@ -57,7 +57,7 @@ class EligibleAdsV1 final : public EligibleAdsBase {
       const BrowsingHistoryList& browsing_history,
       GetEligibleAdsCallback<CreativeAdNotificationList> callback);
 
-  void GetForUntargeted(
+  void GetForUntargetedSegment(
       const AdEventList& ad_events,
       const BrowsingHistoryList& browsing_history,
       GetEligibleAdsCallback<CreativeAdNotificationList> callback);

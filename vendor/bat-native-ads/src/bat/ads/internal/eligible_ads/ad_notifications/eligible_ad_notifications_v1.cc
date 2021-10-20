@@ -107,7 +107,7 @@ void EligibleAdsV1::GetForParentSegments(
     GetEligibleAdsCallback<CreativeAdNotificationList> callback) {
   const SegmentList segments = ad_targeting::GetTopParentSegments(user_model);
   if (segments.empty()) {
-    GetForUntargeted(ad_events, browsing_history, callback);
+    GetForUntargetedSegment(ad_events, browsing_history, callback);
     return;
   }
 
@@ -125,7 +125,7 @@ void EligibleAdsV1::GetForParentSegments(
 
         if (eligible_creative_ads.empty()) {
           BLOG(1, "No eligible ads for parent segments");
-          GetForUntargeted(ad_events, browsing_history, callback);
+          GetForUntargetedSegment(ad_events, browsing_history, callback);
           return;
         }
 
@@ -133,7 +133,7 @@ void EligibleAdsV1::GetForParentSegments(
       });
 }
 
-void EligibleAdsV1::GetForUntargeted(
+void EligibleAdsV1::GetForUntargetedSegment(
     const AdEventList& ad_events,
     const BrowsingHistoryList& browsing_history,
     GetEligibleAdsCallback<CreativeAdNotificationList> callback) {
