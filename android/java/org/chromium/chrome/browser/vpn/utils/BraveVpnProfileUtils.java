@@ -19,6 +19,7 @@ import android.os.Build;
 
 import org.chromium.base.Log;
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.vpn.utils.BraveVpnPrefUtils;
 import org.chromium.chrome.browser.vpn.utils.BraveVpnUtils;
 import org.chromium.ui.widget.Toast;
 
@@ -46,22 +47,26 @@ public class BraveVpnProfileUtils {
     public boolean isVPNConnected(Context context) {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        boolean isVpnConnected = false;
         if (connectivityManager != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(
                         connectivityManager.getActiveNetwork());
-                return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN);
+                isVpnConnected = capabilities != null
+                        ? capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+                        : false;
             } else {
                 NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
-                return activeNetwork.getType() == ConnectivityManager.TYPE_VPN;
+                isVpnConnected = activeNetwork.getType() == ConnectivityManager.TYPE_VPN;
             }
         }
-        return false;
+        return isVpnConnected;
     }
 
     private Ikev2VpnProfile getVpnProfile(String hostname, String username, String password) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Ikev2VpnProfile.Builder builder = new Ikev2VpnProfile.Builder(hostname, hostname);
+            Ikev2VpnProfile.Builder builder =
+                    new Ikev2VpnProfile.Builder(hostname, hostname).setMetered(false);
             return builder.setAuthUsernamePassword(username, password, null).build();
         }
         return null;
@@ -85,6 +90,7 @@ public class BraveVpnProfileUtils {
     public void startVpn(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && getVpnManager(context) != null) {
             getVpnManager(context).startProvisionedVpnProfile();
+            BraveVpnPrefUtils.setVpnStart(true);
         }
     }
 
@@ -96,17 +102,24 @@ public class BraveVpnProfileUtils {
 
     public void deleteVpnProfile(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && getVpnManager(context) != null) {
-            getVpnManager(context).deleteProvisionedVpnProfile();
+            try {
+                getVpnManager(context).deleteProvisionedVpnProfile();
+            } catch (SecurityException securityException) {
+                Log.e("BraveVPN", securityException.getMessage());
+            }
         }
     }
 
     public void createVpnProfile(
             Activity activity, String hostname, String username, String password) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-                && getVpnProfile(hostname, username, password) != null) {
-            Ikev2VpnProfile ikev2VpnProfile = getVpnProfile(hostname, username, password);
+        Ikev2VpnProfile ikev2VpnProfile = getVpnProfile(hostname, username, password);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && ikev2VpnProfile != null) {
             Intent intent = getVpnManager(activity).provisionVpnProfile(ikev2VpnProfile);
-            activity.startActivityForResult(intent, BRAVE_VPN_PROFILE_REQUEST_CODE);
+            if (intent != null) {
+                activity.startActivityForResult(intent, BRAVE_VPN_PROFILE_REQUEST_CODE);
+            } else {
+                startVpn(activity);
+            }
         }
     }
 }
