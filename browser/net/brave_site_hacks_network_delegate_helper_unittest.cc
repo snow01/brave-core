@@ -14,6 +14,7 @@
 #include "brave/common/network_constants.h"
 #include "net/base/net_errors.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "url/origin.h"
 
 using brave::ResponseCallback;
 
@@ -74,8 +75,11 @@ TEST(BraveSiteHacksNetworkDelegateHelperTest, ReferrerTruncated) {
     // new_url should not be set.
     EXPECT_TRUE(brave_request_info->new_url_spec.empty());
     EXPECT_TRUE(brave_request_info->new_referrer.has_value());
+
+    url::Origin original_referrer_origin =
+        url::Origin::Create(original_referrer);
     EXPECT_EQ(brave_request_info->new_referrer.value(),
-              original_referrer.DeprecatedGetOriginAsURL().spec());
+              original_referrer_origin.GetURL().spec());
   }
 }
 

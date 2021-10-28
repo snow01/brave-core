@@ -32,6 +32,7 @@
 #include "net/dns/mock_host_resolver.h"
 #include "net/test/embedded_test_server/embedded_test_server.h"
 #include "url/gurl.h"
+#include "url/origin.h"
 
 namespace permissions {
 
@@ -103,7 +104,9 @@ class PermissionManagerBrowserTest : public InProcessBrowserTest {
     return browser()->tab_strip_model()->GetActiveWebContents();
   }
   GURL GetLastCommitedOrigin() {
-    return web_contents()->GetLastCommittedURL().DeprecatedGetOriginAsURL();
+    url::Origin last_committed_origin =
+        url::Origin::Create(web_contents()->GetLastCommittedURL());
+    return last_committed_origin.GetURL();
   }
 
   net::EmbeddedTestServer* https_server() { return &https_server_; }

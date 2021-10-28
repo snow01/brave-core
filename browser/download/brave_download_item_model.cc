@@ -17,6 +17,7 @@
 #include "ui/gfx/text_constants.h"
 #include "ui/gfx/text_elider.h"
 #include "url/gurl.h"
+#include "url/origin.h"
 #include "url/url_constants.h"
 
 using download::DownloadItem;
@@ -59,7 +60,7 @@ std::u16string BraveDownloadItemModel::GetOriginURLText(bool* is_secure) {
     if (gurl.SchemeIs(url::kAboutScheme)) {
       origin = gurl.spec();
     } else {
-      origin = gurl.DeprecatedGetOriginAsURL().spec();
+      origin = url::Origin::Create(gurl).GetURL().spec();
       if (!gurl.SchemeIsFile()) {
         base::TrimString(origin, "/", &origin);
       }

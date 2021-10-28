@@ -33,6 +33,7 @@
 #include "components/os_crypt/os_crypt.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "url/gurl.h"
+#include "url/origin.h"
 
 #if !defined(__has_feature) || !__has_feature(objc_arc)
 #error "This file requires ARC support."
@@ -783,9 +784,9 @@ BATClassLedgerBridge(BOOL, isDebug, setDebug, is_debug)
     return;
   }
 
-  auto origin = parsedUrl.DeprecatedGetOriginAsURL();
+  auto origin_url = url::Origin::Create(parsedUrl).GetURL();
   std::string baseDomain = GetDomainAndRegistry(
-      origin.host(),
+      origin_url.host(),
       net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES);
 
   if (baseDomain == "") {
@@ -795,7 +796,7 @@ BATClassLedgerBridge(BOOL, isDebug, setDebug, is_debug)
   ledger::type::VisitDataPtr visitData = ledger::type::VisitData::New();
   visitData->domain = visitData->name = baseDomain;
   visitData->path = parsedUrl.PathForRequest();
-  visitData->url = origin.spec();
+  visitData->url = origin_url.spec();
 
   if (faviconURL.absoluteString) {
     visitData->favicon_url = base::SysNSStringToUTF8(faviconURL.absoluteString);
@@ -1303,20 +1304,21 @@ BATClassLedgerBridge(BOOL, isDebug, setDebug, is_debug)
   }
 
   GURL parsedUrl(base::SysNSStringToUTF8(url.absoluteString));
-  auto origin = parsedUrl.DeprecatedGetOriginAsURL();
+  auto origin_url = url::Origin::Create(parsedUrl).GetURL();
   const std::string baseDomain = GetDomainAndRegistry(
-      origin.host(),
+      origin_url.host(),
       net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES);
 
   if (baseDomain == "") {
     return;
   }
 
-  const std::string publisher_url = origin.scheme() + "://" + baseDomain + "/";
+  const std::string publisher_url =
+      origin_url.scheme() + "://" + baseDomain + "/";
 
   ledger::type::VisitDataPtr data = ledger::type::VisitData::New();
   data->tld = data->name = baseDomain;
-  data->domain = origin.host();
+  data->domain = origin_url.host();
   data->path = parsedUrl.path();
   data->tab_id = tabId;
   data->url = publisher_url;

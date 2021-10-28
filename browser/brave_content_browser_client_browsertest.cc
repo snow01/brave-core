@@ -501,7 +501,11 @@ IN_PROC_BROWSER_TEST_F(BraveContentBrowserClientReferrerTest,
   blink::mojom::ReferrerPtr referrer = kReferrer.Clone();
   client()->MaybeHideReferrer(browser()->profile(), kRequestUrl, kDocumentUrl,
                               &referrer);
-  EXPECT_EQ(referrer->url, kDocumentUrl.DeprecatedGetOriginAsURL());
+
+  // Creating an Origin off a GURL should generally be avoided, but it's ok in
+  // this particular case where we're just testing and using the http protocol.
+  url::Origin document_url_origin = url::Origin::Create(kDocumentUrl);
+  EXPECT_EQ(referrer->url, document_url_origin.GetURL());
 
   // Same-origin navigations get full referrers.
   referrer = kReferrer.Clone();
@@ -513,13 +517,13 @@ IN_PROC_BROWSER_TEST_F(BraveContentBrowserClientReferrerTest,
   referrer = kReferrer.Clone();
   client()->MaybeHideReferrer(browser()->profile(), kSameSiteRequestUrl,
                               kDocumentUrl, &referrer);
-  EXPECT_EQ(referrer->url, kDocumentUrl.DeprecatedGetOriginAsURL());
+  EXPECT_EQ(referrer->url, document_url_origin.GetURL());
 
   // Cross-origin iframe navigations get origins.
   referrer = kReferrer.Clone();
   client()->MaybeHideReferrer(browser()->profile(), kRequestUrl, kDocumentUrl,
                               &referrer);
-  EXPECT_EQ(referrer->url, kDocumentUrl.DeprecatedGetOriginAsURL().spec());
+  EXPECT_EQ(referrer->url, document_url_origin.GetURL().spec());
 
   // Same-origin iframe navigations get full referrers.
   referrer = kReferrer.Clone();
@@ -537,8 +541,8 @@ IN_PROC_BROWSER_TEST_F(BraveContentBrowserClientReferrerTest,
 
   // Allow referrers for certain URL.
   content_settings()->SetContentSettingCustomScope(
-      ContentSettingsPattern::FromString(
-          kDocumentUrl.DeprecatedGetOriginAsURL().spec() + "*"),
+      ContentSettingsPattern::FromString(document_url_origin.GetURL().spec() +
+                                         "*"),
       ContentSettingsPattern::Wildcard(), ContentSettingsType::BRAVE_REFERRERS,
       CONTENT_SETTING_ALLOW);
   referrer = kReferrer.Clone();
