@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include <iostream>
+
 #include "brave/components/brave_rewards/browser/rewards_p3a.h"
 
 #include "base/logging.h"
@@ -180,9 +182,26 @@ double CalcWalletBalance(base::flat_map<std::string, double> wallets,
   return balance_minus_grant;
 }
 
+const char* EnabledDurationString(RewardsEnabledDuration value) {
+  switch (value) {
+    case RewardsEnabledDuration::kNever: return "never enabled";
+    case RewardsEnabledDuration::kStillEnabled: return "still enabled";
+    case RewardsEnabledDuration::kHours: return "disabled after hours";
+    case RewardsEnabledDuration::kDays: return "disabled after days";
+    case RewardsEnabledDuration::kMonths: return "disabled after months";
+    case RewardsEnabledDuration::kLonger: return "disabled after a long time";
+    default: return "unknown value";
+  }
+}
+
 void RecordRewardsEnabledDuration(PrefService* prefs, bool rewards_enabled) {
   auto enabled_timestamp = prefs->GetTime(prefs::kEnabledTimestamp);
   auto value = RewardsEnabledDuration::kNever;
+
+  std::cerr << "RecordRewardsEnabledDuration ("
+    << (rewards_enabled ? "enabled" : "disabled")
+    << ")\n";
+  std::cerr << "  timestamp " << enabled_timestamp << std::endl;
 
   if (enabled_timestamp.is_null()) {
     // No previous timestamp, so record one of the non-duration states.
@@ -234,6 +253,9 @@ void RecordRewardsEnabledDuration(PrefService* prefs, bool rewards_enabled) {
     }
   }
 
+  std::cerr << "  Recording EnabledDuration"
+    << " '" << EnabledDurationString(value) << "'"
+    << std::endl;
   UMA_HISTOGRAM_ENUMERATION("Brave.Rewards.EnabledDuration", value);
 }
 

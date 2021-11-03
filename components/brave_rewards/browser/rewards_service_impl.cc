@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <functional>
 #include <limits>
+#include <iostream>
 #include <utility>
 #include <vector>
 
@@ -422,6 +423,9 @@ void RewardsServiceImpl::InitPrefChangeRegistrar() {
 }
 
 void RewardsServiceImpl::OnPreferenceChanged(const std::string& key) {
+  std::cerr << "RewardsServiceImpl::OnPreferenceChanged: " << key
+    << " (rewards " << (IsRewardsEnabled() ? "enabled" : "disabled") << ")"
+    << std::endl;
   if (key == prefs::kAutoContributeEnabled) {
     if (profile_->GetPrefs()->GetBoolean(prefs::kAutoContributeEnabled)) {
       StartLedgerProcessIfNecessary();
@@ -858,6 +862,9 @@ void RewardsServiceImpl::OnLedgerInitialized(ledger::type::Result result) {
   } else {
     p3a::RecordRewardsDisabledForSomeMetrics();
   }
+  std::cerr << "RewardsServiceImpl::OnLedgerInitialized"
+    << " (rewards " << (IsRewardsEnabled() ? "enabled" : "disabled") << ")"
+    << std::endl;
   p3a::RecordRewardsEnabledDuration(profile_->GetPrefs(), IsRewardsEnabled());
 
   GetBraveWallet(
@@ -3441,6 +3448,7 @@ bool RewardsServiceImpl::IsRewardsEnabled() const {
 }
 
 void RewardsServiceImpl::OnStartProcessForSetAdsEnabled() {
+  std::cerr << "RewardsServiceImpl::OnStartProcessForSetAdsEnabled()\n";
   SetAdsEnabled(true);
 }
 

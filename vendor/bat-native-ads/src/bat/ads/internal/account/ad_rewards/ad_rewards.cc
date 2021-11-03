@@ -6,6 +6,7 @@
 #include "bat/ads/internal/account/ad_rewards/ad_rewards.h"
 
 #include <functional>
+#include <iostream>
 #include <utility>
 
 #include "base/check.h"
@@ -147,8 +148,11 @@ double AdRewards::GetUnclearedEarningsForThisMonth() const {
   exploded.second = 0;
 
   base::Time from_time;
+  std::cerr << "exploding local time...\n";
   const bool success = base::Time::FromLocalExploded(exploded, &from_time);
+  std::cerr << "checking time successfully exploded...\n";
   DCHECK(success);
+  std::cerr << "  time successfully exploded.\n";
 
   const base::Time to_time = base::Time::Now();
 
