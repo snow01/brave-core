@@ -2880,12 +2880,17 @@ void RewardsServiceImpl::OnExternalWalletAuthorization(
   std::move(callback).Run(result, args);
 }
 
-void RewardsServiceImpl::ExternalWalletAuthorization(
-      const std::string& wallet_type,
-      const base::flat_map<std::string, std::string>& args,
-      ExternalWalletAuthorizationCallback callback) {
+void RewardsServiceImpl::OnDisconnectWalletsForAuthorization(
+    const std::string& wallet_type,
+    const base::flat_map<std::string, std::string>& args,
+    ExternalWalletAuthorizationCallback callback,
+    ledger::type::Result result) {
   if (!Connected()) {
     return;
+  }
+
+  if (result != ledger::type::Result::LEDGER_OK) {
+    BLOG(0, "Error disconnecting external wallets prior to authorization");
   }
 
   bat_ledger_->ExternalWalletAuthorization(
@@ -2895,6 +2900,22 @@ void RewardsServiceImpl::ExternalWalletAuthorization(
                      AsWeakPtr(),
                      wallet_type,
                      std::move(callback)));
+}
+
+void RewardsServiceImpl::ExternalWalletAuthorization(
+    const std::string& wallet_type,
+    const base::flat_map<std::string, std::string>& args,
+    ExternalWalletAuthorizationCallback callback) {
+  if (!Connected()) {
+    return;
+  }
+
+  // Before processing external wallet authorization and generating an access
+  // token for the user, disconnect any external wallets that may currently be
+  // connected.
+  bat_ledger_->DisconnectExternalWallets(base::BindOnce(
+      &RewardsServiceImpl::OnDisconnectWalletsForAuthorization, AsWeakPtr(),
+      wallet_type, std::move(args), std::move(callback)));
 }
 
 void RewardsServiceImpl::OnProcessExternalWalletAuthorization(
