@@ -30,7 +30,7 @@ const createLedgerKeyring = () => {
   const ledgerHardwareKeyring = new LedgerBridgeKeyring()
   ledgerHardwareKeyring.unlock = async () => {
     ledgerHardwareKeyring.app = new MockApp()
-    ledgerHardwareKeyring.deviceId_ = 'device1'
+    ledgerHardwareKeyring.deviceId = 'device1'
     return true
   }
   return ledgerHardwareKeyring
@@ -94,14 +94,7 @@ test('Extract accounts from locked device', () => {
     return false
   }
   return expect(ledgerHardwareKeyring.getAccounts(-2, 1, LedgerDerivationPaths.LedgerLive))
-  .rejects.toThrow()
-})
-
-test('Extract accounts from unknown device', () => {
-  const ledgerHardwareKeyring = new LedgerBridgeKeyring()
-  ledgerHardwareKeyring.app = new MockApp()
-  return expect(ledgerHardwareKeyring.getAccounts(-2, 1, 'unknown'))
-  .rejects.toThrow()
+  .resolves.toThrow()
 })
 
 test('Sign personal message successfully', () => {

@@ -4,10 +4,9 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 /* global window */
 
-const { EventEmitter } = require('events')
 import { publicToAddress, toChecksumAddress, bufferToHex } from 'ethereumjs-util'
 import {
-  TrezorDerivationPaths, TrezorBridgeAccountsPayload
+  TrezorDerivationPaths, TrezorBridgeAccountsPayload, HardwareWalletAccount
 } from '../../components/desktop/popup-modals/add-account-modal/hardware-wallet-connect/types'
 import { TransactionInfo, TREZOR_HARDWARE_VENDOR } from 'gen/brave/components/brave_wallet/common/brave_wallet.mojom.m.js'
 import {
@@ -25,18 +24,20 @@ import { sendTrezorCommand } from '../../common/trezor/trezor-bridge-transport'
 import { getLocale } from '../../../common/locale'
 import { hardwareDeviceIdFromAddress } from '../hardwareDeviceIdFromAddress'
 import { SignHardwareMessageOperationResult, SignHardwareTransactionOperationResult } from '../../common/hardware_operations'
+import { TrezorKeyring } from '../api/hardwareKeyring'
 
-export default class TrezorBridgeKeyring extends EventEmitter {
+export default class TrezorBridgeKeyring extends TrezorKeyring {
+  protected deviceId: string
+  protected unlocked: Boolean
   constructor () {
     super()
-    this.unlocked_ = false
+    this.unlocked = false
   }
-
-  type = () => {
+  type = (): string => {
     return TREZOR_HARDWARE_VENDOR
   }
 
-  getAccounts = async (from: number, to: number, scheme: string) => {
+  getAccounts = async (from: number, to: number, scheme: string): Promise<HardwareWalletAccount[] | Error> => {
     if (from < 0) {
       from = 0
     }
@@ -102,10 +103,10 @@ export default class TrezorBridgeKeyring extends EventEmitter {
   }
 
   isUnlocked = () => {
-    return this.unlocked_
+    return this.unlocked
   }
 
-  unlock = async () => {
+  unlock = async (): Promise<Boolean | Error> => {
     const data = await this.sendTrezorCommand<UnlockResponse>({
       // @ts-expect-error
       id: crypto.randomUUID(),
@@ -113,9 +114,9 @@ export default class TrezorBridgeKeyring extends EventEmitter {
       command: TrezorCommand.Unlock
     })
     if (!data) {
-      return false
+      return new Error(getLocale('braveWalletUnlockError'))
     }
-    this.unlocked_ = data.result
+    this.unlocked = data.result
     if (data.result) {
       return true
     }
@@ -209,7 +210,7 @@ export default class TrezorBridgeKeyring extends EventEmitter {
 
     let accounts = []
     const accountsList = data.payload.payload as TrezorAccount[]
-    this.deviceId_ = await this.getDeviceIdFromAccountsList(accountsList)
+    this.deviceId = await this.getDeviceIdFromAccountsList(accountsList)
     const zeroPath = this.getPathForIndex(0, TrezorDerivationPaths.Default)
     for (const value of accountsList) {
       // If requested addresses do not have zero indexed adress we add it
@@ -223,7 +224,7 @@ export default class TrezorBridgeKeyring extends EventEmitter {
         derivationPath: value.serializedPath,
         name: this.type(),
         hardwareVendor: this.type(),
-        deviceId: this.deviceId_
+        deviceId: this.deviceId
       })
     }
     return { success: true, accounts: [...accounts] }

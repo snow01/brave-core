@@ -99,10 +99,6 @@ const getMockedProxyControllers = (expectedId: string,
         expect(s.startsWith('0x')).toStrictEqual(true)
         return hardwareSignature
       }
-    },
-    getKeyringsByType (type: string) {
-      expect(type).toStrictEqual(keyring.type())
-      return keyring
     }
   }
 }

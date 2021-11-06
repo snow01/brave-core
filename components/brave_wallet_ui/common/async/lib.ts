@@ -19,8 +19,6 @@ import * as WalletActions from '../actions/wallet_actions'
 import { GetNetworkInfo } from '../../utils/network-utils'
 import getAPIProxy from './bridge'
 import { Dispatch, State } from './types'
-import LedgerBridgeKeyring from '../../common/ledgerjs/eth_ledger_bridge_keyring'
-import TrezorBridgeKeyring from '../../common/trezor/trezor_bridge_keyring'
 
 export const getERC20Allowance = (
   contractAddress: string,
@@ -45,6 +43,7 @@ export const getERC20Allowance = (
 
 export const onConnectHardwareWallet = (opts: HardwareWalletConnectOpts): Promise<HardwareWalletAccount[]> => {
   return new Promise(async (resolve, reject) => {
+<<<<<<< HEAD
     const apiProxy = getAPIProxy()
     const keyring = await apiProxy.getKeyringsByType(opts.hardware)
     if (keyring instanceof LedgerBridgeKeyring || keyring instanceof TrezorBridgeKeyring) {
@@ -54,6 +53,14 @@ export const onConnectHardwareWallet = (opts: HardwareWalletConnectOpts): Promis
         })
         .catch(reject)
     }
+=======
+    const keyring = getKeyringByType(opts.hardware) as HardwareKeyring
+    keyring.getAccounts(opts.startIndex, opts.stopIndex, opts.scheme)
+      .then(async (accounts: HardwareWalletAccount[]) => {
+        resolve(accounts)
+      })
+      .catch(reject)
+>>>>>>> 4d8486e456 (Typescript keyrings refactoring)
   })
 }
 

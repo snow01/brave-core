@@ -265,7 +265,7 @@ handler.on(PanelActions.signMessageHardware.getType(), async (store, messageData
   }
   const info = hardwareAccount.hardware
   apiProxy.panelHandler.setCloseOnDeactivate(false)
-  const signature = await signMessageWithHardwareKeyring(apiProxy, info.vendor, info.path, messageData.address, messageData.message)
+  const signature = await signMessageWithHardwareKeyring(info.vendor, info.path, messageData.address, messageData.message)
   apiProxy.panelHandler.setCloseOnDeactivate(true)
   if (!signature || !signature.success) {
     store.dispatch(PanelActions.signMessageHardwareProcessed({ success: false, id: messageData.id, error: signature.error }))

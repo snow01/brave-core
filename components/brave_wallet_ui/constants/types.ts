@@ -280,6 +280,10 @@ export interface SwapErrorResponse {
   validationErrors: Array<{ field: string, code: number, reason: string }>
 }
 
+export type SignHardwareTransactionOperationResult = OperationResult & {
+  payload?: EthereumSignedTx
+}
+
 export type SwapValidationErrorType =
   | 'insufficientBalance'
   | 'insufficientEthBalance'

@@ -194,7 +194,7 @@ test('isUnlocked', () => {
   const hardwareKeyring = new TrezorBridgeKeyring()
   hardwareKeyring.transport_ = createTrezorTransport(false)
   expect(hardwareKeyring.isUnlocked()).toStrictEqual(false)
-  hardwareKeyring.unlocked_ = true
+  hardwareKeyring.unlocked = true
   expect(hardwareKeyring.isUnlocked()).toStrictEqual(true)
 })
 
@@ -397,10 +397,7 @@ test('Sign transaction from unlocked device', () => {
       s: '0xS'
     }
   }
-  const hardwareKeyring = createTrezorKeyringWithTransport(true, undefined, signed)
-  hardwareKeyring._getBridge = () => {
-    return hardwareKeyring as any
-  }
+  const hardwareKeyring = createTrezorKeyringWithTransport(true, undefined, signed as SignTransactionResponse)
   return expect(hardwareKeyring.signTransaction('m/44\'/60\'/0\'/0', txInfo, '0x539'))
     .resolves.toStrictEqual(signed)
 })
@@ -414,14 +411,14 @@ test('Sign transaction failed from unlocked device', () => {
       code: 'Method_PermissionsNotGranted'
     }
   }
-  const hardwareKeyring = createTrezorKeyringWithTransport(true, undefined, signed)
-  hardwareKeyring._getBridge = () => {
-    return hardwareKeyring as any
+
+  const expected = {
+    success: false,
+    error: 'Permissions not granted',
+    code: 'Method_PermissionsNotGranted'
   }
+
+  const hardwareKeyring = createTrezorKeyringWithTransport(true, undefined, signed as SignTransactionResponse)
   return expect(hardwareKeyring.signTransaction('m/44\'/60\'/0\'/0', txInfo, '0x539'))
-    .resolves.toStrictEqual({
-      error: signed.payload.error,
-      code: signed.payload.code,
-      success: false
-    })
+    .resolves.toStrictEqual(expected)
 })
