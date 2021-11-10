@@ -50,7 +50,7 @@ class HTTPSEverywhereService : public BaseBraveShieldsService {
 
   class Engine : public base::SupportsWeakPtr<Engine> {
    public:
-    Engine(HTTPSEverywhereService* service);
+    explicit Engine(HTTPSEverywhereService* service);
     Engine(const Engine&) = delete;
     Engine& operator=(const Engine&) = delete;
 

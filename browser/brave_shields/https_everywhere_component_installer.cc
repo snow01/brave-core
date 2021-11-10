@@ -12,6 +12,7 @@
 #include "base/base64.h"
 #include "base/bind.h"
 #include "base/callback.h"
+#include "base/no_destructor.h"
 #include "brave/browser/brave_browser_process.h"
 #include "brave/components/brave_component_updater/browser/brave_on_demand_updater.h"
 #include "brave/components/brave_shields/browser/https_everywhere_service.h"
@@ -53,24 +54,35 @@ class HTTPSEverywhereComponentInstallerPolicy
   bool SupportsGroupPolicyEnabledComponentUpdates() const override;
   bool RequiresNetworkEncryption() const override;
   update_client::CrxInstaller::Result OnCustomInstall(
-      const base::DictionaryValue& manifest,
+      const base::Value& manifest,
       const base::FilePath& install_dir) override;
   void OnCustomUninstall() override;
-  bool VerifyInstallation(const base::DictionaryValue& manifest,
+  bool VerifyInstallation(const base::Value& manifest,
                           const base::FilePath& install_dir) const override;
   void ComponentReady(const base::Version& version,
                       const base::FilePath& path,
-                      std::unique_ptr<base::DictionaryValue> manifest) override;
+                      base::Value manifest) override;
   base::FilePath GetRelativeInstallDir() const override;
   void GetHash(std::vector<uint8_t>* hash) const override;
   std::string GetName() const override;
   update_client::InstallerAttributes GetInstallerAttributes() const override;
+
+  static base::NoDestructor<std::string> g_https_everywhere_component_id_;
+  static base::NoDestructor<std::string>
+      g_https_everywhere_component_base64_public_key_;
 
  private:
   const std::string component_id_;
   const std::string component_name_;
   uint8_t component_hash_[kHashSize];
 };
+
+base::NoDestructor<std::string>
+    HTTPSEverywhereComponentInstallerPolicy::g_https_everywhere_component_id_(
+        kHTTPSEverywhereComponentId);
+base::NoDestructor<std::string> HTTPSEverywhereComponentInstallerPolicy::
+    g_https_everywhere_component_base64_public_key_(
+        kHTTPSEverywhereComponentBase64PublicKey);
 
 HTTPSEverywhereComponentInstallerPolicy::
     HTTPSEverywhereComponentInstallerPolicy()
@@ -98,7 +110,7 @@ bool HTTPSEverywhereComponentInstallerPolicy::RequiresNetworkEncryption()
 
 update_client::CrxInstaller::Result
 HTTPSEverywhereComponentInstallerPolicy::OnCustomInstall(
-    const base::DictionaryValue& manifest,
+    const base::Value& manifest,
     const base::FilePath& install_dir) {
   return update_client::CrxInstaller::Result(0);
 }
@@ -108,7 +120,7 @@ void HTTPSEverywhereComponentInstallerPolicy::OnCustomUninstall() {}
 void HTTPSEverywhereComponentInstallerPolicy::ComponentReady(
     const base::Version& version,
     const base::FilePath& path,
-    std::unique_ptr<base::DictionaryValue> manifest) {
+    base::Value manifest) {
   if (g_browser_process->IsShuttingDown())
     return;
 
@@ -116,7 +128,7 @@ void HTTPSEverywhereComponentInstallerPolicy::ComponentReady(
 }
 
 bool HTTPSEverywhereComponentInstallerPolicy::VerifyInstallation(
-    const base::DictionaryValue& manifest,
+    const base::Value& manifest,
     const base::FilePath& install_dir) const {
   return true;
 }
@@ -146,6 +158,17 @@ void OnRegistered() {
 }
 
 }  // namespace
+
+// static
+void SetHTTPSEverywhereComponentIdAndBase64PublicKeyForTest(
+    const std::string& component_id,
+    const std::string& component_base64_public_key) {
+  *HTTPSEverywhereComponentInstallerPolicy::g_https_everywhere_component_id_ =
+      component_id;
+  *HTTPSEverywhereComponentInstallerPolicy::
+      g_https_everywhere_component_base64_public_key_ =
+      component_base64_public_key;
+}
 
 void RegisterHTTPSEverywhereComponent(
     component_updater::ComponentUpdateService* cus) {
