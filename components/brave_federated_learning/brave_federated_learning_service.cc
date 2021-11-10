@@ -7,13 +7,20 @@
 
 #include "brave/components/brave_federated_learning/brave_federated_learning_service.h"
 
+#include "base/files/scoped_temp_dir.h"
+#include "base/path_service.h"
+#include "base/json/json_reader.h"
 #include "brave/components/brave_federated_learning/brave_operational_patterns.h"
 #include "brave/components/brave_federated_learning/brave_operational_patterns_features.h"
+#include "brave/components/brave_federated_learning/tasks/sample_federated_task.h"
 #include "brave/components/p3a/pref_names.h"
 #include "components/prefs/pref_change_registrar.h"
 #include "components/prefs/pref_registry_simple.h"
 #include "components/prefs/pref_service.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
+
+// DEBUG
+#include <iostream> 
 
 namespace brave {
 
@@ -34,6 +41,75 @@ void BraveFederatedLearningService::Start() {
       new BraveOperationalPatterns(local_state_, url_loader_factory_));
 
   InitPrefChangeRegistrar();
+
+  // Start of driver code --------------------------------------
+
+  std::cerr << "Starting Sample Data Store \n";
+  // create Data Store
+  base::ScopedTempDir temp_dir;
+  if (!temp_dir.CreateUniqueTempDir()) {
+    return;
+  }
+  base::FilePath db_path(temp_dir.GetPath().AppendASCII("sample_federated_data_store.db"));
+  SampleFederatedDataStore* ds = new SampleFederatedDataStore(db_path);
+  bool success = ds->Init("0.2.0", "sample_federated_task");
+
+  if (!success) {
+    std::cerr << "Initialization failed. \n";
+    return;
+  }
+
+  std::cerr << "Testing FederatedLog Class \n";
+  // Test SampleFederatedLog class
+  std::string id = "1";
+  std::string sample_text = "This is some sample text, we are trying to retrieve";
+  int sample_number = 42;
+  std::string creation_date = "21-05-21 08:45:36Z";
+
+  brave::SampleFederatedDataStore::SampleFederatedLog* sample_log = 
+                  new SampleFederatedDataStore::SampleFederatedLog(
+                                                                    id,
+                                                                    sample_text,
+                                                                    sample_number,
+                                                                    creation_date);
+  std::cerr << "Initialized FederatedLog \n";
+  
+  success = ds->AddSampleLog(*sample_log);
+  if (success) std::cerr << "Added FederatedLog to FederatedDB. \n";
+
+  SampleFederatedDataStore::GuidToSampleMap sample_logs;
+  ds->LoadSampleLogs(&sample_logs);
+  std::cerr << "Retrived FederatedLogs stored. \n";
+
+  for (SampleFederatedDataStore::GuidToSampleMap::const_iterator it(
+           sample_logs.begin());
+       it != sample_logs.end(); ++it) {
+    
+    std::cerr << "Retrived sample text: " << (*it).second.sample_text << std::endl;
+  }
+
+  std::string id2 = "2";
+  brave::SampleFederatedDataStore::SampleFederatedLog* sample_log2 = 
+                  new SampleFederatedDataStore::SampleFederatedLog(
+                                                                    id2,
+                                                                    sample_text,
+                                                                    sample_number,
+                                                                    creation_date);
+
+  success = ds->AddSampleLog(*sample_log2);
+  if (success) std::cerr << "Added another FederatedLog to FederatedDB. \n";
+
+  ds->LoadSampleLogs(&sample_logs);
+  std::cerr << "Retrived FederatedLogs stored. \n";
+
+  for (SampleFederatedDataStore::GuidToSampleMap::const_iterator it(
+           sample_logs.begin());
+       it != sample_logs.end(); ++it) {
+    
+    std::cerr << "Retrived sample text: " << (*it).second.sample_text << std::endl;
+  }
+
+  // End of driver code ----------------------------
 
   if (IsP3AEnabled() && IsOperationalPatternsEnabled()) {
     operational_patterns_->Start();

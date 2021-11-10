@@ -6,6 +6,8 @@ static_library("brave_federated_learning") {
     "brave_operational_patterns.h",
     "brave_operational_patterns_features.cc",
     "brave_operational_patterns_features.h",
+    "tasks/sample_federated_task.h",
+    "tasks/sample_federated_task.cc"
   ]
 
   deps = [
