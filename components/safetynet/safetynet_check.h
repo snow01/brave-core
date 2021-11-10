@@ -24,7 +24,7 @@ class SafetyNetCheck {
  public:
     explicit SafetyNetCheck(SafetyNetCheckRunner* runner);
     SafetyNetCheck(const SafetyNetCheck&) = delete;
-    SafetyNetCheck& operator=(const FooBarSafetyNetCheckBRAVE&) = delete;
+    SafetyNetCheck& operator=(const SafetyNetCheck&) = delete;
     ~SafetyNetCheck();
 
     // Performs client attestation, called from C++
