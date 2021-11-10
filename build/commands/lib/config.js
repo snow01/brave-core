@@ -57,8 +57,17 @@ const getNPMConfig = (key, fallbackToBraveCoreOnly) => {
     const list = run(npmCommand, ['config', 'list', '--json', '--userconfig=' + path.join(rootDir, '.npmrc')])
     NpmConfig = JSON.parse(list.stdout.toString())
   }
-
-  return NpmConfig[key.join('-').replace(/_/g, '-')] || packageConfig(key) || packageConfigBraveCore(key)
+  let valueFromConfig = NpmConfig[key.join('-').replace(/_/g, '-')]
+  let configSourceDescriptionForLog = '[nowhere]'
+  if (valueFromConfig) {
+    configSourceDescriptionForLog = 'npm config list'
+  } else if (valueFromConfig = packageConfig(key)) {
+    configSourceDescriptionForLog = 'brave-browser package.json'
+  } else if (valueFromConfig = packageConfigBraveCore(key)) {
+    configSourceDescriptionForLog = 'brave-core package.json'
+  }
+  console.log(`getNPMConfig key "${key}" was found in source "${configSourceDescriptionForLog}" as value: ${valueFromConfig}`)
+  return valueFromConfig
 }
 
 const parseExtraInputs = (inputs, accumulator, callback) => {
