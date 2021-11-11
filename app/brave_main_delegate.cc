@@ -18,40 +18,23 @@
 #include "brave/browser/brave_content_browser_client.h"
 #include "brave/common/brave_switches.h"
 #include "brave/common/resource_bundle_helper.h"
+#include "brave/components/brave_component_updater/browser/features.h"
+#include "brave/components/brave_component_updater/browser/switches.h"
 #include "brave/components/speedreader/buildflags.h"
 #include "brave/renderer/brave_content_renderer_client.h"
 #include "brave/utility/brave_content_utility_client.h"
 #include "build/build_config.h"
-#include "chrome/browser/ui/ui_features.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/chrome_paths.h"
 #include "chrome/common/chrome_paths_internal.h"
 #include "chrome/common/chrome_switches.h"
-#include "components/autofill/core/common/autofill_features.h"
-#include "components/autofill/core/common/autofill_payments_features.h"
+#include "components/component_updater/component_updater_switches.h"
 #include "components/dom_distiller/core/dom_distiller_switches.h"
 #include "components/embedder_support/switches.h"
-#include "components/federated_learning/features/features.h"
-#include "components/feed/feed_feature_list.h"
-#include "components/language/core/common/language_experiments.h"
-#include "components/network_time/network_time_tracker.h"
-#include "components/offline_pages/core/offline_page_feature.h"
-#include "components/omnibox/common/omnibox_features.h"
-#include "components/password_manager/core/common/password_manager_features.h"
-#include "components/reading_list/features/reading_list_switches.h"
-#include "components/security_state/core/features.h"
 #include "components/sync/base/sync_base_switches.h"
-#include "components/translate/core/browser/translate_prefs.h"
 #include "components/variations/variations_switches.h"
-#include "content/public/common/content_features.h"
 #include "content/public/common/content_switches.h"
 #include "google_apis/gaia/gaia_switches.h"
-#include "media/base/media_switches.h"
-#include "net/base/features.h"
-#include "services/device/public/cpp/device_features.h"
-#include "services/network/public/cpp/features.h"
-#include "third_party/blink/public/common/features.h"
-#include "ui/base/ui_base_features.h"
 
 #if defined(OS_ANDROID)
 #include "base/android/jni_android.h"
@@ -62,10 +45,29 @@
 #endif
 
 namespace {
+
+const char kBraveOriginTrialsPublicKey[] =
+    "bYUKPJoPnCxeNvu72j4EmPuK7tr1PAC7SHh8ld9Mw3E=,"
+    "fMS4mpO6buLQ/QMd+zJmxzty/VQ6B1EUZqoCU04zoRU=";
+
 // staging "https://sync-v2.bravesoftware.com/v2" can be overriden by
 // switches::kSyncServiceURL manually
 const char kBraveSyncServiceStagingURL[] =
     "https://sync-v2.bravesoftware.com/v2";
+
+const char kDummyUrl[] = "https://no-thanks.invalid";
+
+std::string GetUpdateURLHost() {
+  const base::CommandLine& command_line =
+      *base::CommandLine::ForCurrentProcess();
+  if (!command_line.HasSwitch(brave_component_updater::kUseGoUpdateDev) &&
+      !base::FeatureList::IsEnabled(
+          brave_component_updater::kUseDevUpdaterUrl)) {
+    return UPDATER_PROD_ENDPOINT;
+  }
+  return UPDATER_DEV_ENDPOINT;
+}
+
 }  // namespace
 
 #if !defined(CHROME_MULTIPLE_DLL_BROWSER)
@@ -78,12 +80,6 @@ base::LazyInstance<BraveContentUtilityClient>::DestructorAtExit
 base::LazyInstance<BraveContentBrowserClient>::DestructorAtExit
     g_brave_content_browser_client = LAZY_INSTANCE_INITIALIZER;
 #endif
-
-const char kBraveOriginTrialsPublicKey[] =
-    "bYUKPJoPnCxeNvu72j4EmPuK7tr1PAC7SHh8ld9Mw3E=,"
-    "fMS4mpO6buLQ/QMd+zJmxzty/VQ6B1EUZqoCU04zoRU=";
-
-const char kDummyUrl[] = "https://no-thanks.invalid";
 
 BraveMainDelegate::BraveMainDelegate() : ChromeMainDelegate() {}
 
@@ -147,9 +143,9 @@ void BraveMainDelegate::PreSandboxStartup() {
 #endif  // defined(OS_LINUX) || defined(OS_MAC)
 
 #if defined(OS_POSIX) && !defined(OS_MAC)
-  base::PathService::Override(
+  base::PathService::OverrideAndCreateIfNeeded(
       chrome::DIR_POLICY_FILES,
-      base::FilePath(FILE_PATH_LITERAL("/etc/brave/policies")));
+      base::FilePath(FILE_PATH_LITERAL("/etc/brave/policies")), true, false);
 #endif
 
   if (brave::SubprocessNeedsResourceBundle()) {
@@ -163,6 +159,12 @@ bool BraveMainDelegate::BasicStartupComplete(int* exit_code) {
   command_line.AppendSwitch(switches::kDisableDomainReliability);
   command_line.AppendSwitch(switches::kEnableDomDistiller);
   command_line.AppendSwitch(switches::kNoPings);
+
+  std::string update_url = GetUpdateURLHost();
+  if (!update_url.empty()) {
+    std::string source = "url-source=" + update_url;
+    command_line.AppendSwitchASCII(switches::kComponentUpdater, source.c_str());
+  }
 
   if (!base::CommandLine::ForCurrentProcess()->HasSwitch(
           embedder_support::kOriginTrialPublicKey)) {
@@ -186,71 +188,18 @@ bool BraveMainDelegate::BasicStartupComplete(int* exit_code) {
   command_line.AppendSwitchASCII(variations::switches::kVariationsServerURL,
                                  kVariationsServerURL.c_str());
 
-  // Enabled features.
-  std::unordered_set<const char*> enabled_features = {
-    // Upgrade all mixed content
-    blink::features::kMixedContentAutoupgrade.name,
-    password_manager::features::kPasswordImport.name,
-    net::features::kLegacyTLSEnforced.name,
-    // Enable webui dark theme: @media (prefers-color-scheme: dark) is gated
-    // on this feature.
-    features::kWebUIDarkMode.name,
-    blink::features::kPrefetchPrivacyChanges.name,
-    blink::features::kReducedReferrerGranularity.name,
-#if defined(OS_WIN)
-    features::kWinrtGeolocationImplementation.name,
-#endif
-    security_state::features::kSafetyTipUI.name,
-  };
+  // Runtime-enabled features. To override Chromium features default state
+  // please see: brave/chromium_src/base/feature_override.h
+  std::unordered_set<const char*> enabled_features = {};
 
-  // Disabled features.
-  std::unordered_set<const char*> disabled_features = {
-    autofill::features::kAutofillEnableAccountWalletStorage.name,
-    autofill::features::kAutofillServerCommunication.name,
-    blink::features::kConversionMeasurement.name,
-    blink::features::kFledgeInterestGroupAPI.name,
-    blink::features::kFledgeInterestGroups.name,
-    blink::features::kHandwritingRecognitionWebPlatformApiFinch.name,
-    blink::features::kInterestCohortAPIOriginTrial.name,
-    blink::features::kInterestCohortFeaturePolicy.name,
-    blink::features::kTextFragmentAnchor.name,
-    features::kDirectSockets.name,
-    features::kIdleDetection.name,
-    features::kLangClientHintHeader.name,
-    features::kNotificationTriggers.name,
-    features::kPrivacySandboxSettings.name,
-    features::kSignedExchangePrefetchCacheForNavigations.name,
-    features::kSignedExchangeSubresourcePrefetch.name,
-    features::kSubresourceWebBundles.name,
-    features::kWebOTP.name,
-    federated_learning::kFederatedLearningOfCohorts.name,
-    federated_learning::kFlocIdComputedEventLogging.name,
-    media::kLiveCaption.name,
-    net::features::kFirstPartySets.name,
-    network::features::kTrustTokens.name,
-    network_time::kNetworkTimeServiceQuerying.name,
-    reading_list::switches::kReadLater.name,
-#if defined(OS_ANDROID)
-    features::kWebNfc.name,
-    feed::kInterestFeedContentSuggestions.name,
-    feed::kInterestFeedV2.name,
-    offline_pages::kPrefetchingOfflinePagesFeature.name,
-    signin::kMobileIdentityConsistency.name,
-    translate::kTranslate.name,
-#endif
-  };
+  // Runtime-disabled features. To override Chromium features default state
+  // please see: brave/chromium_src/base/feature_override.h
+  std::unordered_set<const char*> disabled_features = {};
 
-#if defined(OS_WIN) || defined(OS_MAC) || defined(OS_ANDROID)
   if (base::CommandLine::ForCurrentProcess()->HasSwitch(
           switches::kDisableDnsOverHttps)) {
     disabled_features.insert(features::kDnsOverHttps.name);
   }
-#else
-  if (!base::CommandLine::ForCurrentProcess()->HasSwitch(
-          switches::kDisableDnsOverHttps)) {
-    enabled_features.insert(features::kDnsOverHttps.name);
-  }
-#endif
 
   command_line.AppendFeatures(enabled_features, disabled_features);
 

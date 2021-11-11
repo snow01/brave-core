@@ -1,8 +1,8 @@
 diff --git a/chrome/android/java_sources.gni b/chrome/android/java_sources.gni
-index 5d622d46a53ce8f37564500208aec3465bb060d0..c2c681246cb5d8d5ebf0df0cae9392cac231a96e 100644
+index 7409ba746b6f1604023c4fb653871f5271d47297..f4267c9b786dad232c1ea30465d0153fa5e5b893 100644
 --- a/chrome/android/java_sources.gni
 +++ b/chrome/android/java_sources.gni
-@@ -25,6 +25,7 @@ import("//components/omnibox/browser/test_java_sources.gni")
+@@ -24,6 +24,7 @@ import("//components/omnibox/browser/test_java_sources.gni")
  import("//device/vr/buildflags/buildflags.gni")
  
  chrome_java_sources += public_autofill_assistant_java_sources

@@ -21,7 +21,7 @@ export const StyledExtensionWrapperLonger = styled.div`
   border-radius: 4px;
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.25);
   width: 320px;
-  height: 475px;
+  height: 500px;
 `
 
 export const ChildComponentWrapper = styled.div`
@@ -45,7 +45,7 @@ export const SelectContainer = styled.div`
   background-color: ${(p) => p.theme.color.background01};
 `
 
-export const SignContainer = styled.div`
+export const LongWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -116,4 +116,17 @@ export const WalletWidgetStandIn = styled.div`
   align-items: center;
   justify-content: center;
   width: 285px;
+  min-width: 285px;
+  @media screen and (max-width: 800px) {
+    margin-bottom: 40px;
+  }
+`
+
+export const OnboardingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  margin-bottom: 20px;
 `

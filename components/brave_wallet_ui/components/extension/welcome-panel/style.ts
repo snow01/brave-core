@@ -1,5 +1,7 @@
 import styled from 'styled-components'
-import WelcomeIcon from '../../../assets/svg-icons/graphic-wallet-welcome-panel.svg'
+import WelcomeIcon from '../../../assets/svg-icons/onboarding/brave-wallet.svg'
+import WelcomeIconDark from '../../../assets/svg-icons/onboarding/brave-wallet-dark.svg'
+import { WalletButton } from '../../shared/style'
 
 export const StyledWrapper = styled.div`
   display: flex;
@@ -29,18 +31,23 @@ export const Description = styled.span`
   color: ${(p) => p.theme.color.text02};
   max-width: 270px;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 35px;
   letter-spacing: 0.01em;
 `
 
 export const PageIcon = styled.div`
-  width: 222px;
-  height: 130px;
+  width: 210px;
+  height: 160px;
   background: url(${WelcomeIcon});
+  background-size: 100%;
+  background-repeat: no-repeat;
   margin-bottom: 20px;
+  @media (prefers-color-scheme: dark) {
+    background: url(${WelcomeIconDark});
+  }
 `
 
-export const RestoreButton = styled.button`
+export const RestoreButton = styled(WalletButton)`
   display: flex;
   align-items: center;
   justify-content: center;

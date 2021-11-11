@@ -1,24 +1,29 @@
 import * as React from 'react'
-import locale from '../../../constants/locale'
+import { getLocale } from '../../../../common/locale'
+import PanelTooltip from '../panel-tooltip'
+import { reduceNetworkDisplayName } from '../../../utils/network-utils'
 
 // Styled Components
 import {
   StyledWrapper,
-  AppsIcon,
+  // AppsIcon,
   NavButton,
   NavButtonText,
   NavDivider,
   NavOutline
 } from './style'
 
-import { PanelTypes } from '../../../constants/types'
+import { PanelTypes, EthereumChain } from '../../../constants/types'
 
 export interface Props {
   onNavigate: (path: PanelTypes) => void
+  isSwapDisabled: boolean
+  isBuyDisabled: boolean
+  selectedNetwork: EthereumChain
 }
 
 function ConnectedBottomNav (props: Props) {
-  const { onNavigate } = props
+  const { onNavigate, isSwapDisabled, isBuyDisabled, selectedNetwork } = props
 
   const navigate = (path: PanelTypes) => () => {
     onNavigate(path)
@@ -27,21 +32,34 @@ function ConnectedBottomNav (props: Props) {
   return (
     <StyledWrapper>
       <NavOutline>
-        <NavButton onClick={navigate('buy')}>
-          <NavButtonText>{locale.buy}</NavButtonText>
-        </NavButton>
+        <PanelTooltip
+          position='right'
+          isDisabled={isBuyDisabled}
+          text={getLocale('braveWalletBssToolTip').replace('$1', reduceNetworkDisplayName(selectedNetwork.chainName))}
+        >
+          <NavButton disabled={isBuyDisabled} onClick={navigate('buy')}>
+            <NavButtonText disabled={isBuyDisabled}>{getLocale('braveWalletBuy')}</NavButtonText>
+          </NavButton>
+        </PanelTooltip>
         <NavDivider />
         <NavButton onClick={navigate('send')}>
-          <NavButtonText>{locale.send}</NavButtonText>
+          <NavButtonText>{getLocale('braveWalletSend')}</NavButtonText>
         </NavButton>
         <NavDivider />
-        <NavButton onClick={navigate('swap')}>
-          <NavButtonText>{locale.swap}</NavButtonText>
-        </NavButton>
-        <NavDivider />
-        <NavButton onClick={navigate('apps')}>
+        <PanelTooltip
+          position='left'
+          isDisabled={isSwapDisabled}
+          text={getLocale('braveWalletBssToolTip').replace('$1', reduceNetworkDisplayName(selectedNetwork.chainName))}
+        >
+          <NavButton disabled={isSwapDisabled} onClick={navigate('swap')}>
+            <NavButtonText disabled={isSwapDisabled}>{getLocale('braveWalletSwap')}</NavButtonText>
+          </NavButton>
+        </PanelTooltip>
+        {/* <NavDivider /> */}
+        {/*Temp commented out for MVP*/}
+        {/* <NavButton onClick={navigate('apps')}>
           <AppsIcon />
-        </NavButton>
+        </NavButton> */}
       </NavOutline>
     </StyledWrapper>
   )

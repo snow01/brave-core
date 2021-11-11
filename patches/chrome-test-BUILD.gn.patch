@@ -1,12 +1,12 @@
 diff --git a/chrome/test/BUILD.gn b/chrome/test/BUILD.gn
-index 139a04d6cbc1376340cf73a395e051fd2c7c9b11..6bcafc12aef2172eff9969bdcfb5a9bfdb93dd9e 100644
+index 5f351bbdd5d71af84c9acabe745be4f0d7b77f94..8cc02705b5360313252f233ae475a5d0ab8f7cc6 100644
 --- a/chrome/test/BUILD.gn
 +++ b/chrome/test/BUILD.gn
-@@ -1284,6 +1284,7 @@ if (!is_android) {
-       "//v8",
-     ]
+@@ -337,6 +337,7 @@ static_library("test_support") {
+     "//ui/gl",
+   ]
  
-+    deps += [ "//brave/test:brave_browser_tests_deps", ]
-     # Runtime dependencies
-     data_deps = [
-       "//chrome:browser_tests_pak",
++  import("//brave/chromium_src/chrome/test/sources.gni") deps += brave_chromium_src_chrome_test_test_support_deps sources += brave_chromium_src_chrome_test_test_support_sources
+   data_deps = []
+ 
+   if (is_chromeos_lacros && also_build_ash_chrome) {

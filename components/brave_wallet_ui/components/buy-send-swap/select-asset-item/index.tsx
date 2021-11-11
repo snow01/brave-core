@@ -1,5 +1,8 @@
 import * as React from 'react'
 import { AccountAssetOptionType } from '../../../constants/types'
+import { withPlaceholderIcon } from '../../shared'
+import { hexToNumber } from '../../../utils/format-balances'
+
 // Styled Components
 import {
   StyledWrapper,
@@ -9,8 +12,6 @@ import {
   AssetIcon
 } from './style'
 
-import { formatBalance } from '../../../utils/format-balances'
-
 export interface Props {
   asset: AccountAssetOptionType
   onSelectAsset: () => void
@@ -19,12 +20,16 @@ export interface Props {
 function SelectAssetItem (props: Props) {
   const { asset, onSelectAsset } = props
 
+  const AssetIconWithPlaceholder = React.useMemo(() => {
+    return withPlaceholderIcon(AssetIcon, { size: 'small', marginLeft: 0, marginRight: 8 })
+  }, [])
+
   return (
     <StyledWrapper onClick={onSelectAsset}>
-      <AssetIcon icon={asset.asset.icon} />
+      <AssetIconWithPlaceholder selectedAsset={asset.asset} />
       <AssetAndBalance>
-        <AssetName>{asset.asset.name}</AssetName>
-        <AssetBalance>{formatBalance(asset.assetBalance, asset.asset.decimals)} {asset.asset.symbol}</AssetBalance>
+        <AssetName>{asset.asset.name} {asset.asset.isErc721 ? hexToNumber(asset.asset.tokenId ?? '') : ''}</AssetName>
+        <AssetBalance>{asset.asset.symbol}</AssetBalance>
       </AssetAndBalance>
     </StyledWrapper>
   )

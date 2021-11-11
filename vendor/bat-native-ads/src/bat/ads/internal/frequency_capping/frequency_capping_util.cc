@@ -5,32 +5,41 @@
 
 #include "bat/ads/internal/frequency_capping/frequency_capping_util.h"
 
+#include "base/notreached.h"
 #include "base/time/time.h"
+#include "bat/ads/ad_type.h"
 
 namespace ads {
 
-std::deque<uint64_t> GetTimestampHistoryForAdEvents(
-    const AdEventList& ad_events) {
-  std::deque<uint64_t> history;
+bool DoesAdTypeSupportFrequencyCapping(const AdType& type) {
+  switch (type.value()) {
+    case AdType::kAdNotification:
+    case AdType::kInlineContentAd: {
+      return true;
+    }
 
-  for (const auto& ad_event : ad_events) {
-    history.push_back(ad_event.timestamp);
+    case AdType::kNewTabPageAd:
+    case AdType::kPromotedContentAd: {
+      return false;
+    }
+
+    case AdType::kUndefined: {
+      NOTREACHED();
+      return false;
+    }
   }
-
-  return history;
 }
 
 bool DoesHistoryRespectCapForRollingTimeConstraint(
-    const std::deque<uint64_t>& history,
-    const uint64_t time_constraint_in_seconds,
-    const uint64_t cap) {
-  uint64_t count = 0;
+    const std::deque<base::Time>& history,
+    const base::TimeDelta& time_constraint,
+    const int cap) {
+  int count = 0;
 
-  const uint64_t now_in_seconds =
-      static_cast<uint64_t>(base::Time::Now().ToDoubleT());
+  const base::Time now = base::Time::Now();
 
-  for (const auto& timestamp_in_seconds : history) {
-    if (now_in_seconds - timestamp_in_seconds < time_constraint_in_seconds) {
+  for (const auto& time : history) {
+    if (now - time < time_constraint) {
       count++;
     }
   }

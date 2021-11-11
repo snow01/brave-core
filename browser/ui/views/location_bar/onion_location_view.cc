@@ -24,9 +24,9 @@
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/gfx/color_palette.h"
 #include "ui/gfx/geometry/size.h"
+#include "ui/gfx/geometry/skia_conversions.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/gfx/paint_vector_icon.h"
-#include "ui/gfx/skia_util.h"
 #include "ui/gfx/text_constants.h"
 #include "ui/views/animation/ink_drop_impl.h"
 #include "ui/views/background.h"
@@ -83,8 +83,13 @@ class OnionLocationButtonView : public views::LabelButton {
                                         base::Unretained(this)),
                     l10n_util::GetStringUTF16(IDS_LOCATION_BAR_OPEN_IN_TOR)),
         profile_(profile) {
-    if (profile->IsTor())
+    SetTooltipText(
+        l10n_util::GetStringUTF16(IDS_LOCATION_BAR_OPEN_IN_TOR_TOOLTIP_TEXT));
+    if (profile->IsTor()) {
       SetText(l10n_util::GetStringUTF16(IDS_LOCATION_BAR_ONION_AVAILABLE));
+      SetTooltipText(l10n_util::GetStringUTF16(
+          IDS_LOCATION_BAR_ONION_AVAILABLE_TOOLTIP_TEXT));
+    }
     // Render vector icon
     const gfx::ImageSkia image =
         gfx::CreateVectorIcon(kOpenInTorIcon, kIconSize, kIconColor);

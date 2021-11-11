@@ -19,12 +19,11 @@
 #include "brave/browser/net/brave_site_hacks_network_delegate_helper.h"
 #include "brave/browser/net/brave_stp_util.h"
 #include "brave/browser/net/global_privacy_control_network_delegate_helper.h"
-#include "brave/browser/translate/buildflags/buildflags.h"
+#include "brave/browser/net/url_context.h"
 #include "brave/common/pref_names.h"
 #include "brave/components/brave_referrals/buildflags/buildflags.h"
 #include "brave/components/brave_rewards/browser/net/network_delegate_helper.h"
 #include "brave/components/brave_shields/common/features.h"
-#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/brave_webtorrent/browser/buildflags/buildflags.h"
 #include "brave/components/decentralized_dns/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
@@ -41,10 +40,6 @@
 
 #if BUILDFLAG(ENABLE_BRAVE_WEBTORRENT)
 #include "brave/browser/net/brave_torrent_redirect_network_delegate_helper.h"
-#endif
-
-#if BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
-#include "brave/browser/net/brave_translate_redirect_network_delegate_helper.h"
 #endif
 
 #if BUILDFLAG(ENABLE_IPFS)
@@ -84,7 +79,7 @@ void BraveRequestHandler::SetupCallbacks() {
       base::BindRepeating(brave::OnBeforeURLRequest_CommonStaticRedirectWork);
   before_url_request_callbacks_.push_back(callback);
 
-#if BUILDFLAG(DECENTRALIZED_DNS_ENABLED) && BUILDFLAG(BRAVE_WALLET_ENABLED)
+#if BUILDFLAG(DECENTRALIZED_DNS_ENABLED)
   callback = base::BindRepeating(
       decentralized_dns::OnBeforeURLRequest_DecentralizedDnsPreRedirectWork);
   before_url_request_callbacks_.push_back(callback);
@@ -92,12 +87,6 @@ void BraveRequestHandler::SetupCallbacks() {
 
   callback = base::BindRepeating(brave_rewards::OnBeforeURLRequest);
   before_url_request_callbacks_.push_back(callback);
-
-#if BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
-  callback =
-      base::BindRepeating(brave::OnBeforeURLRequest_TranslateRedirectWork);
-  before_url_request_callbacks_.push_back(callback);
-#endif
 
 #if BUILDFLAG(ENABLE_IPFS)
   if (base::FeatureList::IsEnabled(ipfs::features::kIpfsFeature)) {
@@ -295,13 +284,11 @@ void BraveRequestHandler::RunNextCallback(
         IsRequestIdentifierValid(ctx->request_identifier)) {
       *ctx->new_url = GURL(ctx->new_url_spec);
     }
-    if (ctx->blocked_by == brave::kAdBlocked ||
-        ctx->blocked_by == brave::kOtherBlocked) {
-      if (!ctx->ShouldMockRequest()) {
-        RunCallbackForRequestIdentifier(ctx->request_identifier,
-                                        net::ERR_BLOCKED_BY_CLIENT);
-        return;
-      }
+
+    if (ctx->ShouldBlockRequest()) {
+      RunCallbackForRequestIdentifier(ctx->request_identifier,
+                                      net::ERR_BLOCKED_BY_CLIENT);
+      return;
     }
   }
   RunCallbackForRequestIdentifier(ctx->request_identifier, rv);

@@ -7,14 +7,18 @@
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_AD_SERVING_AD_NOTIFICATIONS_AD_NOTIFICATION_SERVING_H_
 
 #include <memory>
+#include <string>
 
-#include "base/time/time.h"
+#include "base/observer_list.h"
 #include "bat/ads/internal/ad_serving/ad_notifications/ad_notification_serving_observer.h"
 #include "bat/ads/internal/timer.h"
 
-namespace ads {
+namespace base {
+class Time;
+class TimeDelta;
+}  // namespace base
 
-struct CreativeAdNotificationInfo;
+namespace ads {
 
 namespace ad_targeting {
 namespace geographic {
@@ -26,16 +30,17 @@ namespace resource {
 class AntiTargeting;
 }  // namespace resource
 
+struct AdNotificationInfo;
+
 namespace ad_notifications {
 
-class EligibleAds;
+class EligibleAdsBase;
 
-class AdServing {
+class AdServing final {
  public:
   AdServing(
       ad_targeting::geographic::SubdivisionTargeting* subdivision_targeting,
       resource::AntiTargeting* anti_targeting_resource);
-
   ~AdServing();
 
   void AddObserver(AdNotificationServingObserver* observer);
@@ -46,29 +51,27 @@ class AdServing {
 
   void MaybeServeAd();
 
-  void OnAdsPerHourChanged();
+  void OnPrefChanged(const std::string& path);
 
  private:
+  bool is_serving_ = false;
+
   Timer timer_;
 
-  ad_targeting::geographic::SubdivisionTargeting*
-      subdivision_targeting_;  // NOT OWNED
-
-  resource::AntiTargeting* anti_targeting_resource_;  // NOT OWNED
-
-  std::unique_ptr<EligibleAds> eligible_ads_;
+  std::unique_ptr<EligibleAdsBase> eligible_ads_;
+  bool IsSupported() const;
 
   bool ShouldServeAdsAtRegularIntervals() const;
+  bool HasPreviouslyServedAnAd() const;
+  bool ShouldServeAd() const;
+  base::TimeDelta CalculateDelayBeforeServingAnAd() const;
   void MaybeServeAdAtNextRegularInterval();
   void RetryServingAdAtNextInterval();
-
-  bool ShouldServeAd() const;
   base::Time MaybeServeAdAfter(const base::TimeDelta delay);
 
-  bool ServeAd(
-      const CreativeAdNotificationInfo& creative_ad_notification) const;
+  bool ServeAd(const AdNotificationInfo& ad) const;
   void FailedToServeAd();
-  void ServedAd(const CreativeAdNotificationInfo& creative_ad_notification);
+  void ServedAd(const AdNotificationInfo& ad);
 
   base::ObserverList<AdNotificationServingObserver> observers_;
 

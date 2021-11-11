@@ -46,9 +46,10 @@ function createHost (): Host {
       status: 'pending',
       grantInfo: {
         id: 'grant123',
+        createdAt: Date.now(),
         expiresAt: Date.now() + 120_000,
         amount: 10,
-        source: 'ads'
+        type: 'ads'
       }
     },
     externalWalletProviders: ['uphold', 'gemini'],
@@ -84,7 +85,8 @@ function createHost (): Host {
       adEarnings: 10,
       autoContributions: 10,
       oneTimeTips: -2,
-      monthlyTips: -19
+      monthlyTips: -19,
+      pendingTips: 0
     },
     notifications: [
       {
@@ -97,13 +99,6 @@ function createHost (): Host {
         id: '2',
         timeStamp: Date.now(),
         provider: 'uphold'
-      } as any,
-      {
-        type: 'external-wallet-linking-failed',
-        id: '3',
-        timeStamp: Date.now(),
-        provider: 'uphold',
-        reason: 'mismatched-provider-accounts'
       } as any
     ]
   })

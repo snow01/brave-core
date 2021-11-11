@@ -5,12 +5,12 @@
 
 #include "brave/ios/browser/brave_web_main_parts.h"
 
-#include "base/base_switches.h"
 #include "base/metrics/user_metrics.h"
 #include "base/path_service.h"
 #include "base/sequenced_task_runner.h"
 #include "base/task/post_task.h"
 #include "base/task/thread_pool.h"
+#include "brave/ios/browser/browser_state/brave_browser_state_keyed_service_factories.h"
 #include "components/flags_ui/pref_service_flags_storage.h"
 #include "components/metrics_services_manager/metrics_services_manager.h"
 #include "components/variations/service/variations_service.h"
@@ -45,7 +45,7 @@ void BraveWebMainParts::PreCreateMainMessageLoop() {
    base::FilePath resources_pack_path;
    base::PathService::Get(ios::FILE_RESOURCES_PACK, &resources_pack_path);
    ui::ResourceBundle::GetSharedInstance().AddDataPackFromPath(
-       resources_pack_path, ui::SCALE_FACTOR_100P);
+       resources_pack_path, ui::k100Percent);
 }
 
 void BraveWebMainParts::PreCreateThreads() {
@@ -89,9 +89,9 @@ void BraveWebMainParts::SetupFieldTrials() {
   // Initialize FieldTrialList to support FieldTrials that use one-time
   // randomization.
   DCHECK(!field_trial_list_);
-  field_trial_list_.reset(
-      new base::FieldTrialList(application_context_->GetMetricsServicesManager()
-                                   ->CreateEntropyProvider()));
+  application_context_->GetMetricsServicesManager()
+      ->InstantiateFieldTrialList();
+  field_trial_list_.reset(base::FieldTrialList::GetInstance());
 
   std::unique_ptr<base::FeatureList> feature_list(new base::FeatureList);
 
@@ -101,12 +101,8 @@ void BraveWebMainParts::SetupFieldTrials() {
   std::vector<std::string> variation_ids;
   RegisterAllFeatureVariationParameters(&flags_storage, feature_list.get());
 
-  // On iOS, GPU benchmarking is not supported. So, pass in a dummy value for
-  // the name of the switch that enables gpu benchmarking.
   application_context_->GetVariationsService()->SetupFieldTrials(
-      "dummy-enable-gpu-benchmarking", switches::kEnableFeatures,
-      switches::kDisableFeatures, variation_ids,
-      std::vector<base::FeatureList::FeatureOverrideInfo>(),
+      variation_ids, std::vector<base::FeatureList::FeatureOverrideInfo>(),
       std::move(feature_list), &ios_field_trials_);
 }
 
@@ -119,6 +115,7 @@ void BraveWebMainParts::PreMainMessageLoopRun() {
 
   // Ensure that the browser state is initialized.
   EnsureBrowserStateKeyedServiceFactoriesBuilt();
+  brave::EnsureBrowserStateKeyedServiceFactoriesBuilt();
   ios::ChromeBrowserStateManager* browser_state_manager =
       application_context_->GetChromeBrowserStateManager();
   ChromeBrowserState* last_used_browser_state =

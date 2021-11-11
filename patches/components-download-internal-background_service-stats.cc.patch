@@ -1,8 +1,8 @@
 diff --git a/components/download/internal/background_service/stats.cc b/components/download/internal/background_service/stats.cc
-index e4444d9119aac6e3a8f9502f8eb54f275b0b1312..0ecdf0d2937e6eb3a10c93f9152e734a9a592424 100644
+index 5183d337e4d0f0f2953b1001b5fcba4a86f9f1fd..c0e853fb5606debac01397aa4d63c6b18a267146 100644
 --- a/components/download/internal/background_service/stats.cc
 +++ b/components/download/internal/background_service/stats.cc
-@@ -98,6 +98,7 @@ std::string ClientToHistogramSuffix(DownloadClient client) {
+@@ -76,6 +76,7 @@ std::string ClientToHistogramSuffix(DownloadClient client) {
        return "PluginVmImage";
      case DownloadClient::OPTIMIZATION_GUIDE_PREDICTION_MODELS:
        return "OptimizationGuidePredictionModels";

@@ -13,7 +13,6 @@
 #include "brave/app/vector_icons/vector_icons.h"
 #include "brave/browser/brave_vpn/brave_vpn_service_factory.h"
 #include "brave/browser/themes/theme_properties.h"
-#include "brave/components/brave_vpn/brave_vpn_service.h"
 #include "brave/components/brave_vpn/brave_vpn_service_desktop.h"
 #include "brave/grit/brave_generated_resources.h"
 #include "chrome/browser/themes/theme_properties.h"
@@ -23,8 +22,8 @@
 #include "chrome/browser/ui/views/toolbar/toolbar_ink_drop_util.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
+#include "ui/gfx/geometry/rrect_f.h"
 #include "ui/gfx/paint_vector_icon.h"
-#include "ui/gfx/rrect_f.h"
 #include "ui/gfx/skia_util.h"
 #include "ui/views/background.h"
 #include "ui/views/border.h"
@@ -59,10 +58,7 @@ BraveVPNButton::BraveVPNButton(Browser* browser)
       browser_(browser),
       service_(BraveVpnServiceFactory::GetForProfile(browser_->profile())) {
   DCHECK(service_);
-
-  mojo::PendingRemote<brave_vpn::mojom::ServiceObserver> listener;
-  receiver_.Bind(listener.InitWithNewPipeAndPassReceiver());
-  service_->AddObserver(std::move(listener));
+  Observe(service_);
 
   // Replace ToolbarButton's highlight path generator.
   views::HighlightPathGenerator::Install(
@@ -80,20 +76,18 @@ BraveVPNButton::BraveVPNButton(Browser* browser)
   SetHorizontalAlignment(gfx::ALIGN_LEFT);
 
   UpdateButtonState();
+
+  // Views resulting in focusable nodes later on in the accessibility tree need
+  // to have an accessible name for screen readers to see what they are about.
+  // TODO(simonhong): Re-visit this name.
+  SetAccessibleName(
+      l10n_util::GetStringUTF16(IDS_BRAVE_VPN_TOOLBAR_BUTTON_TEXT));
 }
 
 BraveVPNButton::~BraveVPNButton() = default;
 
 void BraveVPNButton::OnConnectionStateChanged(ConnectionState state) {
   UpdateButtonState();
-}
-
-void BraveVPNButton::OnConnectionCreated() {
-  // Do nothing.
-}
-
-void BraveVPNButton::OnConnectionRemoved() {
-  // Do nothing.
 }
 
 void BraveVPNButton::UpdateColorsAndInsets() {

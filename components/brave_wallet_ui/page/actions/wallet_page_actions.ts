@@ -15,10 +15,17 @@ import {
   AddAccountPayloadType,
   ImportAccountPayloadType,
   RemoveImportedAccountPayloadType,
+  RemoveHardwareAccountPayloadType,
   ViewPrivateKeyPayloadType,
-  ImportAccountFromJsonPayloadType
+  ImportAccountFromJsonPayloadType,
+  ImportFromExternalWalletPayloadType,
+  ImportWalletErrorPayloadType
 } from '../constants/action_types'
-import { TokenInfo, UpdateAccountNamePayloadType } from '../../constants/types'
+import {
+  HardwareWalletAccount
+} from '../../components/desktop/popup-modals/add-account-modal/hardware-wallet-connect/types'
+import { SwapResponse, SwapErrorResponse, ERCToken, UpdateAccountNamePayloadType } from '../../constants/types'
+import { SwapParamsPayloadType } from '../../common/constants/action_types'
 
 export const createWallet = createAction<CreateWalletPayloadType>('createWallet')
 export const restoreWallet = createAction<RestoreWalletPayloadType>('restoreWallet')
@@ -36,10 +43,21 @@ export const privateKeyAvailable = createAction<PrivateKeyAvailablePayloadType>(
 export const walletBackupComplete = createAction('walletBackupComplete')
 export const hasMnemonicError = createAction<boolean>('hasMnemonicError')
 export const setShowAddModal = createAction<boolean>('setShowAddModal')
-export const setImportError = createAction<boolean>('setImportError')
+export const setImportAccountError = createAction<boolean>('setImportAccountError')
+export const setImportWalletError = createAction<ImportWalletErrorPayloadType>('setImportWalletError')
 export const updatePriceInfo = createAction<SelectAssetPayloadType>('updatePriceInfo')
 export const selectAsset = createAction<UpdateSelectedAssetType>('selectAsset')
-export const updateSelectedAsset = createAction<TokenInfo>('updateSelectedAsset')
+export const updateSelectedAsset = createAction<ERCToken>('updateSelectedAsset')
 export const setIsFetchingPriceHistory = createAction<boolean>('setIsFetchingPriceHistory')
 export const setShowIsRestoring = createAction<boolean>('setShowIsRestoring')
 export const updateAccountName = createAction<UpdateAccountNamePayloadType>('updateAccountName')
+export const addHardwareAccounts = createAction<HardwareWalletAccount[]>('addHardwareAccounts')
+export const removeHardwareAccount = createAction<RemoveHardwareAccountPayloadType>('removeHardwareAccount')
+export const checkWalletsToImport = createAction('checkWalletsToImport')
+export const setCryptoWalletsInstalled = createAction<boolean>('setCryptoWalletsInstalled')
+export const importFromCryptoWallets = createAction<ImportFromExternalWalletPayloadType>('importFromCryptoWallets')
+export const importFromMetaMask = createAction<ImportFromExternalWalletPayloadType>('importFromMetaMask')
+export const openWalletSettings = createAction('openWalletSettings')
+export const setPageSwapQuote = createAction<SwapResponse>('setPageSwapQuote')
+export const setPageSwapError = createAction<SwapErrorResponse | undefined>('setPageSwapError')
+export const fetchPageSwapQuote = createAction<SwapParamsPayloadType>('fetchPageSwapQuote')

@@ -12,7 +12,6 @@
 #include "brave/components/speedreader/speedreader_extended_info_handler.h"
 #include "brave/components/speedreader/speedreader_rewriter_service.h"
 #include "brave/components/speedreader/speedreader_service.h"
-#include "brave/components/speedreader/speedreader_test_whitelist.h"
 #include "brave/components/speedreader/speedreader_util.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/profiles/profile.h"
@@ -60,6 +59,10 @@ bool SpeedreaderTabHelper::IsEnabledForSite(const GURL& url) {
 void SpeedreaderTabHelper::MaybeToggleEnabledForSite(bool on) {
   if (!IsSpeedreaderEnabled())
     return;
+
+  if (auto* entry = web_contents()->GetController().GetLastCommittedEntry()) {
+    SpeedreaderExtendedInfoHandler::ClearPersistedData(entry);
+  }
 
   Profile* profile =
       Profile::FromBrowserContext(web_contents()->GetBrowserContext());
@@ -130,8 +133,7 @@ void SpeedreaderTabHelper::UpdateActiveState(
   if (handle->GetURL().SchemeIsHTTPOrHTTPS()) {
     auto* rewriter_service =
         g_brave_browser_process->speedreader_rewriter_service();
-    if (speedreader::IsWhitelistedForTest(handle->GetURL()) ||
-        rewriter_service->IsWhitelisted(handle->GetURL())) {
+    if (rewriter_service->URLLooksReadable(handle->GetURL())) {
       VLOG(2) << __func__
               << "URL passed speedreader heuristic: " << handle->GetURL();
       if (!IsSpeedreaderEnabled()) {
@@ -228,6 +230,6 @@ void SpeedreaderTabHelper::DidStopLoading() {
   }
 }
 
-WEB_CONTENTS_USER_DATA_KEY_IMPL(SpeedreaderTabHelper)
+WEB_CONTENTS_USER_DATA_KEY_IMPL(SpeedreaderTabHelper);
 
 }  // namespace speedreader

@@ -6,7 +6,8 @@ import {
 } from '../../../constants/types'
 import { NavButton } from '../../extension'
 import SwapInputComponent from '../swap-input-component'
-import locale from '../../../constants/locale'
+import { getLocale } from '../../../../common/locale'
+import { ErrorText } from '../shared-styles'
 // Styled Components
 import {
   StyledWrapper
@@ -16,7 +17,9 @@ export interface Props {
   selectedAsset: AccountAssetOptionType
   selectedAssetAmount: string
   selectedAssetBalance: string
+  toAddressOrUrl: string
   toAddress: string
+  addressError: string
   onSubmit: () => void
   onInputChange: (value: string, name: string) => void
   onChangeSendView: (view: BuySendSwapViewTypes, option?: ToOrFromType) => void
@@ -28,7 +31,9 @@ function Send (props: Props) {
     selectedAsset,
     selectedAssetAmount,
     selectedAssetBalance,
+    toAddressOrUrl,
     toAddress,
+    addressError,
     onInputChange,
     onSelectPresetAmount,
     onSubmit,
@@ -43,6 +48,13 @@ function Send (props: Props) {
     const address = await navigator.clipboard.readText()
     onInputChange(address, 'address')
   }
+
+  const insuficientFundsError = React.useMemo((): boolean => {
+    if (parseFloat(selectedAssetAmount) === 0) {
+      return false
+    }
+    return Number(selectedAssetAmount) > Number(selectedAssetBalance)
+  }, [selectedAssetBalance, selectedAssetAmount])
 
   return (
     <StyledWrapper>
@@ -59,14 +71,24 @@ function Send (props: Props) {
       <SwapInputComponent
         componentType='toAddress'
         onInputChange={onInputChange}
+        toAddressOrUrl={toAddressOrUrl}
+        addressError={addressError}
         toAddress={toAddress}
         inputName='address'
         onPaste={onPasteFromClipboard}
       />
+      {insuficientFundsError &&
+        <ErrorText>{getLocale('braveWalletSwapInsufficientBalance')}</ErrorText>
+      }
       <NavButton
-        disabled={false}
+        disabled={addressError !== ''
+          || toAddressOrUrl === ''
+          || parseFloat(selectedAssetAmount) === 0
+          || selectedAssetAmount === ''
+          || insuficientFundsError
+        }
         buttonType='primary'
-        text={locale.send}
+        text={getLocale('braveWalletSend')}
         onSubmit={onSubmit}
       />
     </StyledWrapper>

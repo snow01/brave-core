@@ -3,12 +3,15 @@ import { CaratStrongDownIcon } from 'brave-ui/components/icons'
 import Refresh from '../../../assets/svg-icons/refresh-icon.svg'
 import ClipboardIcon from '../../../assets/svg-icons/clipboard-icon.svg'
 import { BuySendSwapInputType } from './index'
+import { AssetIconProps, AssetIconFactory, WalletButton } from '../../shared/style'
 
 interface StyleProps {
-  icon: string | undefined
   componentType: BuySendSwapInputType
   spin: number
   hasError: boolean
+  isSelected: boolean
+  isSlippage: boolean
+  isERC721: boolean
 }
 
 export const Row = styled.div<Partial<StyleProps>>`
@@ -28,11 +31,12 @@ export const FromBalanceText = styled.span<Partial<StyleProps>>`
   color: ${(p) => p.theme.color.text03};
 `
 
-export const AssetButton = styled.button`
+export const AssetButton = styled(WalletButton) <Partial<StyleProps>>`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  width: ${(p) => p.isERC721 ? '100%' : 'auto'};
   cursor: pointer;
   outline: none;
   background: none;
@@ -41,14 +45,21 @@ export const AssetButton = styled.button`
   margin: 0px;
 `
 
-export const AssetIcon = styled.div<Partial<StyleProps>>`
-  width: 24px;
-  height: 24px;
-  background: ${(p) => `url(${p.icon})`};
-  margin-right: 8px;
-  margin-left: 4px;
-  background-size: 100%;
+export const ButtonLeftSide = styled.div<Partial<StyleProps>>`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 `
+
+// Construct styled-component using JS object instead of string, for editor
+// support with custom AssetIconFactory.
+//
+// Ref: https://styled-components.com/docs/advanced#style-objects
+export const AssetIcon = AssetIconFactory<AssetIconProps>({
+  width: '24px',
+  height: 'auto'
+})
 
 export const AssetTicker = styled.span`
   font-family: Poppins;
@@ -71,10 +82,11 @@ export const PresetRow = styled.div`
   width: 100%;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
+  margin-bottom: 4px;
 `
 
-export const PresetButton = styled.button`
+export const PresetButton = styled(WalletButton) <Partial<StyleProps>>`
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -83,16 +95,58 @@ export const PresetButton = styled.button`
   outline: none;
   background: none;
   border: none;
+  font-weight: 600;
   font-family: Poppins;
   font-size: 12px;
   line-height: 18px;
   letter-spacing: 0.01em;
-  padding: 0px;
-  margin-right: 8px;
-  color: ${(p) => p.theme.color.text01};
+  padding: 2px 0px;
+  width: 48px;
+  border-radius: 4px;
+  background-color: ${(p) => p.isSelected ? p.isSlippage ? p.theme.color.interactive05 : p.theme.color.divider01 : 'none'};
+  color: ${(p) => p.isSlippage && p.isSelected ? p.theme.palette.white : p.theme.color.interactive05}};
+  @media (prefers-color-scheme: dark) {
+    color: ${(p) => p.isSlippage && p.isSelected ? p.theme.palette.white : p.theme.palette.blurple300};
+  }
 `
 
-export const MarketLimitButton = styled.button`
+export const SlippageInput = styled.input<Partial<StyleProps>>`
+  --main-bg-color: ${(p) => p.theme.color.interactive05};
+  width: 48px;
+  outline: none;
+  background-image: none;
+  background: ${(p) => p.isSelected ? 'var(--main-bg-color)' : 'none'};
+  box-shadow: none;
+  font-family: Poppins;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+  text-align: center;
+  padding: 1px;
+  border-radius: 4px;
+  border: none;
+  border: 1px solid ${(p) => p.isSelected ? p.theme.color.interactive05 : p.theme.color.interactive08};
+  color: ${(p) => p.isSelected ? p.theme.palette.white : p.theme.color.text03};
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  ::placeholder {
+    color: ${(p) => p.theme.color.text03};
+  }
+  :focus {
+      outline: none;
+  }
+  ::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+  }
+  ::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+  }
+`
+
+export const MarketLimitButton = styled(WalletButton)`
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -109,7 +163,7 @@ export const MarketLimitButton = styled.button`
   color: ${(p) => p.theme.color.interactive05};
 `
 
-export const RefreshButton = styled.button`
+export const RefreshButton = styled(WalletButton)`
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -174,6 +228,7 @@ export const Input = styled.input<Partial<StyleProps>>`
       margin: 0;
   }
 `
+
 export const SelectText = styled.span`
   font-family: Poppins;
   font-size: 13px;
@@ -194,7 +249,7 @@ export const SelectValueText = styled.span`
   margin-right: 4px;
 `
 
-export const PasteButton = styled.button`
+export const PasteButton = styled(WalletButton)`
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -218,4 +273,19 @@ export const PasteIcon = styled.div`
   -webkit-mask-image: url(${ClipboardIcon});
   mask-image: url(${ClipboardIcon});
   mask-size: 100%;
+`
+
+export const WarningText = styled.span`
+  font-family: Poppins;
+  letter-spacing: 0.01em;
+  font-size: 12px;
+  color: ${(p) => p.theme.color.errorText};
+  word-break: break-word;
+`
+
+export const AddressConfirmationText = styled.span`
+  font-family: Poppins;
+  letter-spacing: 0.01em;
+  font-size: 12px;
+  color: ${(p) => p.theme.color.text02};
 `

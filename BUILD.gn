@@ -113,6 +113,7 @@ if (is_android) {
       "//brave/android/java/org/chromium/chrome/browser/onboarding/animations/privacy_protection.json",
       "//brave/android/java/org/chromium/chrome/browser/onboarding/animations/save_data_and_battery.json",
       "//brave/android/java/org/chromium/chrome/browser/onboarding/animations/website_loads_faster.json",
+      "//brave/android/java/org/chromium/chrome/browser/vpn/brave_vpn_confirm.json",
     ]
     deps = [ "//brave:browser_dependencies" ]
     disable_compression = true
@@ -158,7 +159,10 @@ if (!is_ios) {
     deps = [ "test:brave_unit_tests" ]
 
     if (!is_android) {
-      deps += [ "test:brave_browser_tests" ]
+      deps += [
+        "test:brave_browser_tests",
+        "test:brave_network_audit_tests",
+      ]
     }
   }
 }
@@ -333,7 +337,7 @@ if (target_cpu == "x86") {
 
 action("create_symbols_dist") {
   if (is_android) {
-    output = "$brave_dist_dir/$brave_product_name-v$brave_version-$brave_platform-$target_android_base-$target_cpu-symbols.zip"
+    output = "$brave_dist_dir/$brave_product_name-v$brave_version-$brave_platform-$target_android_base-$target_cpu-symbols-$target_android_output_format.zip"
   } else {
     output = "$brave_dist_dir/$brave_product_name-v$brave_version-$brave_platform-$target_arch-symbols.zip"
   }
@@ -489,4 +493,8 @@ group("tools") {
   if (enable_brave_vpn) {
     deps = [ "//brave/components/brave_vpn:vpntool" ]
   }
+}
+
+group("storybook") {
+  deps = [ "//brave/.storybook:storybook" ]
 }

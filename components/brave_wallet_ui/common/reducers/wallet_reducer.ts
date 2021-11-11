@@ -6,31 +6,39 @@
 
 import { createReducer } from 'redux-act'
 import {
+  AccountInfo,
+  AccountTransactions,
+  AssetPriceTimeframe,
+  DefaultWallet,
+  EthereumChain,
+  GasEstimation1559,
+  GetAllNetworksList,
+  GetAllTokensReturnInfo,
+  GetERC20TokenBalanceAndPriceReturnInfo,
+  GetNativeAssetBalancesPriceReturnInfo,
+  GetPriceHistoryReturnInfo,
+  MAINNET_CHAIN_ID,
+  PortfolioTokenHistoryAndInfo,
+  ERCToken,
+  TransactionInfo,
+  TransactionStatus,
   WalletAccountType,
   WalletState,
-  GetAllTokensReturnInfo,
-  GetAllNetworksList,
-  TokenInfo,
-  GetETHBalancesPriceReturnInfo,
-  GetERC20TokenBalanceAndPriceReturnInfo,
-  AccountInfo,
-  PortfolioTokenHistoryAndInfo,
-  GetPriceHistoryReturnInfo,
-  AssetPriceTimeframe,
-  EthereumChain,
-  kMainnetChainId,
-  TransactionInfo,
-  TransactionStatus
+  WalletInfoBase,
+  WalletInfo
 } from '../../constants/types'
 import {
+  ActiveOriginChanged,
+  IsEip1559Changed,
   NewUnapprovedTxAdded,
+  SitePermissionsPayloadType,
   TransactionStatusChanged,
-  InitializedPayloadType
+  UnapprovedTxUpdated
 } from '../constants/action_types'
-import { convertMojoTimeToJS } from '../../utils/mojo-time'
+import { mojoTimeDeltaToJSDate } from '../../utils/datetime-utils'
 import * as WalletActions from '../actions/wallet_actions'
 import { formatFiatBalance } from '../../utils/format-balances'
-import { ETHIconUrl } from '../../assets/asset-icons'
+import { sortTransactionByDate } from '../../utils/tx-utils'
 
 const defaultState: WalletState = {
   hasInitialized: false,
@@ -41,19 +49,19 @@ const defaultState: WalletState = {
   hasIncorrectPassword: false,
   selectedAccount: {} as WalletAccountType,
   selectedNetwork: {
-    chainId: kMainnetChainId,
+    chainId: MAINNET_CHAIN_ID,
     chainName: 'Ethereum Mainnet',
     rpcUrls: [],
     blockExplorerUrls: [],
     iconUrls: [],
     symbol: 'ETH',
     symbolName: 'Ethereum',
-    decimals: 18
+    decimals: 18,
+    isEip1559: true
   } as EthereumChain,
   accounts: [],
-  userVisibleTokens: [],
   userVisibleTokensInfo: [],
-  transactions: [],
+  transactions: {},
   pendingTransactions: [],
   knownTransactions: [],
   fullTokenList: [],
@@ -62,12 +70,25 @@ const defaultState: WalletState = {
   isFetchingPortfolioPriceHistory: true,
   selectedPortfolioTimeline: AssetPriceTimeframe.OneDay,
   networkList: [],
-  transactionSpotPrices: []
+  transactionSpotPrices: [],
+  addUserAssetError: false,
+  defaultWallet: DefaultWallet.BraveWalletPreferExtension,
+  activeOrigin: '',
+  gasEstimates: undefined,
+  connectedAccounts: [],
+  isMetaMaskInstalled: false
 }
 
 const reducer = createReducer<WalletState>({}, defaultState)
 
-reducer.on(WalletActions.initialized, (state: any, payload: InitializedPayloadType) => {
+const getAccountType = (info: AccountInfo) => {
+  if (info.hardware) {
+    return info.hardware.vendor
+  }
+  return info.isImported ? 'Secondary' : 'Primary'
+}
+
+reducer.on(WalletActions.initialized, (state: any, payload: WalletInfo) => {
   const accounts = payload.accountInfos.map((info: AccountInfo, idx: number) => {
     return {
       id: `${idx + 1}`,
@@ -76,12 +97,14 @@ reducer.on(WalletActions.initialized, (state: any, payload: InitializedPayloadTy
       balance: '0',
       fiatBalance: '0',
       asset: 'eth',
-      accountType: info.isImported ? 'Secondary' : 'Primary',
+      accountType: getAccountType(info),
+      deviceId: info.hardware ? info.hardware.deviceId : '',
       tokens: []
     }
   })
-  // VisibleTokens needs to be persited in prefs and returned in
-  // in the initialized payload to be set here.
+  const selectedAccount = payload.selectedAccount ?
+    accounts.find((account) => account.address.toLowerCase() === payload.selectedAccount.toLowerCase()) ?? accounts[0]
+    : accounts[0]
   return {
     ...state,
     hasInitialized: true,
@@ -90,8 +113,7 @@ reducer.on(WalletActions.initialized, (state: any, payload: InitializedPayloadTy
     favoriteApps: payload.favoriteApps,
     accounts,
     isWalletBackedUp: payload.isWalletBackedUp,
-    selectedAccount: accounts[0],
-    userVisibleTokens: ['eth', '0x0D8775F648430679A709E98d2b0Cb6250d2887EF']
+    selectedAccount: selectedAccount
   }
 })
 
@@ -102,7 +124,7 @@ reducer.on(WalletActions.hasIncorrectPassword, (state: any, payload: boolean) =>
   }
 })
 
-reducer.on(WalletActions.selectAccount, (state: any, payload: WalletAccountType) => {
+reducer.on(WalletActions.setSelectedAccount, (state: any, payload: WalletAccountType) => {
   return {
     ...state,
     selectedAccount: payload
@@ -117,27 +139,10 @@ reducer.on(WalletActions.setNetwork, (state: any, payload: EthereumChain) => {
   }
 })
 
-reducer.on(WalletActions.setVisibleTokensInfo, (state: any, payload: TokenInfo[]) => {
-  const eth = {
-    contractAddress: 'eth',
-    name: 'Ethereum',
-    isErc20: true,
-    isErc721: false,
-    symbol: 'ETH',
-    decimals: 18,
-    icon: ETHIconUrl
-  }
-  const list = [eth, ...payload]
+reducer.on(WalletActions.setVisibleTokensInfo, (state: any, payload: ERCToken[]) => {
   return {
     ...state,
-    userVisibleTokensInfo: list
-  }
-})
-
-reducer.on(WalletActions.setVisibleTokens, (state: any, payload: string[]) => {
-  return {
-    ...state,
-    userVisibleTokens: payload
+    userVisibleTokensInfo: payload
   }
 })
 
@@ -155,13 +160,13 @@ reducer.on(WalletActions.setAllTokensList, (state: any, payload: GetAllTokensRet
   }
 })
 
-reducer.on(WalletActions.ethBalancesUpdated, (state: any, payload: GetETHBalancesPriceReturnInfo) => {
+reducer.on(WalletActions.nativeAssetBalancesUpdated, (state: any, payload: GetNativeAssetBalancesPriceReturnInfo) => {
   let accounts: WalletAccountType[] = [...state.accounts]
 
   accounts.forEach((account, index) => {
     if (payload.balances[index].success) {
       accounts[index].balance = payload.balances[index].balance
-      accounts[index].fiatBalance = formatFiatBalance(payload.balances[index].balance, 18, payload.usdPrice).toString()
+      accounts[index].fiatBalance = formatFiatBalance(payload.balances[index].balance, state.selectedNetwork.decimals, payload.usdPrice).toString()
     }
   })
 
@@ -172,7 +177,13 @@ reducer.on(WalletActions.ethBalancesUpdated, (state: any, payload: GetETHBalance
 })
 
 reducer.on(WalletActions.tokenBalancesUpdated, (state: any, payload: GetERC20TokenBalanceAndPriceReturnInfo) => {
-  const userVisibleTokensInfo: TokenInfo[] = state.userVisibleTokensInfo
+  const userTokens: ERCToken[] = state.userVisibleTokensInfo
+  const userVisibleTokensInfo = userTokens.map((token) => {
+    return {
+      ...token,
+      logo: `chrome://erc-token-images/${token.logo}`
+    }
+  })
   const prices = payload.prices
   const findTokenPrice = (symbol: string) => {
     if (prices.success) {
@@ -187,9 +198,12 @@ reducer.on(WalletActions.tokenBalancesUpdated, (state: any, payload: GetERC20Tok
       let assetBalance = '0'
       let fiatBalance = '0'
 
-      if (userVisibleTokensInfo[tokenIndex].contractAddress === 'eth') {
+      if (userVisibleTokensInfo[tokenIndex].contractAddress === '') {
         assetBalance = account.balance
         fiatBalance = account.fiatBalance
+      } else if (info.success && userVisibleTokensInfo[tokenIndex].isErc721) {
+        assetBalance = info.balance
+        fiatBalance = '0'  // TODO: support estimated market value.
       } else if (info.success) {
         assetBalance = info.balance
         fiatBalance = formatFiatBalance(info.balance, userVisibleTokensInfo[tokenIndex].decimals, findTokenPrice(userVisibleTokensInfo[tokenIndex].symbol))
@@ -214,7 +228,7 @@ reducer.on(WalletActions.tokenBalancesUpdated, (state: any, payload: GetERC20Tok
 reducer.on(WalletActions.portfolioPriceHistoryUpdated, (state: any, payload: PortfolioTokenHistoryAndInfo[][]) => {
   const history = payload.map((account) => {
     return account.map((token) => {
-      if (Number(token.token.assetBalance) !== 0) {
+      if (Number(token.token.assetBalance) !== 0 && token.token.asset.visible) {
         return token.history.values.map((value) => {
           return {
             date: value.date,
@@ -234,7 +248,7 @@ reducer.on(WalletActions.portfolioPriceHistoryUpdated, (state: any, payload: Por
   const shortestHistory = jointHistory.length > 0 ? jointHistory.reduce((a, b) => a.length <= b.length ? a : b) : []
   const sumOfHistory = jointHistory.length > 0 ? shortestHistory.map((token, tokenIndex) => {
     return {
-      date: convertMojoTimeToJS(token.date),
+      date: mojoTimeDeltaToJSDate(token.date),
       close: jointHistory.map(price => Number(price[tokenIndex].price) || 0).reduce((sum, x) => sum + x, 0)
     }
   }) : []
@@ -254,7 +268,7 @@ reducer.on(WalletActions.portfolioTimelineUpdated, (state: any, payload: AssetPr
   }
 })
 
-reducer.on(WalletActions.newUnapprovedTxAdded, (state: any, payload: NewUnapprovedTxAdded) => {
+reducer.on(WalletActions.newUnapprovedTxAdded, (state: WalletState, payload: NewUnapprovedTxAdded) => {
   const newState = {
     ...state,
     pendingTransactions: [
@@ -270,32 +284,150 @@ reducer.on(WalletActions.newUnapprovedTxAdded, (state: any, payload: NewUnapprov
   return newState
 })
 
-reducer.on(WalletActions.transactionStatusChanged, (state: any, payload: TransactionStatusChanged) => {
-  const newPendingTransactions =
-    state.pendingTransactions.filter((tx: TransactionInfo) => tx.id !== payload.txInfo.id)
-  const newSelectedPendingTransaction = newPendingTransactions.pop()
-  if (payload.txInfo.txStatus === TransactionStatus.Submitted ||
-    payload.txInfo.txStatus === TransactionStatus.Rejected ||
-    payload.txInfo.txStatus === TransactionStatus.Approved) {
-    const newState = {
-      ...state,
-      pendingTransactions: newPendingTransactions,
-      selectedPendingTransaction: newSelectedPendingTransaction
-    }
-    return newState
+reducer.on(WalletActions.unapprovedTxUpdated, (state: any, payload: UnapprovedTxUpdated) => {
+  const newState = { ...state }
+
+  const index = state.pendingTransactions.findIndex(
+    (tx: TransactionInfo) => tx.id === payload.txInfo.id)
+  if (index !== -1) {
+    newState.pendingTransactions[index] = payload.txInfo
   }
-  return state
+
+  if (state.selectedPendingTransaction.id === payload.txInfo.id) {
+    newState.selectedPendingTransaction = payload.txInfo
+  }
+
+  return newState
 })
 
-reducer.on(WalletActions.knownTransactionsUpdated, (state: any, payload: TransactionInfo[]) => {
-  const newPendingTransactions =
-    payload.filter((tx: TransactionInfo) => tx.txStatus === TransactionStatus.Unapproved)
-  const newSelectedPendingTransaction = state.selectedPendingTransaction || newPendingTransactions.pop()
+reducer.on(WalletActions.transactionStatusChanged, (state: WalletState, payload: TransactionStatusChanged) => {
+  const newPendingTransactions = state.pendingTransactions
+    .filter((tx: TransactionInfo) => tx.id !== payload.txInfo.id)
+    .concat(payload.txInfo.txStatus === TransactionStatus.Unapproved ? [payload.txInfo] : [])
+
+  const sortedTransactionList = sortTransactionByDate(newPendingTransactions)
+
+  const newTransactionEntries = Object.entries(state.transactions).map(([address, transactions]) => {
+    const hasTransaction = transactions.some(tx => tx.id === payload.txInfo.id)
+
+    return [
+      address,
+      hasTransaction
+        ? sortTransactionByDate([
+          ...transactions.filter(tx => tx.id !== payload.txInfo.id),
+          payload.txInfo
+        ])
+        : transactions
+    ]
+  })
+
   return {
     ...state,
-    pendingTransactions: newPendingTransactions,
-    selectedPendingTransaction: newSelectedPendingTransaction,
-    knownTransactions: payload
+    pendingTransactions: sortedTransactionList,
+    selectedPendingTransaction: sortedTransactionList[0],
+    transactions: Object.fromEntries(newTransactionEntries)
+  }
+})
+
+reducer.on(WalletActions.setAccountTransactions, (state: WalletState, payload: AccountTransactions) => {
+  const { selectedAccount } = state
+  const newPendingTransactions = selectedAccount ?
+    payload[selectedAccount.address].filter((tx: TransactionInfo) => tx.txStatus === TransactionStatus.Unapproved) : []
+
+  const sortedTransactionList = sortTransactionByDate(newPendingTransactions)
+
+  return {
+    ...state,
+    transactions: payload,
+    pendingTransactions: sortedTransactionList,
+    selectedPendingTransaction: sortedTransactionList[0]
+  }
+})
+
+reducer.on(WalletActions.addUserAssetError, (state: any, payload: boolean) => {
+  return {
+    ...state,
+    addUserAssetError: payload
+  }
+})
+
+reducer.on(WalletActions.defaultWalletUpdated, (state: any, payload: DefaultWallet) => {
+  return {
+    ...state,
+    defaultWallet: payload
+  }
+})
+
+reducer.on(WalletActions.activeOriginChanged, (state: any, payload: ActiveOriginChanged) => {
+  return {
+    ...state,
+    activeOrigin: payload.origin
+  }
+})
+
+reducer.on(WalletActions.isEip1559Changed, (state: WalletState, payload: IsEip1559Changed) => {
+  const selectedNetwork = state.networkList.find(
+    network => network.chainId === payload.chainId
+  ) || state.selectedNetwork
+
+  const updatedNetwork: EthereumChain = {
+    ...selectedNetwork,
+    isEip1559: payload.isEip1559
+  }
+
+  return {
+    ...state,
+    selectedNetwork: updatedNetwork,
+    networkList: state.networkList.map(
+      network => network.chainId === payload.chainId ? updatedNetwork : network
+    )
+  }
+})
+
+reducer.on(WalletActions.setGasEstimates, (state: any, payload: GasEstimation1559) => {
+  return {
+    ...state,
+    gasEstimates: payload
+  }
+})
+
+reducer.on(WalletActions.setSitePermissions, (state: any, payload: SitePermissionsPayloadType) => {
+  return {
+    ...state,
+    connectedAccounts: payload.accounts
+  }
+})
+
+reducer.on(WalletActions.queueNextTransaction, (state: any) => {
+  const pendingTransactions = state.pendingTransactions
+  const index = pendingTransactions.findIndex((tx: TransactionInfo) => tx.id === state.selectedPendingTransaction.id) + 1
+  let newPendingTransaction = pendingTransactions[index]
+  if (pendingTransactions.length === index) {
+    newPendingTransaction = pendingTransactions[0]
+  }
+  return {
+    ...state,
+    selectedPendingTransaction: newPendingTransaction
+  }
+})
+
+reducer.on(WalletActions.setMetaMaskInstalled, (state: WalletState, payload: boolean) => {
+  return {
+    ...state,
+    isMetaMaskInstalled: payload
+  }
+})
+
+reducer.on(WalletActions.refreshAccountInfo, (state: any, payload: WalletInfoBase) => {
+  const accounts = state.accounts
+  const updatedAccounts = payload.accountInfos.map((info: AccountInfo) => {
+    let account = accounts.find((account: WalletAccountType) => account.address === info.address)
+    account.name = info.name
+    return account
+  })
+  return {
+    ...state,
+    accounts: updatedAccounts
   }
 })
 

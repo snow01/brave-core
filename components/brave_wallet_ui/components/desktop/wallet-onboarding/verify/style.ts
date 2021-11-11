@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { WalletButton } from '../../../shared/style'
 
 interface StyleProps {
   isSelected: boolean
@@ -45,7 +46,7 @@ export const SelectedPhraseContainer = styled.div<Partial<StyleProps>>`
   justify-content: ${(p) => p.error ? 'center' : 'flex-start'};
   flex-direction: row;
   flex-wrap: wrap;
-  width: 418px;
+  width: 466px;
   min-height: 112px;
   margin-bottom: 40px;
   border: ${(p) => `1px solid ${p.theme.color.divider01}`};
@@ -64,7 +65,7 @@ export const RecoveryPhraseContainer = styled.div`
   margin-bottom: 40px;
 `
 
-export const RecoveryBubble = styled.button<Partial<StyleProps>>`
+export const RecoveryBubble = styled(WalletButton) <Partial<StyleProps>>`
   cursor: ${(p) => p.isSelected ? `default` : 'pointer'};
   outline: none;
   background: none;
@@ -90,7 +91,7 @@ export const RecoveryBubbleText = styled.span<Partial<StyleProps>>`
   color: ${(p) => p.isSelected ? p.theme.color.background02 : p.theme.color.text01};
 `
 
-export const SelectedBubble = styled.button`
+export const SelectedBubble = styled(WalletButton)`
   cursor: pointer;
   outline: none;
   background: none;
@@ -99,7 +100,7 @@ export const SelectedBubble = styled.button`
   justify-content: center;
   flex-direction: column;
   background-color: ${(p) => p.theme.color.background01};
-  width: 94px;
+  width: 106px;
   margin-right: 8px;
   margin-bottom: 8px;
   border: ${(p) => `1px solid ${p.theme.color.divider01}`};

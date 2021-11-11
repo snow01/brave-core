@@ -35,6 +35,7 @@ public class AppearancePreferences extends BravePreferenceFragment
     public static final String PREF_HIDE_BRAVE_REWARDS_ICON = "hide_brave_rewards_icon";
     public static final String PREF_BRAVE_NIGHT_MODE_ENABLED = "brave_night_mode_enabled_key";
     public static final String PREF_BRAVE_ENABLE_TAB_GROUPS = "brave_enable_tab_groups";
+    public static final String PREF_BRAVE_DISABLE_SHARING_HUB = "brave_disable_sharing_hub";
 
     private BraveRewardsNativeWorker mBraveRewardsNativeWorker;
 
@@ -90,21 +91,34 @@ public class AppearancePreferences extends BravePreferenceFragment
 
         Preference enableBottomToolbar =
                 findPreference(BravePreferenceKeys.BRAVE_BOTTOM_TOOLBAR_ENABLED_KEY);
-        if (enableBottomToolbar == null) return;
-
-        enableBottomToolbar.setOnPreferenceChangeListener(this);
-        if (enableBottomToolbar instanceof ChromeSwitchPreference) {
-            boolean isTablet = DeviceFormFactor.isNonMultiDisplayContextOnTablet(
-                    ContextUtils.getApplicationContext());
-            ((ChromeSwitchPreference) enableBottomToolbar)
-                    .setChecked(!isTablet && BottomToolbarConfiguration.isBottomToolbarEnabled());
+        if (enableBottomToolbar != null) {
+            enableBottomToolbar.setOnPreferenceChangeListener(this);
+            if (enableBottomToolbar instanceof ChromeSwitchPreference) {
+                boolean isTablet = DeviceFormFactor.isNonMultiDisplayContextOnTablet(
+                        ContextUtils.getApplicationContext());
+                ((ChromeSwitchPreference) enableBottomToolbar)
+                        .setChecked(
+                                !isTablet && BottomToolbarConfiguration.isBottomToolbarEnabled());
+            }
         }
 
         Preference enableTabGroups = findPreference(PREF_BRAVE_ENABLE_TAB_GROUPS);
-        enableTabGroups.setOnPreferenceChangeListener(this);
-        if (enableTabGroups instanceof ChromeSwitchPreference) {
-            ((ChromeSwitchPreference) enableTabGroups)
-                    .setChecked(TabUiFeatureUtilities.isTabGroupsAndroidEnabled(getActivity()));
+        if (enableTabGroups != null) {
+            enableTabGroups.setOnPreferenceChangeListener(this);
+            if (enableTabGroups instanceof ChromeSwitchPreference) {
+                ((ChromeSwitchPreference) enableTabGroups)
+                        .setChecked(TabUiFeatureUtilities.isTabGroupsAndroidEnabled(getActivity()));
+            }
+        }
+
+        Preference disableSharingHub = findPreference(PREF_BRAVE_DISABLE_SHARING_HUB);
+        if (disableSharingHub != null) {
+            disableSharingHub.setOnPreferenceChangeListener(this);
+            if (disableSharingHub instanceof ChromeSwitchPreference) {
+                ((ChromeSwitchPreference) disableSharingHub)
+                        .setChecked(SharedPreferencesManager.getInstance().readBoolean(
+                                BravePreferenceKeys.BRAVE_DISABLE_SHARING_HUB, false));
+            }
         }
     }
 
@@ -156,6 +170,9 @@ public class AppearancePreferences extends BravePreferenceFragment
             SharedPreferencesManager.getInstance().writeBoolean(
                     BravePreferenceKeys.BRAVE_TAB_GROUPS_ENABLED, (boolean) newValue);
             BraveRelaunchUtils.askForRelaunch(getActivity());
+        } else if (PREF_BRAVE_DISABLE_SHARING_HUB.equals(key)) {
+            SharedPreferencesManager.getInstance().writeBoolean(
+                    BravePreferenceKeys.BRAVE_DISABLE_SHARING_HUB, (boolean) newValue);
         }
 
         return true;

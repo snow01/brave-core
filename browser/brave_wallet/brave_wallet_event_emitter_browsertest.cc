@@ -43,7 +43,7 @@ std::string CheckForEventScript(const std::string& event_var) {
                    });
                    console.log('!!!set connect')
                    window.ethereum.on('chainChanged', function(chainId) {
-                     received_chain_changed_event = true
+                     received_chain_changed_event = chainId == '0x5'
                    });
                    console.log('!!!set chainChanged')
                  }
@@ -115,7 +115,7 @@ class BraveWalletEventEmitterTest : public InProcessBrowserTest {
 IN_PROC_BROWSER_TEST_F(BraveWalletEventEmitterTest, CheckForAConnectEvent) {
   GURL url =
       https_server()->GetURL("a.com", "/brave_wallet_event_emitter.html");
-  ui_test_utils::NavigateToURL(browser(), url);
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url));
   content::WebContents* contents =
       browser()->tab_strip_model()->GetActiveWebContents();
   WaitForLoadStop(contents);
@@ -130,12 +130,13 @@ IN_PROC_BROWSER_TEST_F(BraveWalletEventEmitterTest,
                        CheckForAChainChangedEvent) {
   GURL url =
       https_server()->GetURL("a.com", "/brave_wallet_event_emitter.html");
-  ui_test_utils::NavigateToURL(browser(), url);
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url));
   content::WebContents* contents =
       browser()->tab_strip_model()->GetActiveWebContents();
   WaitForLoadStop(contents);
   auto controller = GetEthJsonRpcController();
-  controller->SetNetwork(brave_wallet::mojom::kGoerliChainId);
+  controller->SetNetwork(brave_wallet::mojom::kGoerliChainId,
+                         base::DoNothing());
 
   auto result_first =
       EvalJs(contents, CheckForEventScript("received_chain_changed_event"),

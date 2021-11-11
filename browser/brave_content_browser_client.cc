@@ -18,6 +18,11 @@
 #include "brave/browser/brave_browser_main_extra_parts.h"
 #include "brave/browser/brave_browser_process.h"
 #include "brave/browser/brave_shields/brave_shields_web_contents_observer.h"
+#include "brave/browser/brave_wallet/brave_wallet_context_utils.h"
+#include "brave/browser/brave_wallet/brave_wallet_service_factory.h"
+#include "brave/browser/brave_wallet/eth_tx_controller_factory.h"
+#include "brave/browser/brave_wallet/keyring_controller_factory.h"
+#include "brave/browser/brave_wallet/rpc_controller_factory.h"
 #include "brave/browser/debounce/debounce_service_factory.h"
 #include "brave/browser/ethereum_remote_client/buildflags/buildflags.h"
 #include "brave/browser/net/brave_proxying_url_loader_factory.h"
@@ -28,6 +33,7 @@
 #include "brave/common/pref_names.h"
 #include "brave/common/webui_url_constants.h"
 #include "brave/components/binance/browser/buildflags/buildflags.h"
+#include "brave/components/brave_ads/common/features.h"
 #include "brave/components/brave_rewards/browser/rewards_protocol_handler.h"
 #include "brave/components/brave_search/browser/brave_search_default_host.h"
 #include "brave/components/brave_search/browser/brave_search_default_host_private.h"
@@ -35,12 +41,16 @@
 #include "brave/components/brave_search/common/brave_search_default.mojom.h"
 #include "brave/components/brave_search/common/brave_search_fallback.mojom.h"
 #include "brave/components/brave_search/common/brave_search_utils.h"
+#include "brave/components/brave_shields/browser/ad_block_service.h"
 #include "brave/components/brave_shields/browser/brave_shields_util.h"
 #include "brave/components/brave_shields/browser/domain_block_navigation_throttle.h"
 #include "brave/components/brave_shields/common/brave_shield_constants.h"
 #include "brave/components/brave_shields/common/features.h"
+#include "brave/components/brave_today/buildflags/buildflags.h"
 #include "brave/components/brave_vpn/buildflags/buildflags.h"
-#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
+#include "brave/components/brave_wallet/browser/brave_wallet_provider_impl.h"
+#include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
+#include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "brave/components/brave_webtorrent/browser/buildflags/buildflags.h"
 #include "brave/components/cosmetic_filters/browser/cosmetic_filters_resources.h"
 #include "brave/components/cosmetic_filters/common/cosmetic_filters.mojom.h"
@@ -52,6 +62,7 @@
 #include "brave/components/speedreader/buildflags.h"
 #include "brave/components/speedreader/speedreader_util.h"
 #include "brave/components/tor/buildflags/buildflags.h"
+#include "brave/components/translate/core/common/brave_translate_switches.h"
 #include "brave/grit/brave_generated_resources.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/chrome_browser_interface_binders.h"
@@ -149,21 +160,6 @@ using extensions::ChromeContentBrowserClientExtensionsPart;
 #include "brave/browser/brave_drm_tab_helper.h"
 #endif
 
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
-#include "brave/browser/brave_wallet/brave_wallet_context_utils.h"
-#include "brave/browser/brave_wallet/rpc_controller_factory.h"
-#include "brave/components/brave_wallet/browser/brave_wallet_provider_impl.h"
-#include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
-#include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
-#if !defined(OS_ANDROID)
-#include "brave/browser/brave_wallet/brave_wallet_provider_delegate_impl.h"
-#include "brave/browser/ui/webui/brave_wallet/wallet_page_ui.h"
-#include "brave/browser/ui/webui/brave_wallet/wallet_panel_ui.h"
-#else
-#include "brave/browser/brave_wallet/brave_wallet_provider_delegate_impl_android.h"
-#endif
-#endif
-
 #if BUILDFLAG(ENABLE_BRAVE_VPN) && !defined(OS_ANDROID)
 #include "brave/browser/ui/webui/brave_vpn/vpn_panel_ui.h"
 #include "brave/components/brave_vpn/brave_vpn.mojom.h"
@@ -177,8 +173,22 @@ using extensions::ChromeContentBrowserClientExtensionsPart;
 #endif
 
 #if !defined(OS_ANDROID)
+#include "brave/browser/brave_wallet/brave_wallet_provider_delegate_impl.h"
 #include "brave/browser/new_tab/new_tab_shows_navigation_throttle.h"
+#include "brave/browser/ui/webui/brave_wallet/wallet_page_ui.h"
+#include "brave/browser/ui/webui/brave_wallet/wallet_panel_ui.h"
+#if BUILDFLAG(ENABLE_BRAVE_NEWS)
+#include "brave/browser/ui/webui/new_tab_page/brave_new_tab_ui.h"
+#include "brave/components/brave_today/common/brave_news.mojom.h"
 #endif
+#endif
+
+#if defined(OS_ANDROID)
+#include "brave/browser/brave_ads/brave_ads_host_android.h"
+#include "brave/browser/brave_wallet/brave_wallet_provider_delegate_impl_android.h"
+#elif BUILDFLAG(ENABLE_EXTENSIONS)
+#include "brave/browser/brave_ads/brave_ads_host.h"
+#endif  // defined(OS_ANDROID)
 
 namespace {
 
@@ -197,39 +207,77 @@ bool HandleURLRewrite(GURL* url, content::BrowserContext* browser_context) {
   return false;
 }
 
+void BindCosmeticFiltersResourcesOnTaskRunner(
+    mojo::PendingReceiver<cosmetic_filters::mojom::CosmeticFiltersResources>
+        receiver) {
+  mojo::MakeSelfOwnedReceiver(
+      std::make_unique<cosmetic_filters::CosmeticFiltersResources>(
+          g_brave_browser_process->ad_block_service()),
+      std::move(receiver));
+}
+
+void BindBraveAdsHost(
+    content::RenderFrameHost* const frame_host,
+    mojo::PendingReceiver<brave_ads::mojom::BraveAdsHost> receiver) {
+#if defined(OS_ANDROID) || BUILDFLAG(ENABLE_EXTENSIONS)
+  auto* context = frame_host->GetBrowserContext();
+  auto* profile = Profile::FromBrowserContext(context);
+
+  mojo::MakeSelfOwnedReceiver(
+#if defined(OS_ANDROID)
+      std::make_unique<brave_ads::BraveAdsHostAndroid>(
+#elif BUILDFLAG(ENABLE_EXTENSIONS)
+      std::make_unique<brave_ads::BraveAdsHost>(
+#endif  // defined(OS_ANDROID)
+          profile),
+      std::move(receiver));
+#endif  // defined(OS_ANDROID) || BUILDFLAG(ENABLE_EXTENSIONS)
+}
+
 void BindCosmeticFiltersResources(
     content::RenderFrameHost* const frame_host,
     mojo::PendingReceiver<cosmetic_filters::mojom::CosmeticFiltersResources>
         receiver) {
-  auto* web_contents = content::WebContents::FromRenderFrameHost(frame_host);
-  if (!web_contents)
-    return;
-
-  auto* profile =
-      Profile::FromBrowserContext(web_contents->GetBrowserContext());
-  auto* settings_map = HostContentSettingsMapFactory::GetForProfile(profile);
-
-  mojo::MakeSelfOwnedReceiver(
-      std::make_unique<cosmetic_filters::CosmeticFiltersResources>(
-          settings_map, g_brave_browser_process->ad_block_service()),
-      std::move(receiver));
+  g_brave_browser_process->ad_block_service()->GetTaskRunner()->PostTask(
+      FROM_HERE, base::BindOnce(&BindCosmeticFiltersResourcesOnTaskRunner,
+                                std::move(receiver)));
 }
 
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
 void MaybeBindBraveWalletProvider(
     content::RenderFrameHost* const frame_host,
     mojo::PendingReceiver<brave_wallet::mojom::BraveWalletProvider> receiver) {
-  auto rpc_controller = brave_wallet::RpcControllerFactory::GetForContext(
-      frame_host->GetBrowserContext());
+  auto* rpc_controller =
+      brave_wallet::RpcControllerFactory::GetControllerForContext(
+          frame_host->GetBrowserContext());
 
   if (!rpc_controller)
+    return;
+
+  auto tx_controller = brave_wallet::EthTxControllerFactory::GetForContext(
+      frame_host->GetBrowserContext());
+  if (!tx_controller)
+    return;
+
+  auto* keyring_controller =
+      brave_wallet::KeyringControllerFactory::GetControllerForContext(
+          frame_host->GetBrowserContext());
+  if (!keyring_controller)
+    return;
+
+  auto* brave_wallet_service =
+      brave_wallet::BraveWalletServiceFactory::GetServiceForContext(
+          frame_host->GetBrowserContext());
+  if (!brave_wallet_service)
     return;
 
   content::WebContents* web_contents =
       content::WebContents::FromRenderFrameHost(frame_host);
   mojo::MakeSelfOwnedReceiver(
       std::make_unique<brave_wallet::BraveWalletProviderImpl>(
-          std::move(rpc_controller),
+          HostContentSettingsMapFactory::GetForProfile(
+              Profile::FromBrowserContext(frame_host->GetBrowserContext())),
+          rpc_controller, std::move(tx_controller), keyring_controller,
+          brave_wallet_service,
 #if defined(OS_ANDROID)
           std::make_unique<
               brave_wallet::BraveWalletProviderDelegateImplAndroid>(
@@ -240,7 +288,6 @@ void MaybeBindBraveWalletProvider(
           user_prefs::UserPrefs::Get(web_contents->GetBrowserContext())),
       std::move(receiver));
 }
-#endif
 
 void BindBraveSearchFallbackHost(
     int process_id,
@@ -382,8 +429,15 @@ void BraveContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
     map->Add<brave_search::mojom::BraveSearchDefault>(
         base::BindRepeating(&BindBraveSearchDefaultHost));
   }
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
-  if (brave_wallet::IsNativeWalletEnabled()) {
+
+  if (brave_ads::features::IsRequestAdsEnabledApiEnabled()) {
+    map->Add<brave_ads::mojom::BraveAdsHost>(
+        base::BindRepeating(&BindBraveAdsHost));
+  }
+
+  if (brave_wallet::IsNativeWalletEnabled() &&
+      brave_wallet::IsAllowedForContext(
+          render_frame_host->GetBrowserContext())) {
     map->Add<brave_wallet::mojom::BraveWalletProvider>(
         base::BindRepeating(&MaybeBindBraveWalletProvider));
   }
@@ -393,12 +447,17 @@ void BraveContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
   chrome::internal::RegisterWebUIControllerInterfaceBinder<
       brave_wallet::mojom::PageHandlerFactory, WalletPageUI>(map);
 #endif
-#endif
 #if BUILDFLAG(ENABLE_BRAVE_VPN) && !defined(OS_ANDROID)
   if (brave_vpn::IsBraveVPNEnabled()) {
     chrome::internal::RegisterWebUIControllerInterfaceBinder<
         brave_vpn::mojom::PanelHandlerFactory, VPNPanelUI>(map);
   }
+#endif
+
+// Brave News
+#if BUILDFLAG(ENABLE_BRAVE_NEWS) && !defined(OS_ANDROID)
+  chrome::internal::RegisterWebUIControllerInterfaceBinder<
+      brave_news::mojom::BraveNewsController, BraveNewTabUI>(map);
 #endif
 }
 
@@ -409,6 +468,7 @@ bool BraveContentBrowserClient::HandleExternalProtocol(
     int frame_tree_node_id,
     content::NavigationUIData* navigation_data,
     bool is_main_frame,
+    network::mojom::WebSandboxFlags sandbox_flags,
     ui::PageTransition page_transition,
     bool has_user_gesture,
     const absl::optional<url::Origin>& initiating_origin,
@@ -453,8 +513,8 @@ bool BraveContentBrowserClient::HandleExternalProtocol(
 
   return ChromeContentBrowserClient::HandleExternalProtocol(
       url, web_contents_getter, child_id, frame_tree_node_id, navigation_data,
-      is_main_frame, page_transition, has_user_gesture, initiating_origin,
-      out_factory);
+      is_main_frame, sandbox_flags, page_transition, has_user_gesture,
+      initiating_origin, out_factory);
 }
 
 void BraveContentBrowserClient::AppendExtraCommandLineSwitches(
@@ -489,6 +549,13 @@ void BraveContentBrowserClient::AppendExtraCommandLineSwitches(
     }
     command_line->AppendSwitchASCII("brave_session_token",
                                     base::NumberToString(session_token));
+
+    // Switches to pass to render processes.
+    static const char* const kSwitchNames[] = {
+        translate::switches::kBraveTranslateUseGoogleEndpoint,
+    };
+    command_line->CopySwitchesFrom(browser_command_line, kSwitchNames,
+                                   base::size(kSwitchNames));
   }
 }
 
@@ -664,17 +731,23 @@ bool BraveContentBrowserClient::HandleURLOverrideRewrite(
   }
 
 #if BUILDFLAG(ETHEREUM_REMOTE_CLIENT_ENABLED) && BUILDFLAG(ENABLE_EXTENSIONS)
-  // If the Crypto Wallets extension is loaded, then it replaces the WebUI
-  auto* service =
-      EthereumRemoteClientServiceFactory::GetForContext(browser_context);
-  if (service->IsCryptoWalletsReady() &&
-      url->SchemeIs(content::kChromeUIScheme) &&
-      url->host() == ethereum_remote_client_host) {
-    auto* registry = extensions::ExtensionRegistry::Get(browser_context);
-    if (registry->ready_extensions().GetByID(
-            ethereum_remote_client_extension_id)) {
-      *url = GURL(ethereum_remote_client_base_url);
-      return true;
+  auto* prefs = user_prefs::UserPrefs::Get(browser_context);
+  brave_wallet::mojom::DefaultWallet default_wallet =
+      brave_wallet::GetDefaultWallet(prefs);
+  if (!brave_wallet::IsNativeWalletEnabled() ||
+      default_wallet == brave_wallet::mojom::DefaultWallet::CryptoWallets) {
+    // If the Crypto Wallets extension is loaded, then it replaces the WebUI
+    auto* service =
+        EthereumRemoteClientServiceFactory::GetForContext(browser_context);
+    if (service->IsCryptoWalletsReady() &&
+        url->SchemeIs(content::kChromeUIScheme) &&
+        url->host() == ethereum_remote_client_host) {
+      auto* registry = extensions::ExtensionRegistry::Get(browser_context);
+      if (registry->ready_extensions().GetByID(
+              ethereum_remote_client_extension_id)) {
+        *url = GURL(ethereum_remote_client_base_url);
+        return true;
+      }
     }
   }
 #endif

@@ -10,6 +10,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
+#include "brave/components/brave_wallet/common/hex_utils.h"
 
 namespace brave_wallet {
 
@@ -33,7 +34,7 @@ bool EthAddress::operator!=(const EthAddress& other) const {
 // static
 EthAddress EthAddress::FromPublicKey(const std::vector<uint8_t>& public_key) {
   if (public_key.size() != 64) {
-    LOG(ERROR) << __func__ << ": public key size should be 64 bytes";
+    VLOG(1) << __func__ << ": public key size should be 64 bytes";
     return EthAddress();
   }
 
@@ -47,21 +48,29 @@ EthAddress EthAddress::FromPublicKey(const std::vector<uint8_t>& public_key) {
 
 // static
 EthAddress EthAddress::FromHex(const std::string& input) {
-  if (!IsValidHexString(input)) {
-    LOG(ERROR) << __func__ << ": input is not a valid hex representation";
+  if (!IsValidAddress(input))
     return EthAddress();
-  }
+
   std::vector<uint8_t> bytes;
   if (!base::HexStringToBytes(input.data() + 2, &bytes)) {
-    LOG(ERROR) << __func__ << ": base::HexStringToBytes failed";
-    return EthAddress();
-  }
-  if (bytes.size() != ADDRESS_LEN) {
-    LOG(ERROR) << __func__ << ": input should be 20 bytes long";
+    VLOG(1) << __func__ << ": base::HexStringToBytes failed";
     return EthAddress();
   }
 
   return EthAddress(bytes);
+}
+
+// static
+bool EthAddress::IsValidAddress(const std::string& input) {
+  if (!IsValidHexString(input)) {
+    VLOG(1) << __func__ << ": input is not a valid hex representation";
+    return false;
+  }
+  if (input.size() - 2 != ADDRESS_LEN * 2) {
+    VLOG(1) << __func__ << ": input should be 20 bytes long";
+    return false;
+  }
+  return true;
 }
 
 std::string EthAddress::ToHex() const {
@@ -69,11 +78,16 @@ std::string EthAddress::ToHex() const {
   return ::brave_wallet::ToHex(input);
 }
 
-std::string EthAddress::ToChecksumAddress(uint8_t eip1191_chaincode) const {
+std::string EthAddress::ToChecksumAddress(uint256_t eip1191_chaincode) const {
   std::string result = "0x";
   std::string input;
-  if (eip1191_chaincode && eip1191_chaincode != 1) {
-    input += base::NumberToString(eip1191_chaincode) + "0x";
+
+  if (eip1191_chaincode == static_cast<uint256_t>(30) ||
+      eip1191_chaincode == static_cast<uint256_t>(31)) {
+    // TODO(jocelyn): We will need to revise this if there are supported chains
+    // with ID larger than uint64_t.
+    input +=
+        base::NumberToString(static_cast<uint64_t>(eip1191_chaincode)) + "0x";
   }
 
   input += std::string(ToHex().data() + 2);

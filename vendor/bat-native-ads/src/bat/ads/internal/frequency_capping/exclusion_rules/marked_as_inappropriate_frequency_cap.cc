@@ -17,12 +17,17 @@ MarkedAsInappropriateFrequencyCap::MarkedAsInappropriateFrequencyCap() =
 MarkedAsInappropriateFrequencyCap::~MarkedAsInappropriateFrequencyCap() =
     default;
 
+std::string MarkedAsInappropriateFrequencyCap::GetUuid(
+    const CreativeAdInfo& creative_ad) const {
+  return creative_ad.creative_set_id;
+}
+
 bool MarkedAsInappropriateFrequencyCap::ShouldExclude(
-    const CreativeAdInfo& ad) {
-  if (!DoesRespectCap(ad)) {
+    const CreativeAdInfo& creative_ad) {
+  if (!DoesRespectCap(creative_ad)) {
     last_message_ = base::StringPrintf(
         "creativeSetId %s excluded due to being marked as inappropriate",
-        ad.creative_set_id.c_str());
+        creative_ad.creative_set_id.c_str());
 
     return true;
   }
@@ -30,22 +35,22 @@ bool MarkedAsInappropriateFrequencyCap::ShouldExclude(
   return false;
 }
 
-std::string MarkedAsInappropriateFrequencyCap::get_last_message() const {
+std::string MarkedAsInappropriateFrequencyCap::GetLastMessage() const {
   return last_message_;
 }
 
 bool MarkedAsInappropriateFrequencyCap::DoesRespectCap(
-    const CreativeAdInfo& ad) {
-  const FlaggedAdList flagged_ads = Client::Get()->get_flagged_ads();
+    const CreativeAdInfo& creative_ad) {
+  const FlaggedAdList flagged_ads = Client::Get()->GetFlaggedAds();
   if (flagged_ads.empty()) {
     return true;
   }
 
-  const auto iter =
-      std::find_if(flagged_ads.begin(), flagged_ads.end(),
-                   [&ad](const FlaggedAdInfo& flagged_ad) {
-                     return flagged_ad.creative_set_id == ad.creative_set_id;
-                   });
+  const auto iter = std::find_if(
+      flagged_ads.cbegin(), flagged_ads.cend(),
+      [&creative_ad](const FlaggedAdInfo& flagged_ad) {
+        return flagged_ad.creative_set_id == creative_ad.creative_set_id;
+      });
 
   if (iter == flagged_ads.end()) {
     return true;

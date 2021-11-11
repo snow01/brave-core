@@ -25,18 +25,18 @@
 #include "brave/components/brave_search/common/brave_search_utils.h"
 #include "brave/components/brave_shields/common/pref_names.h"
 #include "brave/components/brave_sync/brave_sync_prefs.h"
+#include "brave/components/brave_today/buildflags/buildflags.h"
 #include "brave/components/brave_vpn/buildflags/buildflags.h"
-#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
+#include "brave/components/brave_wallet/browser/brave_wallet_prefs.h"
 #include "brave/components/brave_wayback_machine/buildflags.h"
 #include "brave/components/brave_webtorrent/browser/buildflags/buildflags.h"
 #include "brave/components/crypto_dot_com/browser/buildflags/buildflags.h"
 #include "brave/components/ftx/browser/buildflags/buildflags.h"
 #include "brave/components/gemini/browser/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
-#include "brave/components/l10n/browser/locale_helper.h"
-#include "brave/components/l10n/common/locale_util.h"
 #include "brave/components/search_engines/brave_prepopulated_engines.h"
 #include "brave/components/sidebar/buildflags/buildflags.h"
+#include "brave/components/skus/browser/skus_sdk_impl.h"
 #include "brave/components/speedreader/buildflags.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "chrome/browser/net/prediction_options.h"
@@ -49,6 +49,7 @@
 #include "components/gcm_driver/gcm_buildflags.h"
 #include "components/password_manager/core/common/password_manager_pref_names.h"
 #include "components/pref_registry/pref_registry_syncable.h"
+#include "components/privacy_sandbox/privacy_sandbox_prefs.h"
 #include "components/safe_browsing/core/common/safe_browsing_prefs.h"
 #include "components/search_engines/search_engines_pref_names.h"
 #include "components/signin/public/base/signin_pref_names.h"
@@ -70,11 +71,6 @@
 
 #if BUILDFLAG(ENABLE_BRAVE_WAYBACK_MACHINE)
 #include "brave/components/brave_wayback_machine/pref_names.h"
-#endif
-
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
-#include "brave/components/brave_wallet/browser/eth_json_rpc_controller.h"
-#include "brave/components/brave_wallet/browser/keyring_controller.h"
 #endif
 
 #if BUILDFLAG(ETHEREUM_REMOTE_CLIENT_ENABLED)
@@ -130,6 +126,14 @@
 using extensions::FeatureSwitch;
 #endif
 
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+#include "brave/components/brave_vpn/pref_names.h"
+#endif
+
+#if BUILDFLAG(ENABLE_BRAVE_NEWS)
+#include "brave/components/brave_today/browser/brave_news_controller.h"
+#endif
+
 namespace brave {
 
 void RegisterProfilePrefsForMigration(
@@ -143,9 +147,7 @@ void RegisterProfilePrefsForMigration(
   new_tab_page::RegisterNewTabPagePrefsForMigration(registry);
 #endif
 
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
-  brave_wallet::KeyringController::RegisterProfilePrefsForMigration(registry);
-#endif
+  brave_wallet::RegisterProfilePrefsForMigration(registry);
 
   // Restore "Other Bookmarks" migration
   registry->RegisterBooleanPref(kOtherBookmarksMigrated, false);
@@ -174,9 +176,16 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
 
   brave_sync::Prefs::RegisterProfilePrefs(registry);
 
-#if BUILDFLAG(ENABLE_BRAVE_VPN)
-  registry->RegisterBooleanPref(kBraveVPNShowButton, true);
+#if BUILDFLAG(ENABLE_BRAVE_VPN) && !defined(OS_ANDROID)
+  brave_vpn::prefs::RegisterProfilePrefs(registry);
 #endif
+
+#if BUILDFLAG(ENABLE_BRAVE_NEWS)
+  brave_news::BraveNewsController::RegisterProfilePrefs(registry);
+#endif
+
+  // SKU SDK (can be used on account.brave.com)
+  brave_rewards::SkusSdkImpl::RegisterProfilePrefs(registry);
 
   // TODO(shong): Migrate this to local state also and guard in ENABLE_WIDEVINE.
   // We don't need to display "don't ask widevine prompt option" in settings
@@ -237,7 +246,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->SetDefaultPrefValue(feed::prefs::kArticlesListVisible,
                                 base::Value(false));
   // Translate is not available on Android
-  registry->SetDefaultPrefValue(prefs::kOfferTranslateEnabled,
+  registry->SetDefaultPrefValue(translate::prefs::kOfferTranslateEnabled,
                                 base::Value(false));
   // Explicitly disable safe browsing extended reporting by default in case they
   // change it in upstream.
@@ -284,6 +293,14 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   // Disable default webstore icons in topsites or apps.
   registry->SetDefaultPrefValue(prefs::kHideWebStoreIcon, base::Value(true));
 
+  // Disable Chromium's privacy sandbox
+  registry->SetDefaultPrefValue(prefs::kPrivacySandboxApisEnabled,
+                                base::Value(false));
+
+  // Disable Chromium's privacy sandbox
+  registry->SetDefaultPrefValue(prefs::kPrivacySandboxFlocEnabled,
+                                base::Value(false));
+
   // Importer: selected data types
   registry->RegisterBooleanPref(kImportDialogExtensions, true);
   registry->RegisterBooleanPref(kImportDialogPayments, true);
@@ -295,18 +312,6 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterBooleanPref(kNewTabPageShowClock, true);
   registry->RegisterStringPref(kNewTabPageClockFormat, "");
   registry->RegisterBooleanPref(kNewTabPageShowStats, true);
-
-  // Only default brave today to enabled for
-  // english-language on browser startup.
-  const std::string locale =
-      brave_l10n::LocaleHelper::GetInstance()->GetLocale();
-  const std::string language_code = brave_l10n::GetLanguageCode(locale);
-  const bool is_english_language = language_code == "en";
-  const bool is_japanese_language = language_code == "ja";
-  const bool brave_today_enabled_default = is_english_language ||
-      is_japanese_language;
-  registry->RegisterBooleanPref(kNewTabPageShowToday,
-      brave_today_enabled_default);
   registry->RegisterBooleanPref(kNewTabPageShowRewards, true);
   registry->RegisterBooleanPref(kNewTabPageShowBinance, true);
   registry->RegisterBooleanPref(kNewTabPageShowBraveTalk, false);
@@ -317,27 +322,15 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
       kNewTabPageShowsOptions,
       static_cast<int>(NewTabPageShowsOptions::kDashboard));
 
-  // Brave Today
-  registry->RegisterDictionaryPref(kBraveTodaySources);
-  registry->RegisterBooleanPref(kBraveTodayOptedIn, false);
-  registry->RegisterListPref(kBraveTodayWeeklySessionCount);
-  registry->RegisterListPref(kBraveTodayWeeklyCardViewsCount);
-  registry->RegisterListPref(kBraveTodayWeeklyCardVisitsCount);
-  registry->RegisterListPref(kBraveTodayWeeklyDisplayAdViewedCount);
-
 #if BUILDFLAG(ETHEREUM_REMOTE_CLIENT_ENABLED)
   registry->RegisterIntegerPref(kERCPrefVersion, 0);
   registry->RegisterStringPref(kERCAES256GCMSivNonce, "");
   registry->RegisterStringPref(kERCEncryptedSeed, "");
-  registry->RegisterBooleanPref(kERCLoadCryptoWalletsOnStartup, false);
   registry->RegisterBooleanPref(kERCOptedIntoCryptoWallets, false);
 #endif
 
   // Brave Wallet
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
-  brave_wallet::KeyringController::RegisterProfilePrefs(registry);
-  brave_wallet::EthJsonRpcController::RegisterProfilePrefs(registry);
-#endif
+  brave_wallet::RegisterProfilePrefs(registry);
 
   // Brave Search
   if (brave_search::IsDefaultAPIEnabled()) {
@@ -372,6 +365,13 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterIntegerPref(
       prefs::kBraveDefaultSearchVersion,
       TemplateURLPrepopulateData::kBraveCurrentDataVersion);
+
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+  // Web discovery extension, default false
+  registry->RegisterBooleanPref(kWebDiscoveryEnabled, false);
+  registry->RegisterBooleanPref(kDontAskEnableWebDiscovery, false);
+  registry->RegisterIntegerPref(kBraveSearchVisitCount, 0);
+#endif
 
 #if BUILDFLAG(ENABLE_SPEEDREADER)
   speedreader::SpeedreaderService::RegisterProfilePrefs(registry);
@@ -410,6 +410,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
 #endif
 
   registry->SetDefaultPrefValue(prefs::kEnableMediaRouter, base::Value(false));
+
+  registry->RegisterBooleanPref(kEnableMediaRouterOnRestart, false);
 
   RegisterProfilePrefsForMigration(registry);
 }

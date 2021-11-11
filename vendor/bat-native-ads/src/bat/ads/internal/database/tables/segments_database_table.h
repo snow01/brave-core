@@ -8,8 +8,8 @@
 
 #include <string>
 
-#include "bat/ads/ads_client.h"
-#include "bat/ads/internal/bundle/creative_ad_info.h"
+#include "bat/ads/ads_client_aliases.h"
+#include "bat/ads/internal/bundle/creative_ad_info_aliases.h"
 #include "bat/ads/internal/database/database_table.h"
 #include "bat/ads/public/interfaces/ads.mojom.h"
 
@@ -18,10 +18,9 @@ namespace ads {
 namespace database {
 namespace table {
 
-class Segments : public Table {
+class Segments final : public Table {
  public:
   Segments();
-
   ~Segments() override;
 
   void InsertOrUpdate(mojom::DBTransaction* transaction,
@@ -29,19 +28,15 @@ class Segments : public Table {
 
   void Delete(ResultCallback callback);
 
-  std::string get_table_name() const override;
+  std::string GetTableName() const override;
 
   void Migrate(mojom::DBTransaction* transaction,
                const int to_version) override;
 
  private:
-  int BindParameters(mojom::DBCommand* command,
-                     const CreativeAdList& creative_ads);
-
   std::string BuildInsertOrUpdateQuery(mojom::DBCommand* command,
                                        const CreativeAdList& creative_ads);
 
-  void CreateTableV16(mojom::DBTransaction* transaction);
   void MigrateToV16(mojom::DBTransaction* transaction);
 };
 

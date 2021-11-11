@@ -9,7 +9,9 @@
 
 #include "base/check.h"
 #include "base/strings/string_number_conversions.h"
+#include "base/values.h"
 #include "bat/ads/internal/logging.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/re2/src/re2/re2.h"
 
 namespace ads {
@@ -113,7 +115,7 @@ bool CatalogIssuersInfo::PublicKeyExists(const std::string& public_key) const {
   }
 
   const auto iter =
-      std::find_if(issuers.begin(), issuers.end(),
+      std::find_if(issuers.cbegin(), issuers.cend(),
                    [&public_key](const CatalogIssuerInfo& issuer) {
                      return issuer.public_key == public_key;
                    });
@@ -127,7 +129,7 @@ bool CatalogIssuersInfo::PublicKeyExists(const std::string& public_key) const {
 
 absl::optional<double> CatalogIssuersInfo::GetEstimatedRedemptionValue(
     const std::string& public_key) const {
-  const auto iter = std::find_if(issuers.begin(), issuers.end(),
+  const auto iter = std::find_if(issuers.cbegin(), issuers.cend(),
                                  [&public_key](const auto& issuer) {
                                    return issuer.public_key == public_key;
                                  });

@@ -22,6 +22,11 @@ NPM_EXCLUDE_PATHS = [
     os.path.join('vendor', 'brave-extension', 'node_modules'),
 ]
 
+# Tag @sec-team before adding any advisory to this list
+# Ignore these rust advisories
+IGNORED_CARGO_ADVISORIES = [
+]
+
 # Use only these (sub)paths for cargo audit.
 CARGO_INCLUDE_PATHS = [
     os.path.join('build', 'rust'),
@@ -29,9 +34,17 @@ CARGO_INCLUDE_PATHS = [
 
 # Ping security team before adding to ignored_npm_advisories
 ignored_npm_advisories = [
-    1700,   # high RxDoS vector, we don't use MDX in storybook
-    1747,    # moderate RxDoS vector, not fixed in @storybook/addon-essentials
-    1751     # moderate RxDoS vector, not fixed in webpack 4
+    # These are issues in dev depencies, no updates are available yet
+    # To-Do (@jumde) - Remove when https://github.com/brave/brave-browser/issues/18662 is fixed
+    1002401,    # https://github.com/advisories/GHSA-93q8-gq69-wqmw
+    1002422,    # https://github.com/advisories/GHSA-hqhp-5p83-hx96
+    1002475,    # https://github.com/advisories/GHSA-4jqc-8m5r-9rpr
+    1002487,    # https://github.com/advisories/GHSA-c36v-fmgq-m8hx
+    1002492,    # https://github.com/advisories/GHSA-33f9-j839-rf8h
+    1002522,    # https://github.com/advisories/GHSA-whgm-jr23-g3j9
+    1002627,    # https://github.com/advisories/GHSA-ww39-953v-wcq6
+    1002655,    # https://github.com/advisories/GHSA-w8qv-6jwh-64r5
+    1002775     # https://github.com/advisories/GHSA-w5p7-h5w8-2hfq
 ]
 
 
@@ -62,16 +75,16 @@ def audit_path(path, args):
     if os.path.isfile(os.path.join(path, 'package.json')) and \
        os.path.isfile(os.path.join(path, 'package-lock.json')) and \
        os.path.isdir(os.path.join(path, 'node_modules')) and \
-       not any(full_path.startswith(os.path.join(args.source_root, p, "")) \
+       not any(full_path.startswith(os.path.join(args.source_root, p, ""))
                for p in NPM_EXCLUDE_PATHS):
-        print('Auditing (npm) %s' % path)
+        print(f'Auditing (npm) {path}')
         return npm_audit_deps(path, args)
 
     if os.path.isfile(os.path.join(path, 'Cargo.toml')) and \
-         os.path.isfile(os.path.join(path, 'Cargo.lock')) and \
-         any(full_path.startswith(os.path.join(args.source_root, p, "")) \
-             for p in CARGO_INCLUDE_PATHS):
-        print('Auditing (cargo) %s' % path)
+        os.path.isfile(os.path.join(path, 'Cargo.lock')) and \
+        any(full_path.startswith(os.path.join(args.source_root, p, ""))
+            for p in CARGO_INCLUDE_PATHS):
+        print(f'Auditing (cargo) {path}')
         return cargo_audit_deps(path, args)
 
     return 0
@@ -89,7 +102,8 @@ def npm_audit_deps(path, args):
     if not args.audit_dev_deps:
         npm_args.append('--production')
         print('WARNING: Ignoring npm devDependencies')
-    audit_process = subprocess.Popen(npm_args, stdout=subprocess.PIPE, cwd=path)
+    audit_process = subprocess.Popen(
+        npm_args, stdout=subprocess.PIPE, cwd=path)
     output, _ = audit_process.communicate()
 
     try:
@@ -103,7 +117,8 @@ def npm_audit_deps(path, args):
         return 1
 
     if len(ignored_npm_advisories) > 0:
-        print('Ignoring NPM advisories ' + ','.join(map(str, ignored_npm_advisories)))
+        print('Ignoring NPM advisories ' +
+              ','.join(map(str, ignored_npm_advisories)))
 
     resolutions = extract_resolutions(result)
 
@@ -144,6 +159,9 @@ def cargo_audit_deps(path, args):
     cargo_args.append("audit")
     cargo_args.append("--file")
     cargo_args.append(os.path.join(path, "Cargo.lock"))
+    for advisory in IGNORED_CARGO_ADVISORIES:
+        cargo_args.append("--ignore")
+        cargo_args.append(advisory)
 
     return subprocess.call(cargo_args, env=env)
 

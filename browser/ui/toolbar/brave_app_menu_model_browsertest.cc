@@ -12,7 +12,6 @@
 #include "brave/browser/ui/brave_browser_command_controller.h"
 #include "brave/browser/ui/browser_commands.h"
 #include "brave/components/brave_vpn/buildflags/buildflags.h"
-#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/chrome_notification_types.h"
@@ -46,12 +45,14 @@ class BraveAppMenuBrowserTest : public InProcessBrowserTest {
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
   void SetPurchasedUserForBraveVPN(Browser* browser, bool purchased) {
     auto* service = BraveVpnServiceFactory::GetForProfile(browser->profile());
-    service->set_is_purchased_user_for_test(purchased);
-    // TODO(simonhong): Delete this explicit update call.
-    // This should be called implicitely whenever purchased state is changed.
+    auto target_state =
+        purchased ? PurchasedState::PURCHASED : PurchasedState::NOT_PURCHASED;
+    service->SetPurchasedState(target_state);
+    // Call explicitely to update vpn commands status because mojo works in
+    // async way.
     static_cast<chrome::BraveBrowserCommandController*>(
         browser->command_controller())
-        ->UpdateCommandForBraveVPN();
+        ->OnPurchasedStateChanged(target_state);
   }
 
   base::test::ScopedFeatureList scoped_feature_list_;
@@ -101,9 +102,7 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
     IDC_RECENT_TABS_MENU,
     IDC_BOOKMARKS_MENU,
     IDC_SHOW_DOWNLOADS,
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
     IDC_SHOW_BRAVE_WALLET,
-#endif
     IDC_MANAGE_EXTENSIONS,
     IDC_SHOW_BRAVE_SYNC,
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
@@ -141,9 +140,7 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
     IDC_SHOW_BRAVE_REWARDS,
     IDC_BOOKMARKS_MENU,
     IDC_SHOW_DOWNLOADS,
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
     IDC_SHOW_BRAVE_WALLET,
-#endif
     IDC_MANAGE_EXTENSIONS,
     IDC_SHOW_BRAVE_SYNC,
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
@@ -198,9 +195,7 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
     IDC_SHOW_BRAVE_REWARDS,
     IDC_RECENT_TABS_MENU,
     IDC_BOOKMARKS_MENU,
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
     IDC_SHOW_BRAVE_WALLET,
-#endif
     IDC_MANAGE_EXTENSIONS,
     IDC_ADD_NEW_PROFILE,
     IDC_OPEN_GUEST_PROFILE,
@@ -224,9 +219,7 @@ IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
     IDC_SHOW_BRAVE_REWARDS,
     IDC_BOOKMARKS_MENU,
     IDC_SHOW_DOWNLOADS,
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
     IDC_SHOW_BRAVE_WALLET,
-#endif
     IDC_SHOW_BRAVE_SYNC,
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
     IDC_SHOW_BRAVE_VPN_PANEL,

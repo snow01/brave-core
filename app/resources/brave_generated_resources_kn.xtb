@@ -187,13 +187,11 @@
 <translation id="8488282162676695335">Brave ವ್ಯಾಲೆಟ್</translation>
 <translation id="2356070529366658676">ಕೇಳಿ</translation>
 <translation id="7701040980221191251">ಯಾವುದೂ ಇಲ್ಲ</translation>
-<translation id="5655621391922317800">Crypto ವ್ಯಾಲೆಟ್‌ಗಳು</translation>
-<translation id="1696548911367097044">ಡೆಪ್ರೆಕೇಟೆಡ್ ಕ್ರಿಪ್ಟೋ ವ್ಯಾಲೆಟ್ ಎಕ್ಸ್‌ಟೆನ್ಶನ್</translation>
-<translation id="1085027414516521238">MetaMask</translation>
-<translation id="7090046810227878892">Dapps ಬಳಸಲು ಎಥೆರಿಯಮ್ ಒದಗಿಸುವವರು</translation>
-<translation id="5913089932885076110">ಪ್ರಾರಂಭದಲ್ಲಿ Crypto ವ್ಯಾಲೆಟ್‌ಗಳನ್ನು ಲೋಡ್ ಮಾಡಿ</translation>
-<translation id="757886143331967039">ಪ್ರಾರಂಭದಲ್ಲಿಯೇ ಡೆಪ್ರೆಕೇಟೆಡ್ ಕ್ರಿಪ್ಟೋ ವ್ಯಾಲೆಟ್ ಎಕ್ಸ್‌ಟೆನ್ಶನ್ ಲೋಡ್ ಮಾಡಿ</translation>
+<translation id="1274962333945373242">ಡೆಪ್ರೆಕೇಟೆಡ್ ಕ್ರಿಪ್ಟೋ ವ್ಯಾಲೆಟ್ ಎಕ್ಸ್‌ಟೆನ್ಶನ್</translation>
+<translation id="9131889008937672866">ಡೀಫಾಲ್ಟ್ ಕ್ರಿಪ್ಟೋಕರೆನ್ಸಿ ವ್ಯಾಲೆಟ್</translation>
 <translation id="1834467296210148203">ಟೂಲ್‌ಬಾರ್‌ನಲ್ಲಿ Brave ವ್ಯಾಲೆಟ್ ತೋರಿಸಿ</translation>
+<translation id="8239147115686034860">ಸ್ವಯಂಚಾಲಿತವಾಗಿ Brave ವ್ಯಾಲೆಟ್ ಲಾಕ್ ಮಾಡಿ</translation>
+<translation id="414639769490080648">Brave ವ್ಯಾಲೆಟ್ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಲಾಕ್ ಆಗುವ ತನಕ ಕಾಯಬೇಕಾದ ನಿಮಿಷಗಳ ಸಂಖ್ಯೆ</translation>
 <translation id="6864914031231797928">ವಿಸ್ತರಣೆಗಳಿಗಾಗಿ Google ಲಾಗಿನ್ ಅನುಮತಿಸಿ</translation>
 <translation id="5927916530277631319">ನಿಲ್ಲಿಸಲು ಸಾಧ್ಯವಾಗದ ಡೊಮೇನ್‍ಗಳನ್ನು ಪರಿಹರಿಸಲು ಇರುವ ವಿಧಾನಗಳು</translation>
 <translation id="5248318250177143470">ಈಥೇರೆಯಮ್ ನೇಮ್ ಸರ್ವೀಸ್ (ENS) ಪರಿಹರಿಸಲು ವಿಧಾನ</translation>
@@ -209,7 +207,6 @@
 <translation id="6476061084931271248">ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಲು ನೋಡ್ ಮರುಪ್ರಾರಂಭಿಸಿ</translation>
 <translation id="3754226427671882382">ನೋಡ್ ಮರುಪ್ರಾರಂಭಿಸಿ</translation>
 <translation id="949667118776341807">ತಿರುಗಿಸಿ</translation>
-<translation id="635013291822406289">/ip4/46.21.210.45/tcp/14406/quic/p2p/12D3KooWBdmLJjhpgJ9KZgLM3f894ff9xyBfPvPjFNn7MKJpyrC2</translation>
 <translation id="724513921936768901">ಸ್ಪೀಡ್‌ರೀಡರ್‌ನಲ್ಲಿಈ ಹೆಸರು</translation>
 <translation id="6758961763875471084">ಪೀರ್ ಪಟ್ಟಿ ಮಾರ್ಪಡಿಸಿ</translation>
 <translation id="1295874070797049002">ರಫ್ತು ಕೀ</translation>
@@ -233,6 +230,7 @@
 <translation id="1251574393468476924">ಗರಿಷ್ಠ IPFS ಕ್ಯಾಶೆ ಗಾತ್ರ (GB)</translation>
 <translation id="2503497578400410320">IPFS ರೆಪೊಸೆಟರಿ ಡೇಟಾಸ್ಟೋರ್‌ನ ಗಾತ್ರಕ್ಕಾಗಿ ಒಂದು ಸೂಕ್ತ ಮಿತಿ.</translation>
 <translation id="7703184801853248830">ಅಮಾನ್ಯ ಗೇಟ್‌ವೇ ವಿಳಾಸ</translation>
+<translation id="7690058578502751948">ಮೂಲ ಐಸೋಲೇಶನ್ ಸಕ್ರಿಯಗೊಳಿಸಿದ ಮಾನ್ಯ IPFS ಗೇಟ್‌ವೇ ಅನ್ನು ಮಾತ್ರ Brave ನಲ್ಲಿ ಬಳಸಬಹುದು</translation>
 <translation id="585868419599255817">IPFS ಸಾರ್ವಜನಿಕ ಗೇಟ್‌ವೇ ಫಾಲ್‌ಬ್ಯಾಕ್</translation>
 <translation id="207763736230883589">ನಿಮ್ಮ ಸ್ಥಳೀಯ ನೋಡ್ ಅನ್ನು ತಲುಪಲು ಸಾಧ್ಯವಾಗದೇ ಇದ್ದರೆ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸಾರ್ವಜನಿಕ IPFS ಗೇಟ್‌ವೇ‌ಗೆ ಫಾಲ್‌ ಬ್ಯಾಕ್ ಮಾಡಿ.</translation>
 <translation id="4107552920076294723">ಕಾನ್ಫಿಗರ್ ಮಾಡಲಾದ IPFS ಗೇಟ್‌ವೇಗೆ IPFS ಸಂಪನ್ಮೂಲಗಳನ್ನು ಮರುನಿರ್ದೇಶಿಸಿ</translation>
@@ -240,6 +238,7 @@
 <translation id="8655170717758778983">ಸಾಧ್ಯವಿರುವಾಗ, DNS ಲಿಂಕ್ ಮೂಲಕ IPFS ಪುಟಗಳಿಗೆ ಸ್ವಯಂಚಾಲಿತ ಮರುನಿರ್ದೇಶನ</translation>
 <translation id="2233724520223030977">ಸಾಧ್ಯವಿರುವಾಗ, DNSLink ಲಿಂಕ್ ಮೂಲಕ IPFS ಪುಟಗಳಿಗೆ ಸ್ವಯಂಚಾಲಿತ ಮರುನಿರ್ದೇಶನ</translation>
 <translation id="6554397389149987360">ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಪರದೆ ಹಂಚಿಕೆ ಮತ್ತು ಇತರ ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು Hangouts ಅಂಶವನ್ನು ಬಳಸುತ್ತದೆ.</translation>
+<translation id="7878791177459550035">ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಕಾಸ್ಟ್ ಫೀಚರ್ ಅನ್ನು ಮೀಡಿಯಾ ರೂಟರ್ ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ.</translation>
 <translation id="9156965752763025780">ನೀವು ಮುಂದಿನ ಬಾರಿ Brave ಅನ್ನು ಮರುಪ್ರಾರಂಭಿಸಿದಾಗ ನಿಮ್ಮ ಬದಲಾವಣೆಗಳು ಕಾರ್ಯಗತಗೊಳ್ಳುತ್ತವೆ.</translation>
 <translation id="7179921470347911571">ಇದೀಗ ಮರುಆರಂಭಿಸಿ</translation>
 <translation id="8068526464562249859">ನಿಮ್ಮ ಬ್ರೌಸರ್ ಬಾರ್‌ನಿಂದ ಸಾಮಾನ್ಯ IPFS ಕಾರ್ಯಗಳಿಗೆ ಪ್ರವೇಶವನ್ನು ಒಳಗೊಂಡು, Brave ನಲ್ಲಿ ವರ್ಧಿತ IPFS ಬೆಂಬಲಕ್ಕಾಗಿ IPFS ಕಂಪಾನಿಯನ್ ವಿಸ್ತರಣೆಯನ್ನು ಬಳಸುತ್ತದೆ.</translation>
@@ -300,6 +299,10 @@
 <translation id="1391855377994926460">ವೆಬ್ ಅನ್ನು ವೇಗವಾಗಿ ಬ್ರೌಸ್ ಮಾಡುತ್ತಿರಿ - ಪ್ರಮುಖ ಸುದ್ದಿ ಸೈಟ್‌ಗಳಲ್ಲಿ 6x ವರೆಗೆ ವೇಗ.</translation>
 <translation id="9218430445555521422">ಡಿಫಾಲ್ಟ್ ಆಗಿ ಹೊಂದಿಸಿ</translation>
 <translation id="3479552764303398839">ಈಗ ಬೇಡ</translation>
+<translation id="732814027519296280">Brave ಹುಡುಕಾಟವನ್ನು ಇನ್ನೂ ಉತ್ತಮಗೊಳಿಸಲು ಬಯಸುವಿರಾ?</translation>
+<translation id="2677865600861971449">ಅನಾಮಧೇಯವಾಗಿ ಕೆಲವು ಹುಡುಕಾಟ ಮತ್ತು ಬ್ರೌಸಿಂಗ್ ಡೇಟಾ ಕೊಡುಗೆ ನೀಡುವುದಕ್ಕಾಗಿ &amp; ಎಲ್ಲರಿಗೂ Brave ಹುಡುಕಾಟ ಫಲಿತಾಂಶಗಳನ್ನು ಸುಧಾರಿಸುವುದಕ್ಕಾಗಿ ವೆಬ್ ಅನ್ವೇಷಣೆ ಪ್ರಾಜೆಕ್ಟ್ ಅನ್ನು ಆಯ್ದುಕೊಳ್ಳಿ. ಗೌಪ್ಯತೆ-ಸಂರಕ್ಷಿಸುವಿಕೆ. ಮತ್ತು ಶೂನ್ಯ ಪ್ರಯತ್ನ. <ph name="LEARN_MORE_TEXT"/></translation>
+<translation id="5860491529813859533">ಆನ್ ಮಾಡಿ</translation>
+<translation id="780301667611848630">ಬೇಡ, ಧನ್ಯವಾದಗಳು</translation>
 <translation id="5039804452771397117">ಅನುಮತಿಸಿ</translation>
 <translation id="7053983685419859001">ನಿರ್ಬಂಧಿಸು</translation>
 <translation id="7815301689257843278">ಈ ಸಮಸ್ಯೆ ಮತ್ತೊಮ್ಮೆ ಸಂಬಂಧಿಸುವುದನ್ನು Brave ತಡೆಗಟ್ಟಲಾಗುವಂತೆ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಕ್ರ್ಯಾಶ್ ವರದಿಗಳನ್ನು ಕಳುಹಿಸುವುದೇ?</translation>
@@ -309,6 +312,8 @@
 <translation id="6873781976650514089">ಈ ಸೆಟ್ಟಿಂಗ್</translation>
 <translation id="6040143037577758943">ಮುಚ್ಚಿರಿ</translation>
 <translation id="5600566490506283344">Brave ಜಾಹೀರಾತು ಅಧಿಸೂಚನೆ</translation>
+<translation id="4174337572777167894">ವೆಬ್ ಅನ್ವೇಷಣೆ ಪ್ರಾಜೆಕ್ಟ್</translation>
+<translation id="8659271182272561965">Brave ಹುಡುಕಾಟ ಸುಧಾರಿಸುವುದಕ್ಕಾಗಿ ಕೆಲವು ಅನಾಮಧೇಯ ಹುಡುಕಾಟ &amp; ಬ್ರೌಸಿಂಗ್ ಡೇಟಾದ ಕೊಡುಗೆ ನೀಡಿ.</translation>
 <translation id="1516554614404600536">Brave ಟೂಲ್‌ಟಿಪ್</translation>
 <translation id="4877147287319222750">ಸೈಡ್‌ಬಾರ್‌ಗೆ ಸೇರಿಸಿ</translation>
 <translation id="4233010476457917696">ಸೈಡ್‌ಬಾರ್ ತೋರಿಸಿ</translation>
@@ -350,7 +355,23 @@
         ನೀವು <ph name="BEGIN_LINK_BUILD_INSTRUCTIONS"/>ಡೌನ್‌ಲೋಡ್ ಮಾಡುವುದು ಹೇಗೆ ಮತ್ತು ಸ್ವತಃ ನಿರ್ಮಿಸಿಕೊಳ್ಳುವುದು ಹೇಗೆ ಎಂಬುದರ ಕುರಿತು ಸೂಚನೆಗಳನ್ನು<ph name="END_LINK_BUILD_INSTRUCTIONS"/> ಓದಬಹುದು <ph name="BEGIN_LINK_SOURCE_CODE"/>ಈ ಕಾಪಿಯನ್ನು ರಚಿಸಲು ನಿರ್ದಿಷ್ಟ ಸೋರ್ಸ್ ಕೋಡ್ ಅನ್ನು ಬಳಸಲಾಗುತ್ತದೆ<ph name="END_LINK_SOURCE_CODE"/>.</translation>
 <translation id="4474155171896946103">ಎಲ್ಲಾ ಟ್ಯಾಬ್‌ಗಳನ್ನು ಬುಕ್‌ಮಾರ್ಕ್ ಮಾಡು...</translation>
 <translation id="2336228925368920074">ಎಲ್ಲಾ ಟ್ಯಾಬ್‌ಗಳನ್ನು ಬುಕ್‌ಮಾರ್ಕ್ ಮಾಡಿ...</translation>
+<translation id="4235920711083356755">VPN ಬಟನ್‌ ತೋರಿಸು</translation>
+<translation id="4070612712151038707">ಟೂಲ್‌ಬಾರ್‌ನಲ್ಲಿ VPN ಬಟನ್ ತೋರಿಸುತ್ತದೆ</translation>
 <translation id="7705524343798198388">VPN</translation>
+<translation id="3960619311638643872">Brave VPN</translation>
+<translation id="2345974803401546682">Brave VPN ಕುರಿತು</translation>
+<translation id="4378551569595875038">ಸಂಪರ್ಕಿಸಲಾಗುತ್ತಿದೆ...</translation>
+<translation id="3368922792935385530">ಸಂಪರ್ಕಿಸಲಾಗಿದೆ</translation>
+<translation id="1536754031901697553">ಸಂಪರ್ಕ ಕಡಿತಗೊಳಿಸಲಾಗುತ್ತಿದೆ...</translation>
+<translation id="8030169304546394654">ಸಂಪರ್ಕ ಕಡಿತಗೊಳಿಸಲಾಗಿದೆ</translation>
+<translation id="1863950594388384201">ಟೂಲ್‌ಬಾರ್‌ನಲ್ಲಿ VPN ಬಟನ್ ತೋರಿಸಿ</translation>
+<translation id="5187139277471084437">ಟೂಲ್‌ಬಾರ್‌ನಲ್ಲಿ VPN ಬಟನ್ ಮರೆಮಾಡಿ</translation>
+<translation id="8041089156583427627">ಪ್ರತಿಕ್ರಿಯೆ ಕಳುಹಿಸಿ</translation>
+<translation id="4049186905514157504">ನನ್ನ ಪ್ಲಾನ್ ನಿರ್ವಹಿಸಿ</translation>
+<translation id="7570585565843385325">ಟೂಲ್‌ಬಾರ್‌ನಲ್ಲಿ VPN ಬಟನ್ ತೋರಿಸಿ</translation>
+<translation id="5310426188697803101">ಟೂಲ್‌ಬಾರ್‌ನಲ್ಲಿ VPN ಬಟನ್ ಮರೆಮಾಡಿ</translation>
+<translation id="945522503751344254">ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಕಳುಹಿಸಿ</translation>
+<translation id="3015685033234401792">ನನ್ನ ಪ್ಲಾನ್ ನಿರ್ವಹಿಸಿ</translation>
 <translation id="796831669370432378">ಬುಕ್‌ಮಾರ್ಕ್ ಅನ್ನು ಸೇರಿಸಲು, ವಿಳಾಸ ಪಟ್ಟಿಯ ಪಕ್ಕದಲ್ಲಿರುವ ಬುಕ್‌ಮಾರ್ಕ್ ಬಟನ್ ಅನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ</translation>
 <translation id="4989337484121655457">ಪೂರ್ಣ ಡಿಸ್ಕ್ ಪ್ರವೇಶ ಅಗತ್ಯವಿದೆ</translation>
 <translation id="8025559074845816210">ನಿಮ್ಮ ಬುಕ್‌ಮಾರ್ಕ್‌ಗಳನ್ನು ಸಫಾರಿಯಿಂದ ಆಮದು ಮಾಡಿಕೊಳ್ಳಲು Brave ಗೆ ಪೂರ್ಣ ಡಿಸ್ಕ್ ಪ್ರವೇಶದ ಅಗತ್ಯವಿದೆ.</translation>

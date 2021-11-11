@@ -385,8 +385,10 @@ const util = {
       const androidTouchtoFillResDest = path.join(config.srcDir, 'chrome', 'browser', 'touch_to_fill', 'android', 'internal', 'java', 'res')
       const androidToolbarResSource = path.join(config.braveCoreDir, 'browser', 'ui', 'android', 'toolbar', 'java', 'res')
       const androidToolbarResDest = path.join(config.srcDir, 'chrome', 'browser', 'ui', 'android', 'toolbar', 'java', 'res')
-      const androidComponentsResSource = path.join(config.braveCoreDir, 'components', 'browser_ui', 'widget', 'android', 'java', 'res')
-      const androidComponentsResDest = path.join(config.srcDir, 'components', 'browser_ui', 'widget', 'android', 'java', 'res')
+      const androidComponentsWidgetResSource = path.join(config.braveCoreDir, 'components', 'browser_ui', 'widget', 'android', 'java', 'res')
+      const androidComponentsWidgetResDest = path.join(config.srcDir, 'components', 'browser_ui', 'widget', 'android', 'java', 'res')
+      const androidComponentsStylesResSource = path.join(config.braveCoreDir, 'components', 'browser_ui', 'styles', 'android', 'java', 'res')
+      const androidComponentsStylesResDest = path.join(config.srcDir, 'components', 'browser_ui', 'styles', 'android', 'java', 'res')
       const androidSafeBrowsingResSource = path.join(config.braveCoreDir, 'browser', 'safe_browsing', 'android', 'java', 'res')
       const androidSafeBrowsingResDest = path.join(config.srcDir, 'chrome', 'browser', 'safe_browsing', 'android', 'java', 'res')
 
@@ -399,7 +401,8 @@ const util = {
         [androidContentPublicResSource]: [androidContentPublicResDest],
         [androidTouchtoFillResSource]: [androidTouchtoFillResDest],
         [androidToolbarResSource]: [androidToolbarResDest],
-        [androidComponentsResSource]: [androidComponentsResDest],
+        [androidComponentsWidgetResSource]: [androidComponentsWidgetResDest],
+        [androidComponentsStylesResSource]: [androidComponentsStylesResDest],
         [androidSafeBrowsingResSource]: [androidSafeBrowsingResDest]
       }
 
@@ -576,7 +579,7 @@ const util = {
       ninjaOpts.push('-j', config.gomaJValue)
     }
 
-    util.run('ninja', ninjaOpts, options)
+    util.run('autoninja', ninjaOpts, options)
   },
 
   generateXcodeWorkspace: (options = config.defaultOptions) => {
@@ -629,7 +632,7 @@ const util = {
     return needsUpdate
   },
 
-  gclientSync: (forceReset = false, cleanup = false, braveCoreRef = null, options = {}) => {
+  gclientSync: (forceReset = false, cleanup = false, braveCoreRef = null, shouldCheckChromiumVersion = true, options = {}) => {
     let reset = forceReset
 
     // base args
@@ -651,11 +654,32 @@ const util = {
         }
       }
 
+      // re-checkout as the commit ref because otherwise gclient sync clobbers
+      // the branch for braveCoreRef and doesn't set it to the correct commit
+      // for some reason
+      if (fs.existsSync(config.braveCoreDir)) {
+        const braveCoreSha = util.runGit(config.braveCoreDir, ['rev-parse', 'HEAD'])
+        Log.progress(`Resetting brave core to "${braveCoreSha}"...`)
+        util.runGit(config.braveCoreDir, ['reset', '--hard', 'HEAD'], true)
+        let checkoutResult = util.runGit(config.braveCoreDir, ['checkout', braveCoreSha], true)
+        // Handle checkout failure
+        if (checkoutResult === null) {
+          Log.error('Could not checkout: ' + braveCoreSha)
+        }
+        // Checkout was successful
+        Log.progress(`...brave core is now at commit ID ${braveCoreSha}`)
+      }
+
       args = args.concat(['--revision', 'src/brave@' + braveCoreRef])
       reset = true
     }
 
-    if (forceReset || util.shouldUpdateChromium()) {
+    if (!shouldCheckChromiumVersion) {
+      const chromiumNeedsUpdate = util.shouldUpdateChromium()
+      if (chromiumNeedsUpdate) {
+        console.warn(chalk.yellow.bold('Chromium needed update but received the flag to skip performing the update. Working directory may not compile correctly.'))
+      }
+    } else if (forceReset || util.shouldUpdateChromium()) {
       args = [...args, ...chromiumArgs]
       reset = true
       didUpdateChromium = true

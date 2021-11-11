@@ -14,8 +14,9 @@ import {
 } from './style'
 import { PasswordInput, BackButton } from '../../../shared'
 import { NavButton } from '../../../extension'
-import locale from '../../../../constants/locale'
+import { getLocale } from '../../../../../common/locale'
 import { Checkbox } from 'brave-ui'
+import { isStrongPassword } from '../../../../utils/password-utils'
 
 export interface Props {
   toggleShowRestore: () => void
@@ -84,11 +85,10 @@ function OnboardingRestore (props: Props) {
   }, [recoveryPhrase])
 
   const checkPassword = React.useMemo(() => {
-    const strongPassword = new RegExp('^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{7,})')
     if (password === '') {
       return false
     } else {
-      if (!strongPassword.test(password)) {
+      if (!isStrongPassword.test(password)) {
         return true
       }
       return false
@@ -126,42 +126,43 @@ function OnboardingRestore (props: Props) {
     <>
       <BackButton onSubmit={onBack} />
       <StyledWrapper>
-        <Title>{locale.restoreTite}</Title>
-        <Description>{locale.restoreDescription}</Description>
+        <Title>{getLocale('braveWalletRestoreTite')}</Title>
+        <Description>{getLocale('braveWalletRestoreDescription')}</Description>
         <FormWrapper>
           <RecoveryPhraseInput
             autoFocus={true}
-            placeholder={locale.restorePlaceholder}
+            placeholder={getLocale('braveWalletRestorePlaceholder')}
             onChange={handleRecoveryPhraseChanged}
             value={recoveryPhrase}
             type={showRecoveryPhrase ? 'text' : 'password'}
           />
-          {hasRestoreError && <ErrorText>{locale.restoreError}</ErrorText>}
+          {hasRestoreError && <ErrorText>{getLocale('braveWalletRestoreError')}</ErrorText>}
           {recoveryPhrase.split(' ').length === 24 &&
             <LegacyCheckboxRow>
               <Checkbox value={{ isLegacy: isLegacyWallet }} onChange={onSetIsLegacyWallet}>
-                <div data-key='isLegacy'>{locale.restoreLegacyCheckBox}</div>
+                <div data-key='isLegacy'>{getLocale('braveWalletRestoreLegacyCheckBox')}</div>
               </Checkbox>
             </LegacyCheckboxRow>
           }
           <CheckboxRow>
             <Checkbox value={{ showPhrase: showRecoveryPhrase }} onChange={onShowRecoveryPhrase}>
-              <div data-key='showPhrase'>{locale.restoreShowPhrase}</div>
+              <div data-key='showPhrase'>{getLocale('braveWalletRestoreShowPhrase')}</div>
             </Checkbox>
           </CheckboxRow>
-          <FormText>{locale.restoreFormText}</FormText>
+          <FormText>{getLocale('braveWalletRestoreFormText')}</FormText>
           <InputColumn>
             <PasswordInput
-              placeholder={locale.createPasswordInput}
+              placeholder={getLocale('braveWalletCreatePasswordInput')}
               onChange={handlePasswordChanged}
               hasError={checkPassword}
-              error={locale.createPasswordError}
+              error={getLocale('braveWalletCreatePasswordError')}
+              onKeyDown={handleKeyDown}
             />
             <PasswordInput
-              placeholder={locale.createPasswordInput2}
+              placeholder={getLocale('braveWalletConfirmPasswordInput')}
               onChange={handleConfirmPasswordChanged}
               hasError={checkConfirmedPassword}
-              error={locale.createPasswordError2}
+              error={getLocale('braveWalletConfirmPasswordError')}
               onKeyDown={handleKeyDown}
             />
           </InputColumn>
@@ -169,7 +170,7 @@ function OnboardingRestore (props: Props) {
         <NavButton
           disabled={isDisabled}
           buttonType='primary'
-          text={locale.welcomeRestoreButton}
+          text={getLocale('braveWalletWelcomeRestoreButton')}
           onSubmit={onSubmitRestore}
         />
       </StyledWrapper>

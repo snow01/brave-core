@@ -9,10 +9,13 @@
 
 #include "base/bind.h"
 #include "base/json/json_writer.h"
+#include "base/metrics/histogram_macros.h"
 #include "base/no_destructor.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
+#include "brave/components/content_settings/renderer/brave_content_settings_agent_impl.h"
 #include "brave/components/cosmetic_filters/resources/grit/cosmetic_filters_generated_map.h"
+#include "components/content_settings/renderer/content_settings_agent_impl.h"
 #include "content/public/renderer/render_frame.h"
 #include "gin/arguments.h"
 #include "gin/function_template.h"
@@ -27,11 +30,13 @@
 
 namespace {
 
-static base::NoDestructor<std::string> g_observing_script("");
-
 static base::NoDestructor<std::vector<std::string>> g_vetted_search_engines(
     {"duckduckgo", "qwant", "bing", "startpage", "google", "yandex", "ecosia",
      "brave"});
+
+// Entry point to content_cosmetic.ts script.
+const char kObservingScriptletEntryPoint[] =
+    "window.content_cosmetic.tryScheduleQueuePump()";
 
 const char kScriptletInitScript[] =
     R"((function() {
@@ -193,9 +198,6 @@ CosmeticFiltersJSHandler::CosmeticFiltersJSHandler(
     : render_frame_(render_frame),
       isolated_world_id_(isolated_world_id),
       enabled_1st_party_cf_(false) {
-  if (g_observing_script->empty()) {
-    *g_observing_script = LoadDataResource(kCosmeticFiltersGenerated[0].id);
-  }
   EnsureConnected();
 }
 
@@ -231,6 +233,7 @@ void CosmeticFiltersJSHandler::AddJavaScriptObjectToFrame(
   v8::Context::Scope context_scope(context);
 
   CreateWorkerObject(isolate, context);
+  bundle_injected_ = false;
 }
 
 void CosmeticFiltersJSHandler::CreateWorkerObject(
@@ -297,37 +300,53 @@ void CosmeticFiltersJSHandler::OnRemoteDisconnect() {
   EnsureConnected();
 }
 
-void CosmeticFiltersJSHandler::ProcessURL(const GURL& url,
-                                          base::OnceClosure callback) {
+bool CosmeticFiltersJSHandler::ProcessURL(
+    const GURL& url,
+    absl::optional<base::OnceClosure> callback) {
   resources_dict_.reset();
   url_ = url;
+  enabled_1st_party_cf_ = false;
+
   // Trivially, don't make exceptions for malformed URLs.
   if (!EnsureConnected() || url_.is_empty() || !url_.is_valid())
-    return;
+    return false;
 
-  cosmetic_filters_resources_->ShouldDoCosmeticFiltering(
-      url_.spec(),
-      base::BindOnce(&CosmeticFiltersJSHandler::OnShouldDoCosmeticFiltering,
-                     base::Unretained(this), std::move(callback)));
-}
+  auto* content_settings =
+      static_cast<content_settings::BraveContentSettingsAgentImpl*>(
+          content_settings::ContentSettingsAgentImpl::Get(render_frame_));
 
-void CosmeticFiltersJSHandler::OnShouldDoCosmeticFiltering(
-    base::OnceClosure callback,
-    bool enabled,
-    bool first_party_enabled) {
-  if (!enabled || !EnsureConnected())
-    return;
+  if (!content_settings->IsCosmeticFilteringEnabled(url_)) {
+    return false;
+  }
 
-  enabled_1st_party_cf_ = first_party_enabled;
-  cosmetic_filters_resources_->UrlCosmeticResources(
-      url_.spec(),
-      base::BindOnce(&CosmeticFiltersJSHandler::OnUrlCosmeticResources,
-                     base::Unretained(this), std::move(callback)));
+  enabled_1st_party_cf_ =
+      content_settings->IsFirstPartyCosmeticFilteringEnabled(url_);
+
+  if (callback.has_value()) {
+    SCOPED_UMA_HISTOGRAM_TIMER_MICROS(
+        "Brave.CosmeticFilters.UrlCosmeticResources");
+    cosmetic_filters_resources_->UrlCosmeticResources(
+        url_.spec(),
+        base::BindOnce(&CosmeticFiltersJSHandler::OnUrlCosmeticResources,
+                       base::Unretained(this), std::move(callback.value())));
+  } else {
+    SCOPED_UMA_HISTOGRAM_TIMER_MICROS(
+        "Brave.CosmeticFilters.UrlCosmeticResourcesSync");
+    base::Value result;
+    cosmetic_filters_resources_->UrlCosmeticResources(url_.spec(), &result);
+    resources_dict_ = base::DictionaryValue::From(
+        base::Value::ToUniquePtrValue(std::move(result)));
+  }
+
+  return true;
 }
 
 void CosmeticFiltersJSHandler::OnUrlCosmeticResources(
     base::OnceClosure callback,
     base::Value result) {
+  if (!EnsureConnected())
+    return;
+
   resources_dict_ = base::DictionaryValue::From(
       base::Value::ToUniquePtrValue(std::move(result)));
   std::move(callback).Run();
@@ -366,9 +385,7 @@ void CosmeticFiltersJSHandler::ApplyRules() {
   web_frame->ExecuteScriptInIsolatedWorld(
       isolated_world_id_, blink::WebString::FromUTF8(pre_init_script),
       blink::BackForwardCacheAware::kAllow);
-  web_frame->ExecuteScriptInIsolatedWorld(
-      isolated_world_id_, blink::WebString::FromUTF8(*g_observing_script),
-      blink::BackForwardCacheAware::kAllow);
+  ExecuteObservingBundleEntryPoint();
 
   CSSRulesRoutine(resources_dict_.get());
 }
@@ -383,7 +400,7 @@ void CosmeticFiltersJSHandler::CSSRulesRoutine(
   blink::WebLocalFrame* web_frame = render_frame_->GetWebFrame();
   base::ListValue* cf_exceptions_list;
   if (resources_dict->GetList("exceptions", &cf_exceptions_list)) {
-    for (size_t i = 0; i < cf_exceptions_list->GetSize(); i++) {
+    for (size_t i = 0; i < cf_exceptions_list->GetList().size(); i++) {
       exceptions_.push_back(cf_exceptions_list->GetList()[i].GetString());
     }
   }
@@ -397,7 +414,7 @@ void CosmeticFiltersJSHandler::CSSRulesRoutine(
     force_hide_selectors_list = nullptr;
   }
 
-  if (hide_selectors_list && hide_selectors_list->GetSize() != 0) {
+  if (hide_selectors_list && hide_selectors_list->GetList().size() != 0) {
     std::string json_selectors;
     if (!base::JSONWriter::Write(*hide_selectors_list, &json_selectors) ||
         json_selectors.empty()) {
@@ -411,7 +428,8 @@ void CosmeticFiltersJSHandler::CSSRulesRoutine(
         blink::BackForwardCacheAware::kAllow);
   }
 
-  if (force_hide_selectors_list && force_hide_selectors_list->GetSize() != 0) {
+  if (force_hide_selectors_list &&
+      force_hide_selectors_list->GetList().size() != 0) {
     std::string json_selectors;
     if (!base::JSONWriter::Write(*force_hide_selectors_list, &json_selectors) ||
         json_selectors.empty()) {
@@ -443,11 +461,8 @@ void CosmeticFiltersJSHandler::CSSRulesRoutine(
     }
   }
 
-  if (!enabled_1st_party_cf_) {
-    web_frame->ExecuteScriptInIsolatedWorld(
-        isolated_world_id_, blink::WebString::FromUTF8(*g_observing_script),
-        blink::BackForwardCacheAware::kAllow);
-  }
+  if (!enabled_1st_party_cf_)
+    ExecuteObservingBundleEntryPoint();
 }
 
 void CosmeticFiltersJSHandler::OnHiddenClassIdSelectors(base::Value result) {
@@ -472,17 +487,37 @@ void CosmeticFiltersJSHandler::OnHiddenClassIdSelectors(base::Value result) {
   // Building a script for stylesheet modifications
   std::string new_selectors_script =
       base::StringPrintf(kHideSelectorsInjectScript, json_selectors.c_str());
-  if (selectors_list->GetSize() != 0) {
+  if (selectors_list->GetList().size() != 0) {
     web_frame->ExecuteScriptInIsolatedWorld(
         isolated_world_id_, blink::WebString::FromUTF8(new_selectors_script),
         blink::BackForwardCacheAware::kAllow);
   }
 
-  if (!enabled_1st_party_cf_) {
+  if (!enabled_1st_party_cf_)
+    ExecuteObservingBundleEntryPoint();
+}
+
+void CosmeticFiltersJSHandler::ExecuteObservingBundleEntryPoint() {
+  blink::WebLocalFrame* web_frame = render_frame_->GetWebFrame();
+  DCHECK(web_frame);
+
+  if (!bundle_injected_) {
+    static base::NoDestructor<std::string> s_observing_script(
+        LoadDataResource(kCosmeticFiltersGenerated[0].id));
+    bundle_injected_ = true;
+
     web_frame->ExecuteScriptInIsolatedWorld(
-        isolated_world_id_, blink::WebString::FromUTF8(*g_observing_script),
+        isolated_world_id_, blink::WebString::FromUTF8(*s_observing_script),
         blink::BackForwardCacheAware::kAllow);
+
+    // kObservingScriptletEntryPoint was called by `s_observing_script`.
+    return;
   }
+
+  web_frame->ExecuteScriptInIsolatedWorld(
+      isolated_world_id_,
+      blink::WebString::FromUTF8(kObservingScriptletEntryPoint),
+      blink::BackForwardCacheAware::kAllow);
 }
 
 }  // namespace cosmetic_filters

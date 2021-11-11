@@ -119,6 +119,17 @@
     Open PDFs in Brave
   </message>
 
+  <!-- Privacy Review -->
+  <message name="IDS_SETTINGS_PRIVACY_REVIEW_CLEAR_ON_EXIT_FEATURE_DESCRIPTION1" desc="A part of the feature description of 'clear cookies on exit' card in the privacy review.">
+    When you close Brave, it automatically clears cookies and site data from the pages you visited
+  </message>
+  <message name="IDS_SETTINGS_PRIVACY_REVIEW_WELCOME_CARD_HEADER" desc="A header shown at the top of the welcome card in the privacy review, explaining to users that they can review their most important privacy and security settings in the privacy review.">
+    Customize some of Brave’s most important privacy choices
+  </message>
+  <message name="IDS_SETTINGS_PRIVACY_REVIEW_WELCOME_CARD_SUB_HEADER" desc="A subheader shown at on the welcome card in the privacy review, explaining to users that Brave has default settings but they can customize them if they like.">
+    The default settings work for most profiles, but you can customize them to fit how you like to use Brave
+  </message>
+
   <!-- Safety check -->
   <message name="IDS_SETTINGS_SAFETY_CHECK_PARENT_PRIMARY_LABEL_BEFORE" desc="This text describes what the safety check is. (It's an area of the Settings page where users can quickly check whether their safety-related settings are fully protecting them.)">
     Brave can help keep you safe from data breaches, bad extensions, and more
@@ -162,7 +173,7 @@
   </message>
 <if expr="chromeos">
   <message name="IDS_SETTINGS_ACCOUNT_MANAGER_DESCRIPTION_V2" desc="Description of the Account Manager Settings page. Shown just below the title of the page.">
-    This page allows you to manage your signed-in Brave accounts. These accounts will be available in Brave browser and Play Store apps, as well as services like Gmail, Drive, and YouTube. <ph name="LINK_BEGIN">&lt;a&gt;</ph>Learn more<ph name="LINK_END">&lt;/a&gt;</ph>
+    You can manage your signed-in Brave sync chains. Your Brave sync chains are used for Brave browser, Play Store, Gmail, and more. If you want to add an account for someone else, like a family member, add a new profile to your <ph name="DEVICE_TYPE">$1<ex>Bravebook</ex></ph> instead. <ph name="LINK_BEGIN">&lt;a&gt;</ph>Learn more<ph name="LINK_END">&lt;/a&gt;</ph>
   </message>
 </if>
 

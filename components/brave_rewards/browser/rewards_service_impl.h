@@ -77,6 +77,7 @@ using GetEnvironmentCallback =
     base::OnceCallback<void(ledger::type::Environment)>;
 using GetDebugCallback = base::OnceCallback<void(bool)>;
 using GetReconcileIntervalCallback = base::OnceCallback<void(int32_t)>;
+using GetGeminiRetriesCallback = base::OnceCallback<void(int32_t)>;
 using GetRetryIntervalCallback = base::OnceCallback<void(int32_t)>;
 using GetTestResponseCallback = base::RepeatingCallback<void(
     const std::string& url,
@@ -203,6 +204,8 @@ class RewardsServiceImpl : public RewardsService,
   void GetEnvironment(GetEnvironmentCallback callback);
   void SetDebug(bool debug);
   void GetDebug(GetDebugCallback callback);
+  void SetGeminiRetries(const int32_t retries);
+  void GetGeminiRetries(GetGeminiRetriesCallback callback);
   void SetReconcileInterval(const int32_t interval);
   void GetReconcileInterval(GetReconcileIntervalCallback callback);
   void SetRetryInterval(int32_t interval);
@@ -219,13 +222,10 @@ class RewardsServiceImpl : public RewardsService,
       RefreshPublisherCallback callback) override;
   void OnAdsEnabled(bool ads_enabled) override;
 
-  void OnSaveRecurringTip(
-      SaveRecurringTipCallback callback,
-      const ledger::type::Result result);
-  void SaveRecurringTip(
-      const std::string& publisher_key,
-      const double amount,
-      SaveRecurringTipCallback callback) override;
+  void OnSaveRecurringTip(OnTipCallback callback, ledger::type::Result result);
+  void SaveRecurringTip(const std::string& publisher_key,
+                        double amount,
+                        OnTipCallback callback) override;
 
   const RewardsNotificationService::RewardsNotificationsMap&
     GetAllNotifications() override;
@@ -281,10 +281,10 @@ class RewardsServiceImpl : public RewardsService,
       const bool recurring,
       ledger::type::PublisherInfoPtr publisher) override;
 
-  void OnTip(
-      const std::string& publisher_key,
-      const double amount,
-      const bool recurring) override;
+  void OnTip(const std::string& publisher_key,
+             double amount,
+             bool recurring,
+             OnTipCallback callback) override;
 
   void SetPublisherMinVisitTime(int duration_in_seconds) const override;
 
@@ -307,6 +307,8 @@ class RewardsServiceImpl : public RewardsService,
       const std::string& path,
       const std::string& query,
       ProcessRewardsPageUrlCallback callback) override;
+
+  void RequestAdsEnabledPopupClosed(bool ads_enabled) override;
 
   void DisconnectWallet() override;
 

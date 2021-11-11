@@ -5,8 +5,7 @@
 
 #include "bat/ads/internal/frequency_capping/exclusion_rules/per_month_frequency_cap.h"
 
-#include <cstdint>
-#include <deque>
+#include <algorithm>
 
 #include "base/strings/stringprintf.h"
 #include "base/time/time.h"
@@ -20,14 +19,16 @@ PerMonthFrequencyCap::PerMonthFrequencyCap(const AdEventList& ad_events)
 
 PerMonthFrequencyCap::~PerMonthFrequencyCap() = default;
 
-bool PerMonthFrequencyCap::ShouldExclude(const CreativeAdInfo& ad) {
-  const AdEventList filtered_ad_events = FilterAdEvents(ad_events_, ad);
+std::string PerMonthFrequencyCap::GetUuid(
+    const CreativeAdInfo& creative_ad) const {
+  return creative_ad.creative_set_id;
+}
 
-  if (!DoesRespectCap(filtered_ad_events, ad)) {
+bool PerMonthFrequencyCap::ShouldExclude(const CreativeAdInfo& creative_ad) {
+  if (!DoesRespectCap(ad_events_, creative_ad)) {
     last_message_ = base::StringPrintf(
-        "creativeSetId %s has exceeded the "
-        "frequency capping for perMonth",
-        ad.creative_set_id.c_str());
+        "creativeSetId %s has exceeded the perMonth frequency cap",
+        creative_ad.creative_set_id.c_str());
 
     return true;
   }
@@ -35,43 +36,36 @@ bool PerMonthFrequencyCap::ShouldExclude(const CreativeAdInfo& ad) {
   return false;
 }
 
-std::string PerMonthFrequencyCap::get_last_message() const {
+std::string PerMonthFrequencyCap::GetLastMessage() const {
   return last_message_;
 }
 
 bool PerMonthFrequencyCap::DoesRespectCap(const AdEventList& ad_events,
-                                          const CreativeAdInfo& ad) {
-  if (ad.per_month == 0) {
+                                          const CreativeAdInfo& creative_ad) {
+  if (creative_ad.per_month == 0) {
+    // Always respect cap if set to 0
     return true;
   }
 
-  const std::deque<uint64_t> history =
-      GetTimestampHistoryForAdEvents(ad_events);
+  const base::Time now = base::Time::Now();
 
-  const uint64_t time_constraint =
-      28 * (base::Time::kSecondsPerHour * base::Time::kHoursPerDay);
+  const base::TimeDelta time_constraint = base::TimeDelta::FromSeconds(
+      28 * (base::Time::kSecondsPerHour * base::Time::kHoursPerDay));
 
-  return DoesHistoryRespectCapForRollingTimeConstraint(history, time_constraint,
-                                                       ad.per_month);
-}
-
-AdEventList PerMonthFrequencyCap::FilterAdEvents(
-    const AdEventList& ad_events,
-    const CreativeAdInfo& ad) const {
-  AdEventList filtered_ad_events = ad_events;
-
-  const auto iter = std::remove_if(
-      filtered_ad_events.begin(), filtered_ad_events.end(),
-      [&ad](const AdEventInfo& ad_event) {
-        return (ad_event.type != AdType::kAdNotification &&
-                ad_event.type != AdType::kInlineContentAd) ||
-               ad_event.creative_set_id != ad.creative_set_id ||
-               ad_event.confirmation_type != ConfirmationType::kServed;
+  const int count = std::count_if(
+      ad_events.cbegin(), ad_events.cend(),
+      [&now, &time_constraint, &creative_ad](const AdEventInfo& ad_event) {
+        return ad_event.confirmation_type == ConfirmationType::kServed &&
+               ad_event.creative_set_id == creative_ad.creative_set_id &&
+               now - ad_event.created_at < time_constraint &&
+               DoesAdTypeSupportFrequencyCapping(ad_event.type);
       });
 
-  filtered_ad_events.erase(iter, filtered_ad_events.end());
+  if (count >= creative_ad.per_month) {
+    return false;
+  }
 
-  return filtered_ad_events;
+  return true;
 }
 
 }  // namespace ads

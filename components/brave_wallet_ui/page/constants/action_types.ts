@@ -2,10 +2,11 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this file,
 // you can obtain one at http://mozilla.org/MPL/2.0/.
+
 import {
   GetPriceHistoryReturnObjectInfo,
-  TokenInfo,
-  AssetPriceInfo,
+  ERCToken,
+  AssetPrice,
   AssetPriceTimeframe
 } from '../../constants/types'
 
@@ -32,9 +33,14 @@ export type RemoveImportedAccountPayloadType = {
   address: string
 }
 
+export type RemoveHardwareAccountPayloadType = {
+  address: string
+}
+
 export type RestoreWalletPayloadType = {
   mnemonic: string,
-  password: string
+  password: string,
+  isLegacy: boolean
 }
 
 export type WalletCreatedPayloadType = {
@@ -55,13 +61,23 @@ export type PrivateKeyAvailablePayloadType = {
 }
 
 export type UpdateSelectedAssetType = {
-  asset: TokenInfo,
+  asset: ERCToken,
   timeFrame: AssetPriceTimeframe
 }
 
 export type SelectAssetPayloadType = {
   priceHistory: GetPriceHistoryReturnObjectInfo | undefined,
-  usdPriceInfo: AssetPriceInfo | undefined,
-  btcPriceInfo: AssetPriceInfo | undefined,
+  usdPriceInfo: AssetPrice | undefined,
+  btcPriceInfo: AssetPrice | undefined,
   timeFrame: AssetPriceTimeframe
+}
+
+export type ImportFromExternalWalletPayloadType = {
+  password: string,
+  newPassword: string
+}
+
+export type ImportWalletErrorPayloadType = {
+  hasError: boolean,
+  errorMessage?: string
 }

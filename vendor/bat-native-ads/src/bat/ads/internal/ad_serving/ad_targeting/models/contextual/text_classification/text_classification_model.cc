@@ -7,6 +7,7 @@
 
 #include <string>
 
+#include "base/check.h"
 #include "bat/ads/internal/ad_targeting/data_types/contextual/text_classification/text_classification_aliases.h"
 #include "bat/ads/internal/client/client.h"
 #include "bat/ads/internal/logging.h"
@@ -26,6 +27,7 @@ SegmentProbabilitiesMap GetSegmentProbabilities(
   for (const auto& probabilities : text_classification_probabilities) {
     for (const auto& probability : probabilities) {
       const std::string segment = probability.first;
+      DCHECK(!segment.empty());
 
       const double page_score = probability.second;
 
@@ -48,8 +50,8 @@ SegmentProbabilitiesList ToSortedSegmentProbabilitiesList(
   SegmentProbabilitiesList list(count);
 
   std::partial_sort_copy(
-      segment_probabilities.begin(), segment_probabilities.end(), list.begin(),
-      list.end(),
+      segment_probabilities.cbegin(), segment_probabilities.cend(),
+      list.begin(), list.end(),
       [](const SegmentProbabilityPair& lhs, const SegmentProbabilityPair& rhs) {
         return lhs.second > rhs.second;
       });
@@ -63,6 +65,8 @@ SegmentList ToSegmentList(
 
   for (const auto& segment_probability : segment_probabilities) {
     const std::string segment = segment_probability.first;
+    DCHECK(!segment.empty());
+
     segments.push_back(segment);
   }
 

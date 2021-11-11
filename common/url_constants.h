@@ -22,6 +22,8 @@ extern const char kImportDataHelpURL[];
 extern const char kCryptoWalletsLearnMoreURL[];
 extern const char kPermissionPromptLearnMoreUrl[];
 extern const char kSpeedreaderLearnMoreUrl[];
+extern const char kWebDiscoveryLearnMoreUrl[];
+extern const char kBraveSearchUrl[];
 
 // This is introduced to replace |kDownloadChromeUrl| in
 // outdated_upgrade_bubble_view.cc"

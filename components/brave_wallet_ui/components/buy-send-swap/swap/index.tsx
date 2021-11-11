@@ -1,20 +1,27 @@
 import * as React from 'react'
+
+import { getLocale } from '../../../../common/locale'
 import {
   AccountAssetOptionType,
   OrderTypes,
   BuySendSwapViewTypes,
   SlippagePresetObjectType,
   ExpirationPresetObjectType,
-  ToOrFromType
+  ToOrFromType,
+  SwapValidationErrorType
 } from '../../../constants/types'
-import { NavButton } from '../../extension'
 import SwapInputComponent from '../swap-input-component'
+
 // Styled Components
 import {
   StyledWrapper,
   ArrowDownIcon,
-  ArrowButton
+  ArrowButton,
+  SwapNavButton,
+  SwapButtonText,
+  SwapButtonLoader
 } from './style'
+import { LoaderIcon } from 'brave-ui/components/icons'
 
 export interface Props {
   toAsset: AccountAssetOptionType
@@ -27,6 +34,11 @@ export interface Props {
   orderType: OrderTypes
   fromAssetBalance: string
   toAssetBalance: string
+  isFetchingQuote: boolean
+  isSubmitDisabled: boolean
+  validationError?: SwapValidationErrorType
+  customSlippageTolerance: string
+  onCustomSlippageToleranceChange: (value: string) => void
   onToggleOrderType: () => void
   onFlipAssets: () => void
   onSubmitSwap: () => void
@@ -36,6 +48,7 @@ export interface Props {
   onSelectExpiration: (expiration: ExpirationPresetObjectType) => void
   onSelectSlippageTolerance: (slippage: SlippagePresetObjectType) => void
   onFilterAssetList: (asset: AccountAssetOptionType) => void
+  onQuoteRefresh: () => void
 }
 
 function Swap (props: Props) {
@@ -50,6 +63,11 @@ function Swap (props: Props) {
     orderExpiration,
     fromAssetBalance,
     toAssetBalance,
+    isFetchingQuote,
+    isSubmitDisabled,
+    validationError,
+    customSlippageTolerance,
+    onCustomSlippageToleranceChange,
     onToggleOrderType,
     onInputChange,
     onSelectPresetAmount,
@@ -58,7 +76,8 @@ function Swap (props: Props) {
     onFlipAssets,
     onSubmitSwap,
     onChangeSwapView,
-    onFilterAssetList
+    onFilterAssetList,
+    onQuoteRefresh
   } = props
 
   const onShowAssetTo = () => {
@@ -71,6 +90,31 @@ function Swap (props: Props) {
     onFilterAssetList(toAsset)
   }
 
+  const submitText = React.useMemo(() => {
+    if (validationError === 'insufficientBalance') {
+      return getLocale('braveWalletSwapInsufficientBalance')
+    }
+
+    if (validationError === 'insufficientEthBalance') {
+      return getLocale('braveWalletSwapInsufficientEthBalance')
+    }
+
+    if (validationError === 'insufficientAllowance') {
+      return getLocale('braveWalletSwapInsufficientAllowance')
+        .replace('$1', fromAsset.asset.symbol)
+    }
+
+    if (validationError === 'insufficientLiquidity') {
+      return getLocale('braveWalletSwapInsufficientLiquidity')
+    }
+
+    if (validationError === 'unknownError') {
+      return getLocale('braveWalletSwapUnknownError')
+    }
+
+    return getLocale('braveWalletSwap')
+  }, [validationError])
+
   return (
     <StyledWrapper>
       <SwapInputComponent
@@ -82,6 +126,7 @@ function Swap (props: Props) {
         selectedAssetBalance={fromAssetBalance}
         selectedAsset={fromAsset}
         onShowSelection={onShowAssetFrom}
+        validationError={validationError}
       />
       <ArrowButton onClick={onFlipAssets}>
         <ArrowDownIcon />
@@ -104,6 +149,7 @@ function Swap (props: Props) {
         selectedAssetInputAmount={exchangeRate}
         inputName='rate'
         selectedAsset={fromAsset}
+        onRefresh={onQuoteRefresh}
       />
       <SwapInputComponent
         componentType='selector'
@@ -112,13 +158,20 @@ function Swap (props: Props) {
         onSelectExpiration={onSelectExpiration}
         slippageTolerance={slippageTolerance}
         orderExpiration={orderExpiration}
+        customSlippageTolerance={customSlippageTolerance}
+        onCustomSlippageToleranceChange={onCustomSlippageToleranceChange}
       />
-      <NavButton
-        disabled={false}
+      <SwapNavButton
+        disabled={isSubmitDisabled}
         buttonType='primary'
-        text='Swap'
-        onSubmit={onSubmitSwap}
-      />
+        onClick={onSubmitSwap}
+      >
+        {
+          isFetchingQuote
+          ? <SwapButtonLoader><LoaderIcon /></SwapButtonLoader>
+          : <SwapButtonText>{submitText}</SwapButtonText>
+        }
+      </SwapNavButton>
     </StyledWrapper>
   )
 }

@@ -5,6 +5,7 @@
 
 package org.chromium.chrome.browser.crypto_wallet.fragments.onboarding_fragments;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -24,7 +25,6 @@ import org.chromium.brave_wallet.mojom.KeyringController;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.crypto_wallet.activities.BraveWalletActivity;
 import org.chromium.chrome.browser.crypto_wallet.adapters.RecoveryPhraseAdapter;
-import org.chromium.chrome.browser.crypto_wallet.fragments.AddAccountOnboardingDialogFragment;
 import org.chromium.chrome.browser.crypto_wallet.util.ItemOffsetDecoration;
 import org.chromium.chrome.browser.crypto_wallet.util.Utils;
 import org.chromium.ui.widget.Toast;
@@ -77,7 +77,6 @@ public class VerifyRecoveryPhraseFragment extends CryptoOnboardingFragment {
                                 recoveryPhrasesToVerifyAdapter.getRecoveryPhraseList());
                         if (result.equals(recoveryPhraseToVerify)) {
                             onNextPage.gotoNextPage(true);
-                            showAddAccountDialog();
                         } else {
                             phraseNotMatch();
                         }
@@ -109,6 +108,7 @@ public class VerifyRecoveryPhraseFragment extends CryptoOnboardingFragment {
         Toast.makeText(getActivity(), R.string.phrases_did_not_match, Toast.LENGTH_SHORT).show();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void resetRecoveryPhrasesViews() {
         if (recoveryPhrasesAdapter != null && recoveryPhrasesRecyclerView != null) {
             recoveryPhrasesAdapter = new RecoveryPhraseAdapter();
@@ -153,18 +153,9 @@ public class VerifyRecoveryPhraseFragment extends CryptoOnboardingFragment {
         selectedPhraseRecyclerView.setAdapter(recoveryPhrasesToVerifyAdapter);
     }
 
-    private void showAddAccountDialog() {
-        AddAccountOnboardingDialogFragment addAccountOnboardingDialogFragment =
-                new AddAccountOnboardingDialogFragment();
-        addAccountOnboardingDialogFragment.setCancelable(false);
-        assert getActivity() != null;
-        addAccountOnboardingDialogFragment.show(
-                ((FragmentActivity) getActivity()).getSupportFragmentManager(),
-                "AddAccountOnboardingDialog");
-    }
-
     OnRecoveryPhraseSelected onRecoveryPhraseSelected = new OnRecoveryPhraseSelected() {
         @Override
+        @SuppressLint("NotifyDataSetChanged")
         public void onSelectedRecoveryPhrase(String phrase) {
             if (recoveryPhrasesAdapter != null) {
                 recoveryPhrasesAdapter.notifyDataSetChanged();
@@ -187,6 +178,7 @@ public class VerifyRecoveryPhraseFragment extends CryptoOnboardingFragment {
 
     OnRecoveryPhraseSelected onSelectedRecoveryPhraseSelected = new OnRecoveryPhraseSelected() {
         @Override
+        @SuppressLint("NotifyDataSetChanged")
         public void onSelectedRecoveryPhrase(String phrase) {
             if (recoveryPhrasesAdapter != null) {
                 recoveryPhrasesAdapter.addPhraseAtPosition(recoveryPhrases.indexOf(phrase), phrase);

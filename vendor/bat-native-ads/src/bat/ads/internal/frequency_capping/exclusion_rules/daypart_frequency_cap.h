@@ -13,23 +13,24 @@
 
 namespace ads {
 
-class DaypartFrequencyCap : public ExclusionRule<CreativeAdInfo> {
+class DaypartFrequencyCap final : public ExclusionRule<CreativeAdInfo> {
  public:
   DaypartFrequencyCap();
-
   ~DaypartFrequencyCap() override;
 
   DaypartFrequencyCap(const DaypartFrequencyCap&) = delete;
   DaypartFrequencyCap& operator=(const DaypartFrequencyCap&) = delete;
 
-  bool ShouldExclude(const CreativeAdInfo& ad) override;
+  std::string GetUuid(const CreativeAdInfo& creative_ad) const override;
 
-  std::string get_last_message() const override;
+  bool ShouldExclude(const CreativeAdInfo& creative_ad) override;
+
+  std::string GetLastMessage() const override;
 
  private:
   std::string last_message_;
 
-  bool DoesRespectCap(const CreativeAdInfo& ad) const;
+  bool DoesRespectCap(const CreativeAdInfo& creative_ad) const;
 };
 
 }  // namespace ads

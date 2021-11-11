@@ -18,6 +18,7 @@
 #include "bat/ads/internal/ml/transformation/hashed_ngrams_transformation.h"
 #include "bat/ads/internal/ml/transformation/lowercase_transformation.h"
 #include "bat/ads/internal/ml/transformation/normalization_transformation.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace ads {
 namespace ml {
@@ -119,11 +120,16 @@ absl::optional<model::Linear> ParsePipelineClassifier(
 
   std::vector<std::string> classes;
   for (const base::Value& class_name : specified_classes->GetList()) {
-    if (class_name.is_string()) {
-      classes.push_back(class_name.GetString());
-    } else {
+    if (!class_name.is_string()) {
       return absl::nullopt;
     }
+
+    const std::string class_string = class_name.GetString();
+    if (class_string.empty()) {
+      return absl::nullopt;
+    }
+
+    classes.push_back(class_string);
   }
 
   base::Value* class_weights = classifier_value->FindDictKey("class_weights");

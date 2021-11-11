@@ -79,6 +79,7 @@
 #include "services/network/public/cpp/resource_request.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 #include "services/network/public/cpp/simple_url_loader.h"
+#include "services/network/public/mojom/url_response_head.mojom.h"
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/gfx/image/image.h"
 #include "url/gurl.h"
@@ -1933,22 +1934,19 @@ void RewardsServiceImpl::OnPublisherBanner(
   std::move(callback).Run(std::move(banner));
 }
 
-void RewardsServiceImpl::OnSaveRecurringTip(
-    SaveRecurringTipCallback callback,
-    const ledger::type::Result result) {
-  bool success = result == ledger::type::Result::LEDGER_OK;
-
+void RewardsServiceImpl::OnSaveRecurringTip(OnTipCallback callback,
+                                            ledger::type::Result result) {
   for (auto& observer : observers_) {
-    observer.OnRecurringTipSaved(this, success);
+    observer.OnRecurringTipSaved(this,
+                                 result == ledger::type::Result::LEDGER_OK);
   }
 
-  std::move(callback).Run(success);
+  std::move(callback).Run(result);
 }
 
-void RewardsServiceImpl::SaveRecurringTip(
-    const std::string& publisher_key,
-    const double amount,
-    SaveRecurringTipCallback callback) {
+void RewardsServiceImpl::SaveRecurringTip(const std::string& publisher_key,
+                                          double amount,
+                                          OnTipCallback callback) {
   if (!Connected()) {
     return;
   }
@@ -1959,10 +1957,8 @@ void RewardsServiceImpl::SaveRecurringTip(
   info->created_at = GetCurrentTimestamp();
 
   bat_ledger_->SaveRecurringTip(
-      std::move(info),
-      base::BindOnce(&RewardsServiceImpl::OnSaveRecurringTip,
-                     AsWeakPtr(),
-                     std::move(callback)));
+      std::move(info), base::BindOnce(&RewardsServiceImpl::OnSaveRecurringTip,
+                                      AsWeakPtr(), std::move(callback)));
 }
 
 void RewardsServiceImpl::OnMediaInlineInfoSaved(
@@ -2442,6 +2438,17 @@ void RewardsServiceImpl::HandleFlags(const std::string& options) {
       continue;
     }
 
+    if (name == "gemini-retries") {
+      int retries;
+      bool success = base::StringToInt(value, &retries);
+
+      if (success && retries >= 0) {
+        SetGeminiRetries(retries);
+      }
+
+      continue;
+    }
+
     // The "persist-logs" command-line flag is deprecated and will be removed
     // in a future version. Use --enable-features=BraveRewardsVerboseLogging
     // instead.
@@ -2504,23 +2511,22 @@ void RewardsServiceImpl::OnTipPublisherSaved(
     return;
   }
 
-  OnTip(publisher_key, amount, recurring);
+  OnTip(publisher_key, amount, recurring, base::DoNothing());
 }
 
-void RewardsServiceImpl::OnTip(
-    const std::string& publisher_key,
-    const double amount,
-    const bool recurring) {
+void RewardsServiceImpl::OnTip(const std::string& publisher_key,
+                               double amount,
+                               bool recurring,
+                               OnTipCallback callback) {
   if (!Connected()) {
     return;
   }
 
   if (recurring) {
-    SaveRecurringTip(publisher_key, amount, base::DoNothing());
-    return;
+    return SaveRecurringTip(publisher_key, amount, std::move(callback));
   }
 
-  bat_ledger_->OneTimeTip(publisher_key, amount, base::DoNothing());
+  bat_ledger_->OneTimeTip(publisher_key, amount, std::move(callback));
 }
 
 bool RewardsServiceImpl::Connected() const {
@@ -2579,6 +2585,10 @@ void RewardsServiceImpl::GetRetryInterval(GetRetryIntervalCallback callback) {
   bat_ledger_service_->GetRetryInterval(std::move(callback));
 }
 
+void RewardsServiceImpl::GetGeminiRetries(GetGeminiRetriesCallback callback) {
+  bat_ledger_service_->GetGeminiRetries(std::move(callback));
+}
+
 void RewardsServiceImpl::SetEnvironment(ledger::type::Environment environment) {
   bat_ledger_service_->SetEnvironment(environment);
 }
@@ -2593,6 +2603,10 @@ void RewardsServiceImpl::SetReconcileInterval(const int32_t interval) {
 
 void RewardsServiceImpl::SetRetryInterval(int32_t interval) {
   bat_ledger_service_->SetRetryInterval(interval);
+}
+
+void RewardsServiceImpl::SetGeminiRetries(const int32_t retries) {
+  bat_ledger_service_->SetGeminiRetries(retries);
 }
 
 void RewardsServiceImpl::GetPendingContributionsTotal(
@@ -2832,7 +2846,7 @@ std::string RewardsServiceImpl::GetLegacyWallet() {
   auto* dict = profile_->GetPrefs()->GetDictionary(prefs::kExternalWallets);
 
   std::string json;
-  for (const auto& it : dict->DictItems()) {
+  for (auto it : dict->DictItems()) {
     base::JSONWriter::Write(std::move(it.second), &json);
   }
 
@@ -2939,6 +2953,17 @@ void RewardsServiceImpl::ProcessRewardsPageUrl(
       wallet_type,
       action,
       {});
+}
+
+void RewardsServiceImpl::RequestAdsEnabledPopupClosed(bool ads_enabled) {
+  if (ads_enabled) {
+    // If Rewards were previously enabled, this call will only turn on Ads.
+    EnableRewards();
+  }
+
+  for (auto& observer : observers_) {
+    observer.OnRequestAdsEnabledPopupClosed(ads_enabled);
+  }
 }
 
 void RewardsServiceImpl::OnDisconnectWallet(

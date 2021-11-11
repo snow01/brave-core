@@ -16,6 +16,16 @@
 namespace extensions {
 namespace api {
 
+class BraveRewardsGetLocaleFunction : public ExtensionFunction {
+ public:
+  DECLARE_EXTENSION_FUNCTION("braveRewards.getLocale", UNKNOWN)
+
+ protected:
+  ~BraveRewardsGetLocaleFunction() override;
+
+  ResponseAction Run() override;
+};
+
 class BraveRewardsOpenBrowserActionUIFunction :
     public ExtensionFunction {
  public:
@@ -258,7 +268,7 @@ class BraveRewardsSaveRecurringTipFunction : public ExtensionFunction {
   ResponseAction Run() override;
 
  private:
-  void OnSaveRecurringTip(bool success);
+  void OnSaveRecurringTip(ledger::type::Result result);
 };
 
 class BraveRewardsRemoveRecurringTipFunction :
@@ -379,6 +389,16 @@ class BraveRewardsDisconnectWalletFunction : public ExtensionFunction {
   ResponseAction Run() override;
 };
 
+class BraveRewardsGetRewardsEnabledFunction : public ExtensionFunction {
+ public:
+  DECLARE_EXTENSION_FUNCTION("braveRewards.getRewardsEnabled", UNKNOWN)
+
+ protected:
+  ~BraveRewardsGetRewardsEnabledFunction() override;
+
+  ResponseAction Run() override;
+};
+
 class BraveRewardsGetAdsEnabledFunction : public ExtensionFunction {
  public:
   DECLARE_EXTENSION_FUNCTION("braveRewards.getAdsEnabled", UNKNOWN)
@@ -400,7 +420,7 @@ class BraveRewardsGetAdsAccountStatementFunction : public ExtensionFunction {
 
  private:
   void OnGetAdsAccountStatement(const bool success,
-                                const int64_t next_payment_date,
+                                const double next_payment_date,
                                 const int ads_received_this_month,
                                 const double earnings_this_month,
                                 const double earnings_last_month);
@@ -502,6 +522,18 @@ class BraveRewardsUpdatePrefsFunction : public ExtensionFunction {
 
  protected:
   ~BraveRewardsUpdatePrefsFunction() override;
+
+  ResponseAction Run() override;
+};
+
+class BraveRewardsRequestAdsEnabledPopupClosedFunction
+    : public ExtensionFunction {
+ public:
+  DECLARE_EXTENSION_FUNCTION("braveRewards.requestAdsEnabledPopupClosed",
+                             UNKNOWN)
+
+ protected:
+  ~BraveRewardsRequestAdsEnabledPopupClosedFunction() override;
 
   ResponseAction Run() override;
 };

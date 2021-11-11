@@ -7,6 +7,8 @@
 
 #include "base/strings/string_util.h"
 #include "brave/browser/brave_features_internal_names.h"
+#include "brave/browser/ethereum_remote_client/buildflags/buildflags.h"
+#include "brave/browser/ethereum_remote_client/features.h"
 #include "brave/common/brave_features.h"
 #include "brave/components/brave_ads/common/features.h"
 #include "brave/components/brave_component_updater/browser/features.h"
@@ -14,18 +16,20 @@
 #include "brave/components/brave_rewards/common/features.h"
 #include "brave/components/brave_shields/common/features.h"
 #include "brave/components/brave_sync/features.h"
-#include "brave/components/brave_talk/features.h"
 #include "brave/components/brave_vpn/buildflags/buildflags.h"
-#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
+#include "brave/components/brave_wallet/common/features.h"
 #include "brave/components/debounce/common/features.h"
 #include "brave/components/decentralized_dns/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/ntp_background_images/browser/features.h"
 #include "brave/components/sidebar/buildflags/buildflags.h"
 #include "brave/components/speedreader/buildflags.h"
+#include "brave/components/translate/core/common/brave_translate_features.h"
+#include "brave/components/translate/core/common/buildflags.h"
 #include "net/base/features.h"
+#include "third_party/blink/public/common/features.h"
 
-#if BUILDFLAG(ENABLE_BRAVE_VPN)
+#if BUILDFLAG(ENABLE_BRAVE_VPN) && !defined(OS_ANDROID)
 #include "brave/components/brave_vpn/features.h"
 #endif
 
@@ -41,9 +45,6 @@
 #include "brave/components/ipfs/features.h"
 #endif
 
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
-#include "brave/components/brave_wallet/common/features.h"
-#endif
 
 #if BUILDFLAG(DECENTRALIZED_DNS_ENABLED)
 #include "brave/components/decentralized_dns/features.h"
@@ -57,6 +58,8 @@ using brave_shields::features::kBraveAdblockDefault1pBlocking;
 using brave_shields::features::kBraveDarkModeBlock;
 using brave_shields::features::kBraveDomainBlock;
 using brave_shields::features::kBraveExtensionNetworkBlocking;
+using brave_shields::features::kCosmeticFilteringSyncLoad;
+
 using debounce::features::kBraveDebounce;
 using ntp_background_images::features::kBraveNTPBrandedWallpaper;
 using ntp_background_images::features::kBraveNTPBrandedWallpaperDemo;
@@ -103,6 +106,12 @@ constexpr char kBraveDarkModeBlockName[] =
 constexpr char kBraveDarkModeBlockDescription[] =
     "Always report light mode when fingerprinting protections set to Strict";
 
+constexpr char kAdblockRedirectUrlName[] =
+    "Enable support for $redirect-url filter option for adblock rules";
+constexpr char kAdblockRedirectUrlDescription[] =
+    "Enable support for loading adblock replacement resources over the network "
+    "via the $redirect-url filter option";
+
 constexpr char kBraveDomainBlockName[] = "Enable domain blocking";
 constexpr char kBraveDomainBlockDescription[] =
     "Enable support for blocking domains with an interstitial page";
@@ -115,6 +124,11 @@ constexpr char kBraveExtensionNetworkBlockingName[] =
     "Enable extension network blocking";
 constexpr char kBraveExtensionNetworkBlockingDescription[] =
     "Enable blocking for network requests initiated by extensions";
+
+constexpr char kCosmeticFilteringSyncLoadName[] =
+    "Enable sync loading of cosmetic filter rules";
+constexpr char kCosmeticFilteringSyncLoadDescription[] =
+    "Enable sync loading of cosmetic filter rules";
 
 constexpr char kBraveIpfsName[] = "Enable IPFS";
 constexpr char kBraveIpfsDescription[] = "Enable native support of IPFS.";
@@ -168,6 +182,12 @@ constexpr char kBraveEphemeralStorageKeepAliveDescription[] =
     "Keep ephemeral storage partitions alive for a specified time after all "
     "tabs for that origin are closed";
 
+constexpr char kBraveFirstPartyEphemeralStorageName[] =
+    "First Party Ephemeral Storage";
+constexpr char kBraveFirstPartyEphemeralStorageDescription[] =
+    "Enable support for first party ephemeral storage using SESSION ONLY "
+    "cookie setting";
+
 #if BUILDFLAG(ENABLE_GEMINI_WALLET)
 constexpr char kBraveRewardsGeminiName[] = "Enable Gemini for Brave Rewards";
 constexpr char kBraveRewardsGeminiDescription[] =
@@ -194,22 +214,33 @@ constexpr char kBraveSuperReferralName[] = "Enable Brave Super Referral";
 constexpr char kBraveSuperReferralDescription[] =
     "Use custom theme for Brave Super Referral";
 
-constexpr char kBraveTalkName[] = "Enable Brave Talk";
-constexpr char kBraveTalkDescription[] =
-    "Enables the Brave Talk integration on the new tab page. You can "
-    "use Brave Talk to start a private video call with your friends "
-    "and colleagues.";
-
-constexpr char kNativeBraveWalletName[] =
-    "Enable experimental Brave native wallet";
+constexpr char kNativeBraveWalletName[] = "Enable Brave Wallet";
 constexpr char kNativeBraveWalletDescription[] =
-    "Experimental native cryptocurrency wallet support without the use of "
-    "extensions";
+    "Native cryptocurrency wallet support without the use of extensions";
+
+constexpr char kCryptoWalletsForNewInstallsName[] =
+    "Enable Crypto Wallets option in settings";
+constexpr char kCryptoWalletsForNewInstallsDescription[] =
+    "Crypto Wallets extension is deprecated but with this option it can still "
+    "be enabled in settings. If it was previously used, this flag is ignored.";
 
 constexpr char kUseDevUpdaterUrlName[] = "Use dev updater url";
 constexpr char kUseDevUpdaterUrlDescription[] =
     "Use the dev url for the component updater. "
     "This is for internal testing only.";
+
+constexpr char kBraveTranslateGoName[] =
+    "Enable internal translate engine (brave-translate-go)";
+constexpr char kBraveTranslateGoDescription[] =
+    "Enable internal translate engine, which are build on top of client engine "
+    "and brave translation backed. Also disables suggestions to install google "
+    "translate extension.";
+
+// A blink feature.
+constexpr char kFileSystemAccessAPIName[] = "File System Access API";
+constexpr char kFileSystemAccessAPIDescription[] =
+    "Enables the File System Access API, giving websites access to the file "
+    "system";
 
 }  // namespace
 
@@ -219,12 +250,12 @@ constexpr char kUseDevUpdaterUrlDescription[] =
 // file so we turn it off for the macro sections.
 // clang-format off
 
-#if BUILDFLAG(ENABLE_BRAVE_VPN)
+#if BUILDFLAG(ENABLE_BRAVE_VPN) && !defined(OS_ANDROID)
 #define BRAVE_VPN_FEATURE_ENTRIES                         \
     {kBraveVPNFeatureInternalName,                        \
      flag_descriptions::kBraveVPNName,                    \
      flag_descriptions::kBraveVPNDescription,             \
-     kOsMac | kOsWin | kOsAndroid,                        \
+     kOsMac | kOsWin,                                     \
      FEATURE_VALUE_TYPE(brave_vpn::features::kBraveVPN)},
 #else
 #define BRAVE_VPN_FEATURE_ENTRIES
@@ -246,11 +277,7 @@ constexpr char kUseDevUpdaterUrlDescription[] =
     {"brave-speedreader",                                               \
      flag_descriptions::kBraveSpeedreaderName,                          \
      flag_descriptions::kBraveSpeedreaderDescription, kOsDesktop,       \
-     FEATURE_VALUE_TYPE(speedreader::kSpeedreaderFeature)},             \
-    {"speedreader-legacy-backend",                                      \
-     flag_descriptions::kBraveSpeedreaderLegacyName,                    \
-     flag_descriptions::kBraveSpeedreaderLegacyDescription, kOsDesktop, \
-     FEATURE_VALUE_TYPE(speedreader::kSpeedreaderLegacyBackend)},
+     FEATURE_VALUE_TYPE(speedreader::kSpeedreaderFeature)},
 #else
 #define SPEEDREADER_FEATURE_ENTRIES
 #endif
@@ -276,15 +303,23 @@ constexpr char kUseDevUpdaterUrlDescription[] =
 #define BRAVE_IPFS_FEATURE_ENTRIES
 #endif
 
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
 #define BRAVE_NATIVE_WALLET_FEATURE_ENTRIES                                  \
     {"native-brave-wallet",                                                  \
      flag_descriptions::kNativeBraveWalletName,                              \
      flag_descriptions::kNativeBraveWalletDescription,                       \
      kOsDesktop | flags_ui::kOsAndroid,                                      \
      FEATURE_VALUE_TYPE(brave_wallet::features::kNativeBraveWalletFeature)},
+
+#if BUILDFLAG(ETHEREUM_REMOTE_CLIENT_ENABLED)
+#define CRYPTO_WALLETS_FEATURE_ENTRIES                                       \
+    {"ethereum_remote-client_new-installs",                                  \
+     flag_descriptions::kCryptoWalletsForNewInstallsName,                    \
+     flag_descriptions::kCryptoWalletsForNewInstallsDescription,             \
+     kOsDesktop,                                                             \
+     FEATURE_VALUE_TYPE(                                                     \
+       ethereum_remote_client::features::kCryptoWalletsForNewInstallsFeature)},
 #else
-#define BRAVE_NATIVE_WALLET_FEATURE_ENTRIES
+#define CRYPTO_WALLETS_FEATURE_ENTRIES
 #endif
 
 #if BUILDFLAG(DECENTRALIZED_DNS_ENABLED)
@@ -297,6 +332,17 @@ constexpr char kUseDevUpdaterUrlDescription[] =
 #else
 #define BRAVE_DECENTRALIZED_DNS_FEATURE_ENTRIES
 #endif
+
+#if BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
+#define BRAVE_TRANSLATE_GO_FEATURE_ENTRIES                           \
+    {"brave-translate-go",                                           \
+     flag_descriptions::kBraveTranslateGoName,                       \
+     flag_descriptions::kBraveTranslateGoDescription,                \
+     kOsDesktop,                                                     \
+     FEATURE_VALUE_TYPE(translate::features::kUseBraveTranslateGo)},
+#else
+#define BRAVE_TRANSLATE_GO_FEATURE_ENTRIES
+#endif  // BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
 
 #define BRAVE_ABOUT_FLAGS_FEATURE_ENTRIES                                   \
     {"use-dev-updater-url",                                                 \
@@ -335,6 +381,10 @@ constexpr char kUseDevUpdaterUrlDescription[] =
      flag_descriptions::kBraveDarkModeBlockName,                            \
      flag_descriptions::kBraveDarkModeBlockDescription, kOsAll,             \
      FEATURE_VALUE_TYPE(kBraveDarkModeBlock)},                              \
+    {"brave-adblock-redirect-url",                                          \
+     flag_descriptions::kAdblockRedirectUrlName,                            \
+     flag_descriptions::kAdblockRedirectUrlDescription, kOsAll,             \
+     FEATURE_VALUE_TYPE(net::features::kAdblockRedirectUrl)},               \
     {"brave-domain-block",                                                  \
      flag_descriptions::kBraveDomainBlockName,                              \
      flag_descriptions::kBraveDomainBlockDescription, kOsAll,               \
@@ -347,6 +397,10 @@ constexpr char kUseDevUpdaterUrlDescription[] =
      flag_descriptions::kBraveExtensionNetworkBlockingName,                 \
      flag_descriptions::kBraveExtensionNetworkBlockingDescription, kOsAll,  \
      FEATURE_VALUE_TYPE(kBraveExtensionNetworkBlocking)},                   \
+    {"brave-cosmetic-filtering-sync-load",                                  \
+     flag_descriptions::kCosmeticFilteringSyncLoadName,                     \
+     flag_descriptions::kCosmeticFilteringSyncLoadDescription, kOsAll,      \
+     FEATURE_VALUE_TYPE(kCosmeticFilteringSyncLoad)},                       \
     {"brave-super-referral",                                                \
      flag_descriptions::kBraveSuperReferralName,                            \
      flag_descriptions::kBraveSuperReferralDescription,                     \
@@ -360,6 +414,11 @@ constexpr char kUseDevUpdaterUrlDescription[] =
      flag_descriptions::kBraveEphemeralStorageKeepAliveName,                \
      flag_descriptions::kBraveEphemeralStorageKeepAliveDescription, kOsAll, \
      FEATURE_VALUE_TYPE(net::features::kBraveEphemeralStorageKeepAlive)},   \
+    {"brave-first-party-ephemeral-storage",                                 \
+     flag_descriptions::kBraveFirstPartyEphemeralStorageName,               \
+     flag_descriptions::kBraveFirstPartyEphemeralStorageDescription,        \
+     kOsAll,                                                                \
+     FEATURE_VALUE_TYPE(net::features::kBraveFirstPartyEphemeralStorage)},  \
     {"brave-rewards-verbose-logging",                                       \
      flag_descriptions::kBraveRewardsVerboseLoggingName,                    \
      flag_descriptions::kBraveRewardsVerboseLoggingDescription,             \
@@ -370,19 +429,20 @@ constexpr char kUseDevUpdaterUrlDescription[] =
      flag_descriptions::kBraveAdsCustomNotificationsDescription,            \
      kOsDesktop | kOsAndroid,                                               \
      FEATURE_VALUE_TYPE(brave_ads::features::kCustomAdNotifications)},      \
-    {"brave-talk",                                                          \
-     flag_descriptions::kBraveTalkName,                                     \
-     flag_descriptions::kBraveTalkDescription,                              \
-     kOsDesktop,                                                            \
-     FEATURE_VALUE_TYPE(brave_talk::features::kBraveTalk)},                 \
     {"brave-sync-v2",                                                       \
       flag_descriptions::kBraveSyncName,                                    \
       flag_descriptions::kBraveSyncDescription, kOsDesktop,                 \
       FEATURE_VALUE_TYPE(brave_sync::features::kBraveSync)},                \
+    {"file-system-access-api",                                              \
+      flag_descriptions::kFileSystemAccessAPIName,                          \
+      flag_descriptions::kFileSystemAccessAPIDescription, kOsDesktop,       \
+      FEATURE_VALUE_TYPE(blink::features::kFileSystemAccessAPI)},           \
     BRAVE_DECENTRALIZED_DNS_FEATURE_ENTRIES                                 \
     BRAVE_IPFS_FEATURE_ENTRIES                                              \
     BRAVE_NATIVE_WALLET_FEATURE_ENTRIES                                     \
+    CRYPTO_WALLETS_FEATURE_ENTRIES                                          \
     BRAVE_REWARDS_GEMINI_FEATURE_ENTRIES                                    \
     BRAVE_VPN_FEATURE_ENTRIES                                               \
     SIDEBAR_FEATURE_ENTRIES                                                 \
-    SPEEDREADER_FEATURE_ENTRIES
+    SPEEDREADER_FEATURE_ENTRIES                                             \
+    BRAVE_TRANSLATE_GO_FEATURE_ENTRIES

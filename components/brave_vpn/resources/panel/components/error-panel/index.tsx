@@ -1,18 +1,28 @@
 import * as React from 'react'
-import * as S from './style'
 import { Button } from 'brave-ui'
+
+import * as S from './style'
 import { AlertCircleIcon } from 'brave-ui/components/icons'
-import locale from '../../constants/locale'
+import { getLocale } from '../../../../../common/locale'
+import { useSelector, useDispatch } from '../../state/hooks'
+import * as Actions from '../../state/actions'
 
-interface Props {
-  onTryAgainClick: Function
-  onChooseServerClick: Function
-  region: string
-}
+function ErrorPanel () {
+  const dispatch = useDispatch()
+  const currentRegion = useSelector(state => state.currentRegion)
 
-function ErrorPanel (props: Props) {
-  const handleTryAgain = () => props.onTryAgainClick()
-  const handleChooseServer = () => props.onChooseServerClick()
+  const handleTryAgain = () => {
+    dispatch(Actions.retryConnect())
+  }
+
+  const handleChooseServer = () => {
+    dispatch(Actions.toggleRegionSelector(true))
+  }
+
+  const matches = {
+    $1: getLocale('braveVpn'),
+    $2: currentRegion?.namePretty || ''
+  }
 
   return (
     <S.Box>
@@ -20,22 +30,23 @@ function ErrorPanel (props: Props) {
         <S.IconBox>
           <AlertCircleIcon color='#84889C' />
         </S.IconBox>
-        <S.ReasonTitle>{locale.cantConnectError}</S.ReasonTitle>
-        <S.ReasonDesc>Brave Firewall + VPN couldn't connect to the {props.region} server.
-          You can try again, or choose another.</S.ReasonDesc>
+        <S.ReasonTitle>{getLocale('braveVpnUnableConnectToServer')}</S.ReasonTitle>
+        <S.ReasonDesc>
+          {getLocale('braveVpnUnableConnectInfo').replace(/\$\d+/g, (match) => matches[match])}
+        </S.ReasonDesc>
         <S.ActionArea>
             <Button
               level='primary'
               type='accent'
               brand='rewards'
-              text={locale.tryAgain}
+              text={getLocale('braveVpnTryAgain')}
               onClick={handleTryAgain}
             />
             <Button
               level='tertiary'
               type='accent'
               brand='rewards'
-              text={locale.chooseAnotherServer}
+              text={getLocale('braveVpnChooseAnotherServer')}
               onClick={handleChooseServer}
             />
         </S.ActionArea>

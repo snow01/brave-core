@@ -25,7 +25,6 @@ namespace ntp_background_images {
 namespace {
 
 constexpr size_t kHashSize = 32;
-#if BUILDFLAG(ENABLE_NTP_BACKGROUND_IMAGES)
 constexpr char kNTPBIComponentPublicKey[] =
     "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4L9XGAiVhCL8oi5aQhFrVllsw6VebX"
     "igTj5ow3e0fYeEztjM9FOgqMD6pl0AB8u05xKUPcdpIZqCguEzXyXh5vn+"
@@ -35,7 +34,6 @@ constexpr char kNTPBIComponentPublicKey[] =
     "qBt6VsZcejcQCd1KIpgHNyoVl5rodtBRj25o48SxYePrssMRTv9vAQmRUZZukOIL/"
     "HdeqjCHIOSQTrFEQIDAQAB";  // NOLINT
 constexpr char kNTPBIComponentID[] = "aoojcmojmmcbpfgoecoadbdpnagfchel";
-#endif
 
 class NTPBackgroundImagesComponentInstallerPolicy
     : public component_updater::ComponentInstallerPolicy {
@@ -56,14 +54,14 @@ class NTPBackgroundImagesComponentInstallerPolicy
   bool SupportsGroupPolicyEnabledComponentUpdates() const override;
   bool RequiresNetworkEncryption() const override;
   update_client::CrxInstaller::Result OnCustomInstall(
-      const base::DictionaryValue& manifest,
+      const base::Value& manifest,
       const base::FilePath& install_dir) override;
   void OnCustomUninstall() override;
-  bool VerifyInstallation(const base::DictionaryValue& manifest,
+  bool VerifyInstallation(const base::Value& manifest,
                           const base::FilePath& install_dir) const override;
   void ComponentReady(const base::Version& version,
                       const base::FilePath& path,
-                      std::unique_ptr<base::DictionaryValue> manifest) override;
+                      base::Value manifest) override;
   base::FilePath GetRelativeInstallDir() const override;
   void GetHash(std::vector<uint8_t>* hash) const override;
   std::string GetName() const override;
@@ -106,7 +104,7 @@ bool NTPBackgroundImagesComponentInstallerPolicy::
 
 update_client::CrxInstaller::Result
 NTPBackgroundImagesComponentInstallerPolicy::OnCustomInstall(
-    const base::DictionaryValue& manifest,
+    const base::Value& manifest,
     const base::FilePath& install_dir) {
   return update_client::CrxInstaller::Result(0);
 }
@@ -116,12 +114,12 @@ void NTPBackgroundImagesComponentInstallerPolicy::OnCustomUninstall() {}
 void NTPBackgroundImagesComponentInstallerPolicy::ComponentReady(
     const base::Version& version,
     const base::FilePath& path,
-    std::unique_ptr<base::DictionaryValue> manifest) {
+    base::Value manifest) {
   ready_callback_.Run(path);
 }
 
 bool NTPBackgroundImagesComponentInstallerPolicy::VerifyInstallation(
-    const base::DictionaryValue& manifest,
+    const base::Value& manifest,
     const base::FilePath& install_dir) const {
   return true;
 }
@@ -151,7 +149,6 @@ void OnRegistered(const std::string& component_id) {
 
 }  // namespace
 
-#if BUILDFLAG(ENABLE_NTP_BACKGROUND_IMAGES)
 void RegisterNTPBackgroundImagesComponent(
     component_updater::ComponentUpdateService* cus,
     OnComponentReadyCallback callback) {
@@ -165,7 +162,6 @@ void RegisterNTPBackgroundImagesComponent(
           callback));
   installer->Register(cus, base::BindOnce(&OnRegistered, kNTPBIComponentID));
 }
-#endif
 
 void RegisterNTPSponsoredImagesComponent(
     component_updater::ComponentUpdateService* cus,

@@ -15,6 +15,7 @@
 #include "brave/browser/brave_rewards/rewards_service_factory.h"
 #include "brave/browser/profiles/profile_util.h"
 #include "brave/common/pref_names.h"
+#include "brave/components/brave_today/buildflags/buildflags.h"
 #include "brave/components/content_settings/core/browser/brave_content_settings_pref_provider.h"
 #include "brave/components/decentralized_dns/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
@@ -46,6 +47,10 @@
 
 #if BUILDFLAG(DECENTRALIZED_DNS_ENABLED)
 #include "brave/browser/decentralized_dns/decentralized_dns_service_factory.h"
+#endif
+
+#if BUILDFLAG(ENABLE_BRAVE_NEWS)
+#include "brave/browser/brave_news/brave_news_controller_factory.h"
 #endif
 
 using content::BrowserThread;
@@ -86,6 +91,25 @@ void BraveProfileManager::InitProfileUserPrefs(Profile* profile) {
   content_settings::BravePrefProvider::CopyPluginSettingsForMigration(
       profile->GetPrefs());
 
+// Chromecast is enabled by default on Android.
+#if !defined(OS_ANDROID)
+  auto* pref_service = profile->GetPrefs();
+  // At start, the value of kEnableMediaRouterOnRestart is updated to match
+  // kEnableMediaRouter so users don't lose their current setting
+  if (pref_service->FindPreference(kEnableMediaRouterOnRestart)
+          ->IsDefaultValue()) {
+    auto enabled = pref_service->GetBoolean(::prefs::kEnableMediaRouter);
+    pref_service->SetBoolean(kEnableMediaRouterOnRestart, enabled);
+  } else {
+    // For Desktop, kEnableMediaRouterOnRestart is used to track the current
+    // state of the media router switch in brave://settings/extensions. The
+    // value of kEnableMediaRouter is only updated to match
+    // kEnableMediaRouterOnRestart on restart
+    auto enabled = pref_service->GetBoolean(kEnableMediaRouterOnRestart);
+    pref_service->SetBoolean(::prefs::kEnableMediaRouter, enabled);
+  }
+#endif
+
   ProfileManager::InitProfileUserPrefs(profile);
   brave::RecordInitialP3AValues(profile);
   brave::SetDefaultSearchVersion(profile, profile->IsNewProfile());
@@ -109,6 +133,9 @@ void BraveProfileManager::DoFinalInitForServices(Profile* profile,
       gcm::BraveGCMChannelStatus::GetForProfile(profile);
   DCHECK(status);
   status->UpdateGCMDriverStatus();
+#endif
+#if BUILDFLAG(ENABLE_BRAVE_NEWS)
+  brave_news::BraveNewsControllerFactory::GetForContext(profile);
 #endif
 }
 

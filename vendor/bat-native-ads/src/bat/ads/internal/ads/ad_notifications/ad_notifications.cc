@@ -12,7 +12,9 @@
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "base/time/time.h"
+#include "base/values.h"
 #include "bat/ads/ad_type.h"
+#include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ad_events/ad_event_info.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/client/client.h"
@@ -85,7 +87,7 @@ bool AdNotifications::Get(const std::string& uuid,
   DCHECK(is_initialized_);
   DCHECK(ad_notification);
 
-  auto iter = std::find_if(ad_notifications_.begin(), ad_notifications_.end(),
+  auto iter = std::find_if(ad_notifications_.cbegin(), ad_notifications_.cend(),
                            [&uuid](const AdNotificationInfo& notification) {
                              return notification.uuid == uuid;
                            });
@@ -126,7 +128,7 @@ void AdNotifications::PopFront(const bool should_dismiss) {
 bool AdNotifications::Remove(const std::string& uuid) {
   DCHECK(is_initialized_);
 
-  auto iter = std::find_if(ad_notifications_.begin(), ad_notifications_.end(),
+  auto iter = std::find_if(ad_notifications_.cbegin(), ad_notifications_.cend(),
                            [&uuid](const AdNotificationInfo& notification) {
                              return notification.uuid == uuid;
                            });
@@ -161,7 +163,7 @@ void AdNotifications::CloseAndRemoveAll() {
 bool AdNotifications::Exists(const std::string& uuid) const {
   DCHECK(is_initialized_);
 
-  auto iter = std::find_if(ad_notifications_.begin(), ad_notifications_.end(),
+  auto iter = std::find_if(ad_notifications_.cbegin(), ad_notifications_.cend(),
                            [&uuid](const AdNotificationInfo& notification) {
                              return notification.uuid == uuid;
                            });
@@ -192,10 +194,10 @@ void AdNotifications::RemoveAllAfterReboot() {
 
     const AdEventInfo ad_event = ad_events.front();
 
-    const base::Time boot_time = base::Time::Now() - base::SysInfo::Uptime();
-    const int64_t boot_timestamp = boot_time.ToDoubleT();
+    const base::Time system_uptime =
+        base::Time::Now() - base::SysInfo::Uptime();
 
-    if (ad_event.timestamp <= boot_timestamp) {
+    if (ad_event.created_at <= system_uptime) {
       RemoveAll();
     }
   });

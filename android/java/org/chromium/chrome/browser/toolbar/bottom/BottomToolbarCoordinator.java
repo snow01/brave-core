@@ -28,6 +28,7 @@ import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ActivityTabProvider;
 import org.chromium.chrome.browser.app.BraveActivity;
 import org.chromium.chrome.browser.app.ChromeActivity;
+import org.chromium.chrome.browser.compositor.CompositorViewHolder;
 import org.chromium.chrome.browser.feature_engagement.TrackerFactory;
 import org.chromium.chrome.browser.homepage.HomepageManager;
 import org.chromium.chrome.browser.layouts.LayoutStateProvider;
@@ -85,6 +86,7 @@ class BottomToolbarCoordinator implements View.OnLongClickListener {
     private BookmarksButton mBookmarksButton;
     private SearchAccelerator mSearchAccelerator;
     private BottomToolbarNewTabButton mNewTabButton;
+    private View mBottomContainerTopShadow;
 
     private final Context mContext = ContextUtils.getApplicationContext();
 
@@ -119,6 +121,9 @@ class BottomToolbarCoordinator implements View.OnLongClickListener {
         mBottomControlsMediator = bottomControlsMediator;
         mOriginalHomeButtonRunnable = openHomepageAction;
         mScrollingBottomView = (BraveScrollingBottomViewResourceFrameLayout) scrollingBottomView;
+
+        mBottomContainerTopShadow =
+                mScrollingBottomView.findViewById(R.id.bottom_container_top_shadow);
     }
 
     /**
@@ -188,6 +193,8 @@ class BottomToolbarCoordinator implements View.OnLongClickListener {
                     if (BottomToolbarVariationManager.isNewTabButtonOnBottom()) {
                         browsingModeCoordinator.getNewTabButtonParent().setVisibility(View.VISIBLE);
                     }
+
+                    mBottomContainerTopShadow.setVisibility(View.GONE);
                 }
 
                 @Override
@@ -216,6 +223,8 @@ class BottomToolbarCoordinator implements View.OnLongClickListener {
                     if (BottomToolbarVariationManager.isNewTabButtonOnBottom()) {
                         browsingModeCoordinator.getNewTabButtonParent().setVisibility(View.GONE);
                     }
+
+                    mBottomContainerTopShadow.setVisibility(View.VISIBLE);
                 }
             };
         }
@@ -256,8 +265,9 @@ class BottomToolbarCoordinator implements View.OnLongClickListener {
         }
 
         if (mScrollingBottomView != null && activity != null) {
+            Supplier<CompositorViewHolder> cvh = activity.getCompositorViewHolderSupplier();
             mScrollingBottomView.setSwipeDetector(
-                    activity.getCompositorViewHolder().getLayoutManager().getToolbarSwipeHandler());
+                    cvh.get().getLayoutManager().getToolbarSwipeHandler());
         }
     }
 

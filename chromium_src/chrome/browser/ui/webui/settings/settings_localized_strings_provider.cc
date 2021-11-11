@@ -8,16 +8,20 @@
 #include "base/stl_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "brave/browser/ui/webui/settings/brave_privacy_handler.h"
+#include "brave/common/pref_names.h"
 #include "brave/common/url_constants.h"
 #include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "brave/components/ipfs/ipfs_constants.h"
 #include "brave/components/ipfs/pref_names.h"
 #include "brave/components/sidebar/buildflags/buildflags.h"
 #include "brave/components/version_info/version_info.h"
+#include "chrome/browser/media/router/media_router_feature.h"
 #include "chrome/browser/ui/webui/webui_util.h"
 #include "chrome/common/pref_names.h"
 #include "components/grit/brave_components_strings.h"
 #include "components/prefs/pref_service.h"
+#include "extensions/buildflags/buildflags.h"
+#include "brave/components/brave_wallet/browser/pref_names.h"
 
 namespace settings {
 void BraveAddLocalizedStrings(content::WebUIDataSource*, Profile*);
@@ -65,6 +69,10 @@ const char16_t kDNSLinkLearnMoreURL[] =
 const char16_t kUnstoppableDomainsLearnMoreURL[] =
     u"https://github.com/brave/brave-browser/wiki/"
     u"Resolve-Methods-for-Unstoppable-Domains";
+const char16_t kBraveAdsLearnMoreURL[] =
+    u"https://support.brave.com/hc/en-us/articles/360026361072-Brave-Ads-FAQ";
+const char16_t kBraveTermsOfUseURL[] = u"https://brave.com/terms-of-use/";
+const char16_t kBravePrivacyPolicyURL[] = u"https://brave.com/privacy/browser/";
 
 void BraveAddCommonStrings(content::WebUIDataSource* html_source,
                            Profile* profile) {
@@ -112,6 +120,11 @@ void BraveAddCommonStrings(content::WebUIDataSource* html_source,
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
     {"showBraveVPNButton", IDS_SETTINGS_SHOW_VPN_BUTTON},
     {"showBraveVPNButtonSubLabel", IDS_SETTINGS_SHOW_VPN_BUTTON_SUB_LABEL},
+#endif
+  // Search settings
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+    {"braveWebDiscoveryLabel", IDS_SETTINGS_WEB_DISCOVERY_LABEL},
+    {"braveWebDiscoverySubLabel", IDS_SETTINGS_WEB_DISCOVERY_SUBLABEL},
 #endif
     {"mruCyclingSettingLabel", IDS_SETTINGS_BRAVE_MRU_CYCLING_LABEL},
     {"speedreaderSettingLabel", IDS_SETTINGS_SPEEDREADER_LABEL},
@@ -222,6 +235,8 @@ void BraveAddCommonStrings(content::WebUIDataSource* html_source,
     {"braveSyncResetConfirmation", IDS_BRAVE_SYNC_RESET_CONFIRMATION},
     {"braveSyncDeleteDeviceConfirmation",
      IDS_BRAVE_SYNC_DELETE_DEVICE_CONFIRMATION},
+    {"braveSyncFinalSecurityWarning",
+     IDS_BRAVE_SYNC_FINAL_SECURITY_WARNING_TEXT},
     {"braveIPFS", IDS_BRAVE_IPFS_SETTINGS_SECTION},
     {"braveWallet", IDS_BRAVE_WALLET_SETTINGS_SECTION},
     {"braveHelpTips", IDS_SETTINGS_HELP_TIPS},
@@ -233,18 +248,76 @@ void BraveAddCommonStrings(content::WebUIDataSource* html_source,
     {"braveNewTabNewTabPageShows", IDS_SETTINGS_NEW_TAB_NEW_TAB_PAGE_SHOWS},
     {"braveNewTabNewTabCustomizeWidgets",
      IDS_SETTINGS_NEW_TAB_NEW_TAB_CUSTOMIZE_WIDGETS},
+    // Rewards page
+    {"braveRewards", IDS_SETTINGS_BRAVE_REWARDS_TITLE},
+    {"braveRewardsDisabledLabel", IDS_SETTINGS_BRAVE_REWARDS_DISABLED_LABEL},
+    {"braveRewardsDisabledSubLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_DISABLED_SUB_LABEL},
+    {"braveRewardsAutoDetectedItem",
+     IDS_SETTINGS_BRAVE_REWARDS_AUTO_DETECTED_ITEM},
+    {"braveRewardsDefaultItem", IDS_SETTINGS_BRAVE_REWARDS_DEFAULT_ITEM},
+    {"braveRewardsDisabledItem", IDS_SETTINGS_BRAVE_REWARDS_DISABLED_ITEM},
+    {"braveRewardsPrivateAdsTitle",
+     IDS_SETTINGS_BRAVE_REWARDS_PRIVATE_ADS_TITLE},
+    {"braveRewardsPrivateAdsEarnTokensLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_PRIVATE_ADS_EARN_TOKENS_LABEL},
+    {"braveRewardsMaxAdsToDisplayLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_MAX_ADS_TO_DISPLAY_LABEL},
+    {"braveRewardsMaxAdsPerHour0", IDS_BRAVE_REWARDS_LOCAL_ADS_PER_HOUR_0},
+    {"braveRewardsMaxAdsPerHour1", IDS_BRAVE_REWARDS_LOCAL_ADS_PER_HOUR_1},
+    {"braveRewardsMaxAdsPerHour2", IDS_BRAVE_REWARDS_LOCAL_ADS_PER_HOUR_2},
+    {"braveRewardsMaxAdsPerHour3", IDS_BRAVE_REWARDS_LOCAL_ADS_PER_HOUR_3},
+    {"braveRewardsMaxAdsPerHour4", IDS_BRAVE_REWARDS_LOCAL_ADS_PER_HOUR_4},
+    {"braveRewardsMaxAdsPerHour5", IDS_BRAVE_REWARDS_LOCAL_ADS_PER_HOUR_5},
+    {"braveRewardsMaxAdsPerHour10", IDS_BRAVE_REWARDS_LOCAL_ADS_PER_HOUR_10},
+    {"braveRewardsStateLevelAdTargetingLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_STATE_LEVEL_AD_TARGETING_LABEL},
+    {"braveRewardsAutoContributeTitle",
+     IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_TITLE},
+    {"braveRewardsAutoContributeMonthlyLimitLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_MONTHLY_LIMIT_LABEL},
+    {"braveRewardsContributionUpTo", IDS_BRAVE_REWARDS_LOCAL_CONTR_UP_TO},
+    {"braveRewardsAutoContributeMinVisitTimeLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_MIN_VISIT_TIME_LABEL},
+    {"braveRewardsAutoContributeMinVisitTime5",
+     IDS_BRAVE_REWARDS_LOCAL_CONTR_TIME_5},
+    {"braveRewardsAutoContributeMinVisitTime8",
+     IDS_BRAVE_REWARDS_LOCAL_CONTR_TIME_8},
+    {"braveRewardsAutoContributeMinVisitTime60",
+     IDS_BRAVE_REWARDS_LOCAL_CONTR_TIME_60},
+    {"braveRewardsAutoContributeMinVisitsLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_MIN_VISITS_LABEL},
+    {"braveRewardsAutoContributeMinVisits1",
+     IDS_BRAVE_REWARDS_LOCAL_CONTR_VISIT_1},
+    {"braveRewardsAutoContributeMinVisits5",
+     IDS_BRAVE_REWARDS_LOCAL_CONTR_VISIT_5},
+    {"braveRewardsAutoContributeMinVisits10",
+     IDS_BRAVE_REWARDS_LOCAL_CONTR_VISIT_10},
+    {"braveRewardsAutoContributeShowNonVerifiedSitesLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_SHOW_NON_VERIFIED_SITES_LABEL},
+    {"braveRewardsAutoContributeAllowVideoContributionsLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_ALLOW_VIDEO_CONTRIBUTIONS_LABEL},  // NOLINT
+    {"braveRewardsTipButtonsTitle",
+     IDS_SETTINGS_BRAVE_REWARDS_TIP_BUTTONS_TITLE},
+    {"braveRewardsInlineTipRedditLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_INLINE_TIP_REDDIT_LABEL},
+    {"braveRewardsInlineTipTwitterLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_INLINE_TIP_TWITTER_LABEL},
+    {"braveRewardsInlineTipGithubLabel",
+     IDS_SETTINGS_BRAVE_REWARDS_INLINE_TIP_GITHUB_LABEL},
     // Misc (TODO: Organize this)
     {"showSearchTabsBtn", IDS_SETTINGS_TABS_SEARCH_SHOW},
     {"onExitPageTitle", IDS_SETTINGS_BRAVE_ON_EXIT},
     {"braveDefaultExtensions", IDS_SETTINGS_BRAVE_DEFAULT_EXTENSIONS_TITLE},
     {"webTorrentEnabledDesc", IDS_SETTINGS_WEBTORRENT_ENABLED_DESC},
-    {"braveWeb3ProviderDesc", IDS_SETTINGS_BRAVE_WEB3_PROVIDER_DESC},
-    {"loadCryptoWalletsOnStartupDesc",
-     IDS_SETTINGS_LOAD_CRYPTO_WALLETS_ON_STARTUP},
-    {"loadCryptoWalletsOnStartupDescDeprecated",
-     IDS_SETTINGS_LOAD_CRYPTO_WALLETS_ON_STARTUP_DEPRECATED},
+    {"defaultWalletDesc", IDS_SETTINGS_DEFAULT_WALLET_DESC},
+    {"defaultBaseCurrencyDesc", IDS_SETTINGS_DEFAULT_BASE_CURRENCY_DESC},
+    {"defaultBaseCryptocurrencyDesc",
+     IDS_SETTINGS_DEFAULT_BASE_CRYPTOCURRENCY_DESC},
     {"showBravewalletIconOnToolbar",
      IDS_SETTINGS_SHOW_BRAVE_WALLET_ICON_ON_TOOLBAR},
+    {"autoLockMinutes", IDS_SETTINGS_AUTO_LOCK_MINUTES},
+    {"autoLockMinutesDesc", IDS_SETTINGS_AUTO_LOCK_MINUTES_DESC},
     {"googleLoginForExtensionsDesc", IDS_SETTINGS_GOOGLE_LOGIN_FOR_EXTENSIONS},
     {"hangoutsEnabledDesc", IDS_SETTINGS_HANGOUTS_ENABLED_DESC},
     {"mediaRouterEnabledDesc", IDS_SETTINGS_MEDIA_ROUTER_ENABLED_DESC},
@@ -262,6 +335,8 @@ void BraveAddCommonStrings(content::WebUIDataSource* html_source,
     {"changeIpfsStorageMaxLabel", IDS_SETTINGS_CHANGE_IPFS_STORAGE_MAX_LABEL},
     {"changeIpfsStorageMaxDesc", IDS_SETTINGS_CHANGE_IPFS_STORAGE_MAX_DESC},
     {"ipfsErrorInvalidAddress", IDS_SETTINGS_IPFS_ERROR_INVALID_ADDRESS},
+    {"ipfsErrorInvalidAddressOrigin",
+     IDS_SETTINGS_IPFS_ERROR_INVALID_ADDRESS_ORIGIN_ISOLATION},
     {"ipfsAutoFallbackToGatewayLabel",
      IDS_SETTINGS_IPFS_AUTO_FALLBACK_TO_GATEWAY_LABEL},
     {"ipfsAutoFallbackToGatewayDesc",
@@ -320,12 +395,70 @@ void BraveAddCommonStrings(content::WebUIDataSource* html_source,
     {"ipfsKeyExport", IDS_SETTINGS_IPNS_KEY_EXPORT_ITEM},
     {"ipfsKeyRemove", IDS_SETTINGS_IPNS_KEY_REMOVE_ITEM},
     {"ipfsKeyExportError", IDS_SETTINGS_IPNS_KEYS_EXPORT_ERROR},
+    {"resetWallet", IDS_SETTINGS_WALLET_RESET},
+    {"walletResetConfirmation", IDS_SETTINGS_WALLET_RESET_CONFIRMATION},
+    {"walletNetworksLinkTitle", IDS_SETTINGS_WALLET_NETWORKS_ITEM},
+    {"walletAddNetworkDialogTitle", IDS_SETTINGS_WALLET_ADD_NETWORK_TITLE},
+    {"walletAddNetworkInvalidURLInput",
+     IDS_SETTINGS_WALLET_ADD_NETWORK_INVALID_ADDRESS_ERROR},
+    {"walletNetworkAdd", IDS_SETTINGS_WALLET_ADD_NETWORK},
+    {"walletNetworksListTitle", IDS_SETTINGS_WALLET_NETWORK_LIST_TITLE},
+    {"walletNetworksItemDesc", IDS_SETTINGS_WALLET_NETWORKS_ITEM_DESC},
+    {"walletNetworksError", IDS_SETTINGS_WALLET_NETWORKS_ERROR},
+    {"walletDeleteNetworkConfirmation",
+     IDS_SETTINGS_WALLET_NETWORKS_CONFIRMATION},
+    {"walletAddNetworkDialogChainIdTitle",
+     IDS_SETTINGS_WALLET_NETWORKS_CHAIN_ID_TITLE},
+    {"walletAddNetworkDialogChainIdPlaceholder",
+     IDS_SETTINGS_WALLET_NETWORKS_CHAIN_ID_PLACEHOLDER},
+    {"walletAddNetworkDialogChainNameTitle",
+     IDS_SETTINGS_WALLET_NETWORKS_CHAIN_NAME_TITLE},
+    {"walletAddNetworkDialogChainNamePlaceholder",
+     IDS_SETTINGS_WALLET_NETWORKS_CHAIN_NAME_PLACEHOLDER},
+    {"walletAddNetworkDialogCurrencyNameTitle",
+     IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_NAME_TITLE},
+    {"walletAddNetworkDialogCurrencyNamePlaceholder",
+     IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_NAME_PLACEHOLDER},
+    {"walletAddNetworkDialogCurrencySymbolTitle",
+     IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_SYMBOL_TITLE},
+    {"walletAddNetworkDialogCurrencySymbolPlaceholder",
+     IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_SYMBOL_PLACEHOLDER},
+    {"walletAddNetworkDialogCurrencyDecimalsTitle",
+     IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_DECIMALS_TITLE},
+    {"walletAddNetworkDialogCurrencyDecimalsPlaceholder",
+     IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_DECIMALS_PLACEHOLDER},
+    {"walletAddNetworkDialogRpcTitle", IDS_SETTINGS_WALLET_NETWORKS_RPC_TITLE},
+    {"walletAddNetworkDialogUrlPlaceholder",
+     IDS_SETTINGS_WALLET_NETWORKS_URL_PLACEHOLDER},
+    {"walletAddNetworkDialogIconsTitle",
+     IDS_SETTINGS_WALLET_NETWORKS_ICONS_TITLE},
+    {"walletAddNetworkDialogBlocksTitle",
+     IDS_SETTINGS_WALLET_NETWORKS_BLOCKS_TITLE},
+    {"walletAddNetworkMandarotyFieldError",
+     IDS_SETTINGS_WALLET_NETWORKS_MANDATORY_ERROR},
+    {"walletAddNetworkInvalidChainId",
+     IDS_SETTINGS_WALLET_NETWORKS_CHAID_ID_ERROR},
+    {"walletAddNetworkDialogFillNativeCurrencyInfo",
+     IDS_SETTINGS_WALLET_NETWORKS_NATIVE_CURRENCY_ERROR},
+    {"walletAddNetworkDialogReplaceNetwork",
+     IDS_SETTINGS_WALLET_NETWORKS_REPLACE},
+    {"walletNetworkEdit", IDS_BRAVE_WALLET_NETWORK_EDIT},
+    {"walletNetworkRemove", IDS_BRAVE_WALLET_NETWORK_REMOVE},
   };
 
   html_source->AddLocalizedStrings(localized_strings);
   html_source->AddString("webRTCLearnMoreURL", kWebRTCLearnMoreURL);
   html_source->AddString("googleLoginLearnMoreURL", kGoogleLoginLearnMoreURL);
   html_source->AddString("ipfsDNSLinkLearnMoreURL", kDNSLinkLearnMoreURL);
+  auto confirmation_phrase =
+      l10n_util::GetStringUTF16(IDS_SETTINGS_WALLET_RESET_CONFIRMATION_PHRASE);
+  html_source->AddString("walletResetConfirmationPhrase", confirmation_phrase);
+  auto confirmation_text = l10n_util::GetStringFUTF16(
+      IDS_SETTINGS_WALLET_RESET_CONFIRMATION, confirmation_phrase);
+  html_source->AddString("walletResetConfirmation", confirmation_text);
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+  html_source->AddString("webDiscoveryLearnMoreURL", kWebDiscoveryLearnMoreUrl);
+#endif
   html_source->AddString("speedreaderLearnMoreURL", kSpeedreaderLearnMoreUrl);
   html_source->AddString(
       "getMoreExtensionsUrl",
@@ -334,6 +467,9 @@ void BraveAddCommonStrings(content::WebUIDataSource* html_source,
               GURL(extension_urls::GetWebstoreExtensionsCategoryURL()),
               g_browser_process->GetApplicationLocale())
               .spec()));
+  html_source->AddString("autoLockMinutesValue",
+                         std::to_string(profile->GetPrefs()->GetInteger(
+                             kBraveWalletAutoLockMinutes)));
   html_source->AddString(
       "ipfsStorageMaxValue",
       std::to_string(profile->GetPrefs()->GetInteger(kIpfsStorageMax)));
@@ -347,6 +483,18 @@ void BraveAddCommonStrings(content::WebUIDataSource* html_source,
                          l10n_util::GetStringFUTF16(
                              IDS_SETTINGS_RESOLVE_UNSTOPPABLE_DOMAINS_SUB_DESC,
                              kUnstoppableDomainsLearnMoreURL));
+
+  html_source->AddString(
+      "braveRewardsStateLevelAdTargetingDescLabel",
+      l10n_util::GetStringFUTF16(
+          IDS_SETTINGS_BRAVE_REWARDS_STATE_LEVEL_AD_TARGETING_DESC_LABEL,
+          kBraveAdsLearnMoreURL));
+
+  html_source->AddString(
+      "braveRewardsAutoContributeDescLabel",
+      l10n_util::GetStringFUTF16(
+          IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_DESC_LABEL,
+          kBraveTermsOfUseURL, kBravePrivacyPolicyURL));
 }
 
 void BraveAddResources(content::WebUIDataSource* html_source,
@@ -366,20 +514,20 @@ void BraveAddAboutStrings(content::WebUIDataSource* html_source,
   html_source->AddString("aboutProductLicense", license);
 }
 
-void BraveAddSocialBlockingLoadTimeData(content::WebUIDataSource* html_source,
-                                        Profile* profile) {
-  html_source->AddBoolean(
-      "signInAllowedOnNextStartupInitialValue",
-      profile->GetPrefs()->GetBoolean(prefs::kSigninAllowedOnNextStartup));
-}
-
 void BraveAddLocalizedStrings(content::WebUIDataSource* html_source,
                               Profile* profile) {
   BraveAddCommonStrings(html_source, profile);
   BraveAddResources(html_source, profile);
   BraveAddAboutStrings(html_source, profile);
   BravePrivacyHandler::AddLoadTimeData(html_source, profile);
-  BraveAddSocialBlockingLoadTimeData(html_source, profile);
+
+  // Load time data for brave://settings/extensions
+  html_source->AddBoolean(
+      "signInAllowedOnNextStartupInitialValue",
+      profile->GetPrefs()->GetBoolean(prefs::kSigninAllowedOnNextStartup));
+
+  html_source->AddBoolean("isMediaRouterEnabled",
+                          media_router::MediaRouterEnabled(profile));
 }
 
 }  // namespace settings

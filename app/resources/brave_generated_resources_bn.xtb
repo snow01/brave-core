@@ -188,13 +188,11 @@
 <translation id="8488282162676695335">Brave ওয়ালেট</translation>
 <translation id="2356070529366658676">জিজ্ঞাসা করুন</translation>
 <translation id="7701040980221191251">কিছুই নয়</translation>
-<translation id="5655621391922317800">Crypto ওয়ালেটগুলি</translation>
-<translation id="1696548911367097044">অবমানিত ক্রিপ্টো ওয়ালেটগুলোর এক্সটেনশন</translation>
-<translation id="1085027414516521238">MetaMask</translation>
-<translation id="7090046810227878892">ড্যাপস ব্যবহারের জন্য ইথেরিয়াম সরবরাহকারী</translation>
-<translation id="5913089932885076110">শুরু করার সময়ে ক্রিপ্টো ওয়ালেটগুলি লোড করুন</translation>
-<translation id="757886143331967039">অবমানিত ক্রিপ্টো ওয়ালেটগুলোর এক্সটেনশন স্টার্টআপ-এ লোড করুন</translation>
+<translation id="1274962333945373242">অবমানিত ক্রিপ্টো ওয়ালেটগুলোর এক্সটেনশন</translation>
+<translation id="9131889008937672866">ডিফল্ট ক্রিপ্টোকারেন্সি ওয়ালেট</translation>
 <translation id="1834467296210148203">টুলবারে Brave ওয়ালেট আইকন দেখান</translation>
+<translation id="8239147115686034860">স্বয়ংক্রিয়ভাবে Brave ওয়ালেট লক করুন</translation>
+<translation id="414639769490080648">Brave ওয়ালেট স্বয়ং স্বয়ংক্রিয়ভাবে লক না হওয়া অবধি অপেক্ষারত মিনিটের সংখ্যা</translation>
 <translation id="6864914031231797928">এক্সটেনশনগুলির জন্য Google লগইন এর অনুমতি দিন</translation>
 <translation id="5927916530277631319">অপ্রতিরোধ্য ডোমেইনগুলোর সমস্যা সমাধানের উপায়</translation>
 <translation id="5248318250177143470">Ethereum Name Service (ENS) সমাধানের উপায়</translation>
@@ -210,7 +208,6 @@
 <translation id="6476061084931271248">পরিবর্তনগুলি প্রয়োগ করার জন্য নোড রিস্টার্ট করুন</translation>
 <translation id="3754226427671882382">নোড রিস্টার্ট করুন</translation>
 <translation id="949667118776341807">ঘোরান</translation>
-<translation id="635013291822406289">/ip4/46.21.210.45/tcp/14406/quic/p2p/12D3KooWBdmLJjhpgJ9KZgLM3f894ff9xyBfPvPjFNn7MKJpyrC2</translation>
 <translation id="724513921936768901">এই নামটি বৈধ নয়</translation>
 <translation id="6758961763875471084">পীয়ার তালিকা সম্পাদনা করুন</translation>
 <translation id="1295874070797049002">কী রপ্তানী করুন</translation>
@@ -234,6 +231,7 @@
 <translation id="1251574393468476924">সর্বোচ্চ IPFS ক্যাশ সাইজ (GB)</translation>
 <translation id="2503497578400410320">IPFS ভাণ্ডারের ডেটাস্টোর-এর নমনীয় ঊর্ধ্বসীমা।</translation>
 <translation id="7703184801853248830">অবৈধ গেটওয়ে ঠিকানা</translation>
+<translation id="7690058578502751948">Brave-এ শুধুমাত্র উত্স আইসোলেসন সহ একটি বৈধ IPFS গেটওয়ে সক্ষম আছে</translation>
 <translation id="585868419599255817">IPFS পাবলিক গেটওয়ে ফলব্যাক</translation>
 <translation id="207763736230883589">আপনার স্থানীয় নোড পৌঁছাতে না পারলে স্বয়ংক্রিয়ভাবে সর্বজনীন IPFS গেটওয়েতে ফিরে যান।</translation>
 <translation id="4107552920076294723">কনফিগার করা  IPFS গেটওয়েতে  IPFS সংস্থানগুলি পুনর্নির্দেশ করুন</translation>
@@ -241,6 +239,7 @@
 <translation id="8655170717758778983">যখন সম্ভব DNSLink এর মাধ্যমে IPFS পেজগুলোতে স্বয়ংক্রিয়ভাবে পুনঃনির্দেশ (রিডাইরেক্ট) করুন</translation>
 <translation id="2233724520223030977">কোন ওয়েবসাইটের IPFS সংস্করণে নিয়ে যেতে যখনই সম্ভব স্বয়ংক্রিয়ভাবে DNSLink ব্যবহার করে</translation>
 <translation id="6554397389149987360">ব্রাউজারে স্ক্রিন শেয়ারিং এবং অন্যান্য বৈশিষ্ট্য সক্ষম করতে Hangouts উপাদানগুলি ব্যবহার করে।</translation>
+<translation id="7878791177459550035">মিডিয়া রাউটার ব্রাউজারটিতে কাস্টের বৈশিষ্ট্য সক্রিয় করেছে।</translation>
 <translation id="9156965752763025780">আপনার পরিবর্তনগুলি পরবর্তী সময় আপনি Brave আবার চালু হলে ফলপ্রদ হবে৷</translation>
 <translation id="7179921470347911571">এখনই রিলঞ্চ করুন</translation>
 <translation id="8068526464562249859">আপনার ব্রাউজার বার থেকে সাধারণ IPFS কার্যগুলিতে অ্যাক্সেস সহ ব্র্যাভে উন্নত IPFS সমর্থনের জন্য IPFS কমপেনিয়ান এক্সটেনশন ব্যবহার করে।</translation>
@@ -301,6 +300,10 @@
 <translation id="1391855377994926460">আরো দ্রুত ওয়েব ব্রাউজ করুন - মুখ্য সংবাদের সাইটগুলিতে 6x পর্যন্ত দ্রুত ব্রাউজ করুন।</translation>
 <translation id="9218430445555521422">ডিফল্ট হিসেবে সেট করুন</translation>
 <translation id="3479552764303398839">এখনই নয়</translation>
+<translation id="732814027519296280">Brave অনুসন্ধানকে আরও উন্নত করতে চান?</translation>
+<translation id="2677865600861971449">বেনামে কিছু অনুসন্ধান &amp; ব্রাউজিং ডেটায় অবদান রাখতে ওয়েব আবিষ্কার প্রোজেক্টের সুবিধা নিন এবং সকলের জন্য Brave অনুসন্ধান উন্নত করুন। গোপনীয়্তা-রক্ষণ। এবং শূন্য প্রয়াস। <ph name="LEARN_MORE_TEXT"/></translation>
+<translation id="5860491529813859533">চালু করুন</translation>
+<translation id="780301667611848630">না থাক</translation>
 <translation id="5039804452771397117">অনুমতি দিন</translation>
 <translation id="7053983685419859001">ব্লক করুন</translation>
 <translation id="7815301689257843278">ক্র্যাশ রিপোর্ট স্বয়ংক্রিয়ভাবে পাঠান যাতে এই Brave এই সমস্যাটি আবার না হওয়া আটকাতে পারে?</translation>
@@ -310,6 +313,8 @@
 <translation id="6873781976650514089">এই সেটিংটি</translation>
 <translation id="6040143037577758943">বন্ধ</translation>
 <translation id="5600566490506283344">Brave অ্যাড বিজ্ঞপ্তি</translation>
+<translation id="4174337572777167894">ওয়েব আবিষ্কার প্রকল্প</translation>
+<translation id="8659271182272561965">Brave অনুসন্ধান &amp; পরিশোধন করতে কিছু অনামী অনুসন্ধান ব্রাউজিং ডেটায় অবদান রাখুন।</translation>
 <translation id="1516554614404600536">Brave টুলটিপ</translation>
 <translation id="4877147287319222750">সাইডবারে যোগ করুন</translation>
 <translation id="4233010476457917696">সাইডবার দেখান</translation>
@@ -351,7 +356,23 @@
 আপনি <ph name="BEGIN_LINK_BUILD_INSTRUCTIONS"/>নিজের জন্য কিভাবে ডাউনলোড ও গঠন করতে হয় সে সংক্রান্ত নির্দেশনাটি পড়তে পারেন<ph name="END_LINK_BUILD_INSTRUCTIONS"/> সুনির্দিষ্ট <ph name="BEGIN_LINK_SOURCE_CODE"/>সোর্স কোড ব্যবহার করা হয়েছে এই কপিটি তৈরি করতে<ph name="END_LINK_SOURCE_CODE"/>.</translation>
 <translation id="4474155171896946103">সব কটি ট্যাব বুকমার্ক করুন...</translation>
 <translation id="2336228925368920074">সকল ট্যাব বুকমার্ক করুন...</translation>
+<translation id="4235920711083356755">VPN বোতাম দেখান</translation>
+<translation id="4070612712151038707">টুলবারে VPN বোতামটি দেখায়</translation>
 <translation id="7705524343798198388">VPN</translation>
+<translation id="3960619311638643872">Brave VPN</translation>
+<translation id="2345974803401546682">Brave VPN সম্পর্কে</translation>
+<translation id="4378551569595875038">সংযুক্ত হচ্ছে...</translation>
+<translation id="3368922792935385530">সংযুক্ত</translation>
+<translation id="1536754031901697553">ডিসকানেক্ট করা হচ্ছে...</translation>
+<translation id="8030169304546394654">সংযোগবিচ্ছিন্ন</translation>
+<translation id="1863950594388384201">টুলবারে VPN বোতাম দেখান</translation>
+<translation id="5187139277471084437">টুলবারে VPN বোতাম লুকোন</translation>
+<translation id="8041089156583427627">প্রতিক্রিয়া পাঠান</translation>
+<translation id="4049186905514157504">আমার প্ল্যান নিয়ন্ত্রণ করুন</translation>
+<translation id="7570585565843385325">টুলবারে VPN বোতাম দেখান</translation>
+<translation id="5310426188697803101">টুলবারে VPN বোতাম লুকোন</translation>
+<translation id="945522503751344254">মতামত জানান</translation>
+<translation id="3015685033234401792">আমার প্ল্যান নিয়ন্ত্রণ করুন</translation>
 <translation id="796831669370432378">একটি বুকমার্ক যোগ করতে, ঠিকানার বারের ঠিক পরে বুকমার্ক বোতামটি ক্লিক করুন</translation>
 <translation id="4989337484121655457">সম্পূর্ণ ডিস্ক-এর ব্যবহার-যোগ্যতা প্রয়োজন</translation>
 <translation id="8025559074845816210">Safari থেকে আপনার বুকমার্কগুলি আমদানি করতে ব্রেভ-এর সম্পূর্ণ ডিস্ক-এর ব্যবহার-যোগ্যতা প্রয়োজন।</translation>

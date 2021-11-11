@@ -10,6 +10,7 @@
 #include "brave/components/brave_wallet/browser/brave_wallet_constants.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_types.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
+#include "brave/components/brave_wallet/common/hex_utils.h"
 
 namespace brave_wallet {
 
@@ -54,16 +55,19 @@ bool GetTransactionInfoFromData(const std::string& data,
                                 std::vector<std::string>* tx_params,
                                 std::vector<std::string>* tx_args) {
   CHECK(tx_type);
-  CHECK(tx_params);
-  CHECK(tx_args);
 
-  tx_params->clear();
-  tx_args->clear();
+  if (tx_params)
+    tx_params->clear();
+  if (tx_args)
+    tx_args->clear();
+
   *tx_type = mojom::TransactionType::Other;
 
   static std::map<std::string, mojom::TransactionType> kEthDataFunctionHashes =
       {{"0xa9059cbb", mojom::TransactionType::ERC20Transfer},
        {"0x095ea7b3", mojom::TransactionType::ERC20Approve},
+       {"0x23b872dd", mojom::TransactionType::ERC721TransferFrom},
+       {"0x42842e0e", mojom::TransactionType::ERC721SafeTransferFrom},
        {"0x70a08231", mojom::TransactionType::Other}};
 
   if (data.empty() || data == "0x0") {
@@ -72,8 +76,10 @@ bool GetTransactionInfoFromData(const std::string& data,
   }
   if (!IsValidHexString(data))
     return false;
-  if (data.length() < 10)
-    return false;
+  if (data.length() < 10) {
+    *tx_type = mojom::TransactionType::Other;
+    return true;
+  }
 
   std::string function_hash = base::ToLowerASCII(data.substr(0, 10));
   auto it = kEthDataFunctionHashes.find(function_hash);
@@ -96,10 +102,45 @@ bool GetTransactionInfoFromData(const std::string& data,
     // Very strictly must have correct data
     if (left_over_data.length() > 0)
       return false;
-    tx_args->push_back(address);
-    tx_args->push_back(value);
-    tx_params->push_back("address");
-    tx_params->push_back("uint256");
+
+    if (tx_args) {
+      tx_args->push_back(address);
+      tx_args->push_back(value);
+    }
+
+    if (tx_params) {
+      tx_params->push_back("address");
+      tx_params->push_back("uint256");
+    }
+  } else if (*tx_type == mojom::TransactionType::ERC721TransferFrom ||
+             *tx_type == mojom::TransactionType::ERC721SafeTransferFrom) {
+    std::string from, to, token_id;
+    std::string left_over_data = data.substr(10);
+    // Intentional copy of left_over_data
+    if (!GetAddressArgFromData(std::string(left_over_data), &from,
+                               &left_over_data))
+      return false;
+    if (!GetAddressArgFromData(std::string(left_over_data), &to,
+                               &left_over_data))
+      return false;
+    if (!GetUint256HexFromData(std::string(left_over_data), &token_id,
+                               &left_over_data))
+      return false;
+    // Very strictly must have correct data
+    if (left_over_data.length() > 0)
+      return false;
+
+    if (tx_args) {
+      tx_args->push_back(from);
+      tx_args->push_back(to);
+      tx_args->push_back(token_id);
+    }
+
+    if (tx_params) {
+      tx_params->push_back("address");
+      tx_params->push_back("address");
+      tx_params->push_back("uint256");
+    }
   }
 
   return true;

@@ -5,16 +5,16 @@
 
 #include "bat/ads/internal/conversions/conversions.h"
 
-#include <cstdint>
 #include <memory>
 
 #include "base/strings/stringprintf.h"
-#include "bat/ads/internal/ad_events/ad_events.h"
+#include "bat/ads/internal/ad_events/ad_event_unittest_util.h"
 #include "bat/ads/internal/database/tables/ad_events_database_table.h"
 #include "bat/ads/internal/database/tables/conversion_queue_database_table.h"
 #include "bat/ads/internal/database/tables/conversions_database_table.h"
 #include "bat/ads/internal/resources/conversions/conversions_resource.h"
 #include "bat/ads/internal/unittest_base.h"
+#include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
 #include "bat/ads/pref_names.h"
 
@@ -40,23 +40,8 @@ class BatAdsConversionsTest : public UnitTestBase {
         conversions, [](const bool success) { ASSERT_TRUE(success); });
   }
 
-  int64_t CalculateExpiryTimestamp(const int observation_window) {
-    base::Time time = base::Time::Now();
-    time += base::TimeDelta::FromDays(observation_window);
-
-    return static_cast<int64_t>(time.ToDoubleT());
-  }
-
-  void FireAdEvent(const std::string& creative_set_id,
-                   const ConfirmationType confirmation_type) {
-    AdEventInfo ad_event;
-    ad_event.type = AdType::kAdNotification;
-    ad_event.creative_instance_id = "7a3b6d9f-d0b7-4da6-8988-8d5b8938c94f";
-    ad_event.creative_set_id = creative_set_id;
-    ad_event.timestamp = NowAsTimestamp();
-    ad_event.confirmation_type = confirmation_type;
-
-    LogAdEvent(ad_event, [](const bool success) { ASSERT_TRUE(success); });
+  base::Time CalculateExpireAtTime(const int observation_window) {
+    return Now() + base::TimeDelta::FromDays(observation_window);
   }
 
   std::unique_ptr<Conversions> conversions_;
@@ -78,8 +63,7 @@ TEST_F(BatAdsConversionsTest, ShouldNotAllowConversionTracking) {
   conversion.type = "postview";
   conversion.url_pattern = "https://www.foobar.com/*";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
@@ -109,13 +93,14 @@ TEST_F(BatAdsConversionsTest, ConvertViewedAd) {
   conversion.type = "postview";
   conversion.url_pattern = "https://www.foo.com/*";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   // Act
   conversions_->MaybeConvert({"https://www.foo.com/bar"}, "", {});
@@ -146,14 +131,17 @@ TEST_F(BatAdsConversionsTest, ConvertClickedAd) {
   conversion.type = "postclick";
   conversion.url_pattern = "https://www.foo.com/*/baz";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kClicked);
+  const AdEventInfo ad_event_1 =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event_1);
+  const AdEventInfo ad_event_2 =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kClicked);
+  FireAdEvent(ad_event_2);
 
   // Act
   conversions_->MaybeConvert({"https://www.foo.com/bar/baz"}, "", {});
@@ -184,8 +172,8 @@ TEST_F(BatAdsConversionsTest, ConvertMultipleAds) {
   conversion_1.type = "postview";
   conversion_1.url_pattern = "https://www.foo.com/*";
   conversion_1.observation_window = 3;
-  conversion_1.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion_1.observation_window);
+  conversion_1.expire_at =
+      CalculateExpireAtTime(conversion_1.observation_window);
   conversions.push_back(conversion_1);
 
   ConversionInfo conversion_2;
@@ -193,16 +181,27 @@ TEST_F(BatAdsConversionsTest, ConvertMultipleAds) {
   conversion_2.type = "postclick";
   conversion_2.url_pattern = "https://www.foo.com/*/baz";
   conversion_2.observation_window = 3;
-  conversion_2.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion_2.observation_window);
+  conversion_2.expire_at =
+      CalculateExpireAtTime(conversion_2.observation_window);
   conversions.push_back(conversion_2);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion_1.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event_1 =
+      BuildAdEvent("7ee858e8-6306-4317-88c3-9e7d58afad26",
+                   conversion_1.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event_1);
 
-  FireAdEvent(conversion_2.creative_set_id, ConfirmationType::kViewed);
-  FireAdEvent(conversion_2.creative_set_id, ConfirmationType::kClicked);
+  AdvanceClock(base::TimeDelta::FromMinutes(1));
+
+  const AdEventInfo ad_event_2 =
+      BuildAdEvent("da2d3397-bc97-46d1-a323-d8723c0a6b33",
+                   conversion_2.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event_2);
+  const AdEventInfo ad_event_3 =
+      BuildAdEvent("da2d3397-bc97-46d1-a323-d8723c0a6b33",
+                   conversion_2.creative_set_id, ConfirmationType::kClicked);
+  FireAdEvent(ad_event_3);
 
   // Act
   conversions_->MaybeConvert({"https://www.foo.com/qux"}, "", {});
@@ -224,11 +223,11 @@ TEST_F(BatAdsConversionsTest, ConvertMultipleAds) {
         EXPECT_EQ(2UL, ad_events.size());
 
         const ConversionInfo conversion_1 = conversions.at(0);
-        const AdEventInfo ad_event_1 = ad_events.at(0);
+        const AdEventInfo ad_event_1 = ad_events.at(1);
         EXPECT_EQ(conversion_1.creative_set_id, ad_event_1.creative_set_id);
 
         const ConversionInfo conversion_2 = conversions.at(1);
-        const AdEventInfo ad_event_2 = ad_events.at(1);
+        const AdEventInfo ad_event_2 = ad_events.at(0);
         EXPECT_EQ(conversion_2.creative_set_id, ad_event_2.creative_set_id);
       });
 }
@@ -242,14 +241,17 @@ TEST_F(BatAdsConversionsTest, ConvertViewedAdWhenAdWasDismissed) {
   conversion.type = "postview";
   conversion.url_pattern = "https://www.foo.com/*bar*";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kDismissed);
+  const AdEventInfo ad_event_1 =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event_1);
+  const AdEventInfo ad_event_2 =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kClicked);
+  FireAdEvent(ad_event_2);
 
   // Act
   conversions_->MaybeConvert({"https://www.foo.com/quxbarbaz"}, "", {});
@@ -280,17 +282,26 @@ TEST_F(BatAdsConversionsTest, DoNotConvertNonViewedOrClickedAds) {
   conversion.type = "postclick";
   conversion.url_pattern = "https://www.foo.com/bar";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kDismissed);
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kTransferred);
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kFlagged);
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kUpvoted);
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kDownvoted);
+  const AdEventInfo ad_event_1 =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kDismissed);
+  FireAdEvent(ad_event_1);
+  const AdEventInfo ad_event_2 =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kTransferred);
+  FireAdEvent(ad_event_2);
+  const AdEventInfo ad_event_3 =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kFlagged);
+  FireAdEvent(ad_event_3);
+  const AdEventInfo ad_event_4 =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kUpvoted);
+  FireAdEvent(ad_event_4);
+  const AdEventInfo ad_event_5 =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kDownvoted);
+  FireAdEvent(ad_event_5);
 
   // Act
   conversions_->MaybeConvert({"https://www.foo.com/bar"}, "", {});
@@ -317,13 +328,14 @@ TEST_F(BatAdsConversionsTest, DoNotConvertViewedAdForPostClick) {
   conversion.type = "postclick";
   conversion.url_pattern = "https://www.foo.com/bar";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   // Act
   conversions_->MaybeConvert({"https://www.foo.com/bar"}, "", {});
@@ -345,7 +357,9 @@ TEST_F(BatAdsConversionsTest, DoNotConvertAdIfConversionDoesNotExist) {
   // Arrange
   const std::string creative_set_id = "3519f52c-46a4-4c48-9c2b-c264c0067f04";
 
-  FireAdEvent(creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   // Act
   conversions_->MaybeConvert({"https://www.foo.com/bar"}, "", {});
@@ -373,13 +387,14 @@ TEST_F(BatAdsConversionsTest,
   conversion.type = "postview";
   conversion.url_pattern = "https://www.foo.com/*";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   conversions_->MaybeConvert({"https://www.foo.com/bar"}, "", {});
 
@@ -413,13 +428,14 @@ TEST_F(BatAdsConversionsTest,
   conversion.type = "postview";
   conversion.url_pattern = "https://www.foo.com/bar/*";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   // Act
   conversions_->MaybeConvert({"https://www.foo.com/qux"}, "", {});
@@ -446,13 +462,14 @@ TEST_F(BatAdsConversionsTest, ConvertAdWhenTheConversionIsOnTheCuspOfExpiring) {
   conversion.type = "postview";
   conversion.url_pattern = "https://*.bar.com/*";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   task_environment_.FastForwardBy(base::TimeDelta::FromDays(3) -
                                   base::TimeDelta::FromMinutes(1));
@@ -486,13 +503,14 @@ TEST_F(BatAdsConversionsTest, DoNotConvertAdWhenTheConversionHasExpired) {
   conversion.type = "postview";
   conversion.url_pattern = "https://www.foo.com/b*r/*";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   task_environment_.FastForwardBy(base::TimeDelta::FromDays(3));
 
@@ -521,13 +539,14 @@ TEST_F(BatAdsConversionsTest, ConvertAdForRedirectChainIntermediateUrl) {
   conversion.type = "postview";
   conversion.url_pattern = "https://foo.com/baz";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   // Act
   conversions_->MaybeConvert(
@@ -560,13 +579,14 @@ TEST_F(BatAdsConversionsTest, ConvertAdForRedirectChainOriginalUrl) {
   conversion.type = "postview";
   conversion.url_pattern = "https://foo.com/bar";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   // Act
   conversions_->MaybeConvert(
@@ -599,13 +619,14 @@ TEST_F(BatAdsConversionsTest, ConvertAdForRedirectChainUrl) {
   conversion.type = "postview";
   conversion.url_pattern = "https://foo.com/qux";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   // Act
   conversions_->MaybeConvert(
@@ -643,13 +664,14 @@ TEST_F(BatAdsConversionsTest, ExtractConversionId) {
   conversion.type = "postview";
   conversion.url_pattern = "https://brave.com/thankyou";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   // Act
   conversions_->MaybeConvert(
@@ -688,13 +710,14 @@ TEST_F(BatAdsConversionsTest, ExtractConversionIdWithResourcePatternFromHtml) {
   conversion.type = "postview";
   conversion.url_pattern = "https://brave.com/foobar";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   // Act
   // See associated patterns in the verifiable conversion resource
@@ -734,13 +757,14 @@ TEST_F(BatAdsConversionsTest, ExtractConversionIdWithResourcePatternFromUrl) {
   conversion.type = "postview";
   conversion.url_pattern = "https://brave.com/foobar?conversion_id=*";
   conversion.observation_window = 3;
-  conversion.expiry_timestamp =
-      CalculateExpiryTimestamp(conversion.observation_window);
+  conversion.expire_at = CalculateExpireAtTime(conversion.observation_window);
   conversions.push_back(conversion);
 
   SaveConversions(conversions);
 
-  FireAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  const AdEventInfo ad_event =
+      BuildAdEvent(conversion.creative_set_id, ConfirmationType::kViewed);
+  FireAdEvent(ad_event);
 
   // Act
   // See associated patterns in the verifiable conversion resource

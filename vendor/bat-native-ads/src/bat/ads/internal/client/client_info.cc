@@ -5,6 +5,7 @@
 
 #include "bat/ads/internal/client/client_info.h"
 
+#include "base/check.h"
 #include "bat/ads/internal/json_helper.h"
 #include "bat/ads/internal/logging.h"
 
@@ -12,7 +13,7 @@ namespace ads {
 
 ClientInfo::ClientInfo() = default;
 
-ClientInfo::ClientInfo(const ClientInfo& state) = default;
+ClientInfo::ClientInfo(const ClientInfo& info) = default;
 
 ClientInfo::~ClientInfo() = default;
 
@@ -40,12 +41,12 @@ bool ClientInfo::FromJson(const std::string& json) {
     }
   }
 
+#if !defined(OS_IOS)
   if (document.HasMember("adsShownHistory")) {
     for (const auto& ad_shown : document["adsShownHistory"].GetArray()) {
-      // adsShownHistory used to be an array of timestamps, so if
-      // that's what we have here don't import them and we'll just
-      // start fresh.
-      if (ad_shown.IsUint64()) {
+      // adsShownHistory used to be an array of timestamps, so if that's what we
+      // have here don't import them and we'll just start fresh.
+      if (ad_shown.IsInt64()) {
         continue;
       }
       AdHistoryInfo ad_history;
@@ -56,11 +57,14 @@ bool ClientInfo::FromJson(const std::string& json) {
       }
     }
   }
+#endif
 
   if (document.HasMember("purchaseIntentSignalHistory")) {
     for (const auto& segment_history :
          document["purchaseIntentSignalHistory"].GetObject()) {
       std::string segment = segment_history.name.GetString();
+      DCHECK(!segment.empty());
+
       std::deque<ad_targeting::PurchaseIntentSignalHistoryInfo> histories;
       for (const auto& segment_history_item :
            segment_history.value.GetArray()) {
@@ -72,6 +76,7 @@ bool ClientInfo::FromJson(const std::string& json) {
           histories.push_back(history);
         }
       }
+
       purchase_intent_signal_history.insert({segment, histories});
     }
   }
@@ -105,8 +110,8 @@ bool ClientInfo::FromJson(const std::string& json) {
   }
 
   if (document.HasMember("nextCheckServeAd")) {
-    next_ad_serving_interval_timestamp =
-        document["nextCheckServeAd"].GetUint64();
+    const double timestamp = document["nextCheckServeAd"].GetDouble();
+    serve_ad_at = base::Time::FromDoubleT(timestamp);
   }
 
   if (document.HasMember("textClassificationProbabilitiesHistory")) {
@@ -117,6 +122,8 @@ bool ClientInfo::FromJson(const std::string& json) {
       for (const auto& probability :
            probabilities["textClassificationProbabilities"].GetArray()) {
         const std::string segment = probability["segment"].GetString();
+        DCHECK(!segment.empty());
+
         const double page_score = probability["pageScore"].GetDouble();
 
         new_probabilities.insert({segment, page_score});
@@ -192,7 +199,7 @@ void SaveToJson(JsonWriter* writer, const ClientInfo& state) {
   writer->EndObject();
 
   writer->String("nextCheckServeAd");
-  writer->Uint64(state.next_ad_serving_interval_timestamp);
+  writer->Double(state.serve_ad_at.ToDoubleT());
 
   writer->String("textClassificationProbabilitiesHistory");
   writer->StartArray();
@@ -207,6 +214,7 @@ void SaveToJson(JsonWriter* writer, const ClientInfo& state) {
 
       writer->String("segment");
       const std::string segment = probability.first;
+      DCHECK(!segment.empty());
       writer->String(segment.c_str());
 
       writer->String("pageScore");

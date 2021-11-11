@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "brave/components/brave_wallet/browser/brave_wallet_types.h"
+
 namespace brave_wallet {
 
 class EthAddress {
@@ -19,6 +21,7 @@ class EthAddress {
   // input should be a valid address with 20 bytes hex representation starting
   // with 0x
   static EthAddress FromHex(const std::string& input);
+  static bool IsValidAddress(const std::string& input);
   EthAddress();
   EthAddress(const EthAddress& other);
   ~EthAddress();
@@ -30,7 +33,7 @@ class EthAddress {
 
   std::string ToHex() const;
   // EIP55 + EIP1191
-  std::string ToChecksumAddress(uint8_t eip1191_chaincode = 0) const;
+  std::string ToChecksumAddress(uint256_t eip1191_chaincode = 0) const;
 
  private:
   explicit EthAddress(const std::vector<uint8_t>& bytes);

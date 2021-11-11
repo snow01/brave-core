@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include <functional>
+
 #include "base/bind.h"
 #include "base/containers/contains.h"
 #include "base/feature_list.h"
@@ -18,9 +20,26 @@
 #include "net/http/http_request_headers.h"
 #include "net/test/embedded_test_server/embedded_test_server.h"
 #include "net/test/embedded_test_server/http_request.h"
+#include "services/network/public/cpp/client_hints.h"
 #include "third_party/blink/public/common/client_hints/client_hints.h"
+#include "third_party/blink/public/common/features.h"
 
+namespace {
 const char kClientHints[] = "/ch.html";
+const std::reference_wrapper<const base::Feature> kTestFeatures[] = {
+    blink::features::kClientHintsDeviceMemory,
+    blink::features::kClientHintsDeviceMemory_DEPRECATED,
+    blink::features::kClientHintsDPR,
+    blink::features::kClientHintsDPR_DEPRECATED,
+    blink::features::kClientHintsResourceWidth,
+    blink::features::kClientHintsResourceWidth_DEPRECATED,
+    blink::features::kClientHintsViewportWidth,
+    blink::features::kClientHintsViewportWidth_DEPRECATED,
+    blink::features::kPrefersColorSchemeClientHintHeader,
+    blink::features::kUserAgentClientHint,
+    blink::features::kViewportHeightClientHintHeader,
+};
+}  // namespace
 
 class ClientHintsBrowserTest : public InProcessBrowserTest,
                                public ::testing::WithParamInterface<bool> {
@@ -44,17 +63,21 @@ class ClientHintsBrowserTest : public InProcessBrowserTest,
 
   ~ClientHintsBrowserTest() override {}
 
-  bool IsLangClientHintHeaderEnabled() { return GetParam(); }
+  bool IsClientHintHeaderEnabled() { return GetParam(); }
 
   void SetUp() override {
-    if (IsLangClientHintHeaderEnabled()) {
-      // Test that even with Lang CH feature enabled, there is no header.
-      scoped_feature_list_.InitAndEnableFeature(
-          features::kLangClientHintHeader);
-    } else {
-      scoped_feature_list_.InitAndDisableFeature(
-          features::kLangClientHintHeader);
+    // Test that even with CH features enabled, there is no header.
+    std::vector<base::Feature> enabled_features;
+    std::vector<base::Feature> disabled_features;
+    for (const auto& feature : kTestFeatures) {
+      if (IsClientHintHeaderEnabled()) {
+        enabled_features.push_back(feature);
+      } else {
+        disabled_features.push_back(feature);
+      }
     }
+
+    scoped_feature_list_.InitWithFeatures(enabled_features, disabled_features);
     InProcessBrowserTest::SetUp();
   }
 
@@ -73,9 +96,9 @@ class ClientHintsBrowserTest : public InProcessBrowserTest,
 
  private:
   void MonitorResourceRequest(const net::test_server::HttpRequest& request) {
-    for (size_t i = 0; i < blink::kClientHintsMappingsCount; ++i) {
-      if (base::Contains(request.headers,
-                         blink::kClientHintsHeaderMapping[i])) {
+    for (const auto& elem : network::GetClientHintToNameMap()) {
+      const auto& header = elem.second;
+      if (base::Contains(request.headers, header)) {
         count_client_hints_headers_seen_++;
       }
     }
@@ -90,9 +113,11 @@ class ClientHintsBrowserTest : public InProcessBrowserTest,
 };
 
 IN_PROC_BROWSER_TEST_P(ClientHintsBrowserTest, ClientHintsDisabled) {
-  EXPECT_EQ(IsLangClientHintHeaderEnabled(),
-            base::FeatureList::IsEnabled(features::kLangClientHintHeader));
-  ui_test_utils::NavigateToURL(browser(), client_hints_url());
+  for (const auto& feature : kTestFeatures) {
+    EXPECT_EQ(IsClientHintHeaderEnabled(),
+              base::FeatureList::IsEnabled(feature));
+  }
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), client_hints_url()));
   EXPECT_EQ(0u, count_client_hints_headers_seen());
 }
 

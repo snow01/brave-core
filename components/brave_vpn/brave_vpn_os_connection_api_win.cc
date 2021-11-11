@@ -5,6 +5,8 @@
 
 #include "brave/components/brave_vpn/brave_vpn_os_connection_api_win.h"
 
+#include <windows.h>
+
 #include <ras.h>
 
 #include "base/logging.h"
@@ -17,7 +19,13 @@
 // (brian@clifton.me)'s work (https://github.com/bsclifton/winvpntool).
 
 using brave_vpn::internal::CheckConnectionResult;
+using brave_vpn::internal::CloseEventHandleForConnectFailed;
+using brave_vpn::internal::CloseEventHandleForConnecting;
+using brave_vpn::internal::CloseEventHandleForDisconnecting;
 using brave_vpn::internal::CreateEntry;
+using brave_vpn::internal::GetEventHandleForConnectFailed;
+using brave_vpn::internal::GetEventHandleForConnecting;
+using brave_vpn::internal::GetEventHandleForDisconnecting;
 using brave_vpn::internal::GetPhonebookPath;
 using brave_vpn::internal::PrintRasError;
 using brave_vpn::internal::RemoveEntry;
@@ -47,7 +55,11 @@ BraveVPNOSConnectionAPIWin::BraveVPNOSConnectionAPIWin() {
 }
 
 BraveVPNOSConnectionAPIWin::~BraveVPNOSConnectionAPIWin() {
-  CloseHandle(event_handle_);
+  CloseHandle(event_handle_for_connected_);
+  CloseHandle(event_handle_for_disconnected_);
+  CloseEventHandleForConnecting();
+  CloseEventHandleForDisconnecting();
+  CloseEventHandleForConnectFailed();
 }
 
 void BraveVPNOSConnectionAPIWin::CreateVPNConnection(
@@ -100,28 +112,60 @@ void BraveVPNOSConnectionAPIWin::CheckConnection(const std::string& name) {
 void BraveVPNOSConnectionAPIWin::OnObjectSignaled(HANDLE object) {
   DCHECK(!target_vpn_entry_name().empty());
 
-  CheckConnection(target_vpn_entry_name());
+  CheckConnectionResult result = CheckConnectionResult::DISCONNECTING;
+  if (object == GetEventHandleForConnecting()) {
+    result = CheckConnectionResult::CONNECTING;
+  } else if (object == GetEventHandleForConnectFailed()) {
+    result = CheckConnectionResult::CONNECT_FAILED;
+  } else if (object == GetEventHandleForDisconnecting()) {
+    result = CheckConnectionResult::DISCONNECTING;
+  } else if (object == event_handle_for_connected_) {
+    result = CheckConnectionResult::CONNECTED;
+  } else if (object == event_handle_for_disconnected_) {
+    result = CheckConnectionResult::DISCONNECTED;
+  } else {
+    NOTREACHED();
+  }
+
+  OnCheckConnection(target_vpn_entry_name(), result);
 }
 
 void BraveVPNOSConnectionAPIWin::OnCheckConnection(
     const std::string& name,
     CheckConnectionResult result) {
-  if (result == CheckConnectionResult::UNKNOWN)
-    return;
-
-  const bool connected = result == CheckConnectionResult::CONNECTED;
   for (Observer& obs : observers_) {
-    connected ? obs.OnConnected(name) : obs.OnDisconnected(name);
+    switch (result) {
+      case CheckConnectionResult::CONNECTED:
+        obs.OnConnected();
+        break;
+      case CheckConnectionResult::CONNECTING:
+        obs.OnIsConnecting();
+        break;
+      case CheckConnectionResult::CONNECT_FAILED:
+        obs.OnConnectFailed();
+        break;
+      case CheckConnectionResult::DISCONNECTED:
+        obs.OnDisconnected();
+        break;
+      case CheckConnectionResult::DISCONNECTING:
+        obs.OnIsDisconnecting();
+        break;
+      default:
+        break;
+    }
   }
 }
 
 void BraveVPNOSConnectionAPIWin::OnCreated(const std::string& name,
                                            bool success) {
-  if (!success)
+  if (!success) {
+    for (Observer& obs : observers_)
+      obs.OnCreateFailed();
     return;
+  }
 
   for (Observer& obs : observers_)
-    obs.OnCreated(name);
+    obs.OnCreated();
 }
 
 void BraveVPNOSConnectionAPIWin::OnRemoved(const std::string& name,
@@ -130,17 +174,33 @@ void BraveVPNOSConnectionAPIWin::OnRemoved(const std::string& name,
     return;
 
   for (Observer& obs : observers_)
-    obs.OnRemoved(name);
+    obs.OnRemoved();
 }
 
 void BraveVPNOSConnectionAPIWin::StartVPNConnectionChangeMonitoring() {
-  DCHECK(!event_handle_);
-  event_handle_ = CreateEvent(nullptr, false, false, nullptr);
+  DCHECK(!event_handle_for_connected_ && !event_handle_for_disconnected_);
 
+  event_handle_for_connected_ = CreateEvent(NULL, false, false, NULL);
+  event_handle_for_disconnected_ = CreateEvent(NULL, false, false, NULL);
+
+  // We don't need to check current connection state again if monitor each event
+  // separately.
   RasConnectionNotificationW(static_cast<HRASCONN>(INVALID_HANDLE_VALUE),
-                             event_handle_,
-                             (RASCN_Connection | RASCN_Disconnection));
-  watcher_.StartWatchingMultipleTimes(event_handle_, this);
+                             event_handle_for_connected_, RASCN_Connection);
+  RasConnectionNotificationW(static_cast<HRASCONN>(INVALID_HANDLE_VALUE),
+                             event_handle_for_disconnected_,
+                             RASCN_Disconnection);
+
+  connected_event_watcher_.StartWatchingMultipleTimes(
+      event_handle_for_connected_, this);
+  disconnected_event_watcher_.StartWatchingMultipleTimes(
+      event_handle_for_disconnected_, this);
+  connecting_event_watcher_.StartWatchingMultipleTimes(
+      GetEventHandleForConnecting(), this);
+  disconnecting_event_watcher_.StartWatchingMultipleTimes(
+      GetEventHandleForDisconnecting(), this);
+  connect_failed_event_watcher_.StartWatchingMultipleTimes(
+      GetEventHandleForConnectFailed(), this);
 }
 
 }  // namespace brave_vpn

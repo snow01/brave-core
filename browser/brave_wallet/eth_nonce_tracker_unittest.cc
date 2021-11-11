@@ -8,7 +8,6 @@
 #include <memory>
 #include <utility>
 
-#include "base/bind.h"
 #include "base/test/bind.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_constants.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_types.h"
@@ -60,9 +59,11 @@ class EthNonceTrackerUnitTest : public testing::Test {
     url_loader_factory_.ClearResponses();
 
     // See EthJsonRpcController::SetNetwork() to better understand where the
-    // http://localhost:8545 URL used below is coming from.
-    url_loader_factory_.AddResponse("http://localhost:8545/",
-                                    GetResultString());
+    // http://localhost:7545 URL used below is coming from.
+    url_loader_factory_.AddResponse(
+        brave_wallet::GetNetworkURL(GetPrefs(), mojom::kLocalhostChainId)
+            .spec(),
+        GetResultString());
   }
 
  private:
@@ -80,8 +81,13 @@ class EthNonceTrackerUnitTest : public testing::Test {
 
 TEST_F(EthNonceTrackerUnitTest, GetNonce) {
   EthJsonRpcController controller(shared_url_loader_factory(), GetPrefs());
-  controller.SetNetwork(brave_wallet::mojom::kLocalhostChainId);
-  EthTxStateManager tx_state_manager(GetPrefs(), controller.MakeRemote());
+  base::RunLoop run_loop;
+  controller.SetNetwork(
+      brave_wallet::mojom::kLocalhostChainId,
+      base::BindLambdaForTesting([&](bool success) { run_loop.Quit(); }));
+  run_loop.Run();
+
+  EthTxStateManager tx_state_manager(GetPrefs(), &controller);
   EthNonceTracker nonce_tracker(&tx_state_manager, &controller);
 
   SetTransactionCount(2);
@@ -165,8 +171,12 @@ TEST_F(EthNonceTrackerUnitTest, GetNonce) {
 
 TEST_F(EthNonceTrackerUnitTest, NonceLock) {
   EthJsonRpcController controller(shared_url_loader_factory(), GetPrefs());
-  controller.SetNetwork(brave_wallet::mojom::kLocalhostChainId);
-  EthTxStateManager tx_state_manager(GetPrefs(), controller.MakeRemote());
+  base::RunLoop run_loop;
+  controller.SetNetwork(
+      brave_wallet::mojom::kLocalhostChainId,
+      base::BindLambdaForTesting([&](bool success) { run_loop.Quit(); }));
+  run_loop.Run();
+  EthTxStateManager tx_state_manager(GetPrefs(), &controller);
   EthNonceTracker nonce_tracker(&tx_state_manager, &controller);
 
   SetTransactionCount(4);

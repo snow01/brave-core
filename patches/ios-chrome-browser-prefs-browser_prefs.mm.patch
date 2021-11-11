@@ -1,11 +1,11 @@
 diff --git a/ios/chrome/browser/prefs/browser_prefs.mm b/ios/chrome/browser/prefs/browser_prefs.mm
-index b49244ff645daa99bc13a959076e4681e41f0f30..8924be3929cd2b83fc63c7536d2d75f77d881c62 100644
+index 4b5492ce9aa08955dc3295b3171436c19db64caf..ee0f480d237ad772ac7e36b282c0443728791bad 100644
 --- a/ios/chrome/browser/prefs/browser_prefs.mm
 +++ b/ios/chrome/browser/prefs/browser_prefs.mm
-@@ -272,6 +272,7 @@ void RegisterBrowserStatePrefs(user_prefs::PrefRegistrySyncable* registry) {
-   if (IsReadingListMessagesEnabled()) {
-     registry->RegisterBooleanPref(kPrefReadingListMessagesNeverShow, false);
-   }
+@@ -295,6 +295,7 @@ void RegisterBrowserStatePrefs(user_prefs::PrefRegistrySyncable* registry) {
+ 
+   // Preference related to the browser sign-in policy that is being deprecated.
+   registry->RegisterBooleanPref(kSigninAllowedByPolicy, true);
 +  BRAVE_REGISTER_BROWSER_STATE_PREFS
  }
  

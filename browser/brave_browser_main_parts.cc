@@ -15,9 +15,11 @@
 #include "brave/components/brave_sync/features.h"
 #include "brave/components/speedreader/buildflags.h"
 #include "brave/components/tor/buildflags/buildflags.h"
+#include "brave/components/translate/core/common/brave_translate_features.h"
 #include "chrome/common/chrome_features.h"
 #include "components/prefs/pref_service.h"
 #include "components/sync/driver/sync_driver_switches.h"
+#include "components/translate/core/browser/translate_language_list.h"
 #include "content/public/browser/render_frame_host.h"
 #include "extensions/buildflags/buildflags.h"
 #include "media/base/media_switches.h"
@@ -41,7 +43,6 @@
 
 #if !defined(OS_ANDROID)
 #include "brave/browser/infobars/brave_confirm_p3a_infobar_delegate.h"
-#include "brave/browser/infobars/crypto_wallets_infobar_delegate.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_finder.h"
 #include "components/infobars/content/content_infobar_manager.h"
@@ -165,6 +166,9 @@ void BraveBrowserMainParts::PreProfileInit() {
     command_line->RemoveSwitch(switches::kDisableSync);
   }
 #endif
+
+  if (!translate::ShouldUpdateLanguagesList())
+    translate::TranslateLanguageList::DisableUpdate();
 }
 
 void BraveBrowserMainParts::PostProfileInit() {

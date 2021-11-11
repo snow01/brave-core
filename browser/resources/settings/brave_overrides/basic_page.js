@@ -8,11 +8,12 @@ import {loadTimeData} from '../i18n_setup.js'
 
 import '../brave_default_extensions_page/brave_default_extensions_page.m.js'
 import '../brave_help_tips_page/brave_help_tips_page.m.js'
-import '../brave_ipfs_page/brave_ipfs_page.m.js'
+import '../brave_ipfs_page/brave_ipfs_page.js'
 import '../brave_new_tab_page/brave_new_tab_page.m.js'
+import '../brave_rewards_page/brave_rewards_page.js'
 import '../brave_search_engines_page/brave_search_engines_page.m.js'
 import '../brave_sync_page/brave_sync_page.js'
-import '../brave_wallet_page/brave_wallet_page.m.js'
+import '../brave_wallet_page/brave_wallet_page.js'
 import '../default_brave_shields_page/default_brave_shields_page.m.js'
 import '../getting_started_page/getting_started.js'
 import '../social_blocking_page/social_blocking_page.m.js'
@@ -20,7 +21,8 @@ import '../social_blocking_page/social_blocking_page.m.js'
 const isGuest = loadTimeData.getBoolean('isGuest')
 
 export function getSectionElement (templateContent, sectionName) {
-  const sectionEl = templateContent.querySelector(`template[if*='pageVisibility.${sectionName}']`) ||
+  const sectionEl = templateContent.querySelector(`template[if*='showPage_(pageVisibility.${sectionName}']`) ||
+    templateContent.querySelector(`template[if*='pageVisibility.${sectionName}']`) ||
     templateContent.querySelector(`settings-section[section="${sectionName}"]`)
   if (!sectionEl) {
     console.error(`[Brave Settings Overrides] Could not find section '${sectionName}'`)
@@ -135,7 +137,6 @@ RegisterPolymerTemplateModifications({
         'settings-brave-sync-page',
         {}
       ))
-
       const sectionShields = document.createElement('template')
       sectionShields.setAttribute('is', 'dom-if')
       sectionShields.setAttribute('restamp', true)
@@ -144,6 +145,18 @@ RegisterPolymerTemplateModifications({
         'shields',
         'braveShieldsTitle',
         'settings-default-brave-shields-page',
+        {
+          prefs: '{{prefs}}'
+        }
+      ))
+      const sectionRewards = document.createElement('template')
+      sectionRewards.setAttribute('is', 'dom-if')
+      sectionRewards.setAttribute('restamp', true)
+      sectionRewards.setAttribute('if', '[[showPage_(pageVisibility.rewards)]]')
+      sectionRewards.content.appendChild(createSectionElement(
+        'rewards',
+        'braveRewards',
+        'settings-brave-rewards-page',
         {
           prefs: '{{prefs}}'
         }
@@ -193,8 +206,10 @@ RegisterPolymerTemplateModifications({
       sectionAppearance.insertAdjacentElement('afterend', sectionNewTab)
       // Insert shields
       sectionNewTab.insertAdjacentElement('afterend', sectionShields)
+      // Insert Rewards
+      sectionShields.insertAdjacentElement('afterend', sectionRewards)
       // Insert Social Blocking
-      sectionShields.insertAdjacentElement('afterend', sectionSocialBlocking)
+      sectionRewards.insertAdjacentElement('afterend', sectionSocialBlocking)
       // Move privacy section to after social blocking
       const sectionPrivacy = getSectionElement(actualTemplate.content, 'privacy')
       sectionSocialBlocking.insertAdjacentElement('afterend', sectionPrivacy)
@@ -232,11 +247,16 @@ RegisterPolymerTemplateModifications({
       const sectionLanguages = getSectionElement(advancedSubSectionsTemplate.content, 'languages')
       sectionLanguages.insertAdjacentElement('beforebegin', sectionAutofill)
       // Move safety check after downloads
-      const sectionDownloads = getSectionElement(advancedSubSectionsTemplate.content, 'downloads')
-      const sectionSafetyCheck = getSectionElement(actualTemplate.content, 'safetyCheck')
-      sectionDownloads.insertAdjacentElement('afterend', sectionSafetyCheck)
       // Move help tips after safety check
-      sectionSafetyCheck.insertAdjacentElement('afterend', sectionHelpTips)
+      const sectionDownloads = getSectionElement(advancedSubSectionsTemplate.content, 'downloads')
+      if (loadTimeData.getBoolean('enableLandingPageRedesign')) {
+        // Safety check is grouped under privacy, so only move Help Tips
+        sectionDownloads.insertAdjacentElement('afterend', sectionHelpTips)
+      } else {
+        const sectionSafetyCheck = getSectionElement(actualTemplate.content, 'safetyCheck')
+        sectionDownloads.insertAdjacentElement('afterend', sectionSafetyCheck)
+        sectionSafetyCheck.insertAdjacentElement('afterend', sectionHelpTips)
+      }
     }
   }
 })

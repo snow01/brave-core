@@ -2,10 +2,11 @@ import * as React from 'react'
 import { UserAccountType, BuySendSwapViewTypes, EthereumChain } from '../../../constants/types'
 import { reduceAddress } from '../../../utils/reduce-address'
 import { reduceNetworkDisplayName } from '../../../utils/network-utils'
+import { reduceAccountDisplayName } from '../../../utils/reduce-account-name'
 import { create } from 'ethereum-blockies'
 import { copyToClipboard } from '../../../utils/copy-to-clipboard'
 import { Tooltip } from '../../shared'
-import locale from '../../../constants/locale'
+import { getLocale } from '../../../../common/locale'
 // Styled Components
 import {
   StyledWrapper,
@@ -42,7 +43,7 @@ function SwapHeader (props: Props) {
   }
 
   const orb = React.useMemo(() => {
-    return create({ seed: selectedAccount.address, size: 8, scale: 16 }).toDataURL()
+    return create({ seed: selectedAccount.address.toLowerCase(), size: 8, scale: 16 }).toDataURL()
   }, [selectedAccount])
 
   return (
@@ -51,9 +52,9 @@ function SwapHeader (props: Props) {
         <AccountCircle onClick={onShowAccounts} orb={orb}>
           <SwitchIcon />
         </AccountCircle>
-        <Tooltip text={locale.toolTipCopyToClipboard}>
+        <Tooltip text={getLocale('braveWalletToolTipCopyToClipboard')}>
           <AccountAndAddress onClick={onCopyToClipboard}>
-            <AccountName>{selectedAccount.name}</AccountName>
+            <AccountName>{reduceAccountDisplayName(selectedAccount.name, 11)}</AccountName>
             <AccountAddress>{reduceAddress(selectedAccount.address)}</AccountAddress>
           </AccountAndAddress>
         </Tooltip>

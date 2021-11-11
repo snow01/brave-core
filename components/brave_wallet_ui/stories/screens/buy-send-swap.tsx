@@ -7,7 +7,10 @@ import {
   SlippagePresetObjectType,
   ExpirationPresetObjectType,
   ToOrFromType,
-  EthereumChain
+  EthereumChain,
+  BuySupportedChains,
+  SwapSupportedChains,
+  SwapValidationErrorType
 } from '../../constants/types'
 import Swap from '../../components/buy-send-swap/tabs/swap-tab'
 import Send from '../../components/buy-send-swap/tabs/send-tab'
@@ -20,12 +23,16 @@ export interface Props {
   accounts: UserAccountType[]
   networkList: EthereumChain[]
   orderType: OrderTypes
+  selectedSendAsset: AccountAssetOptionType
+  sendAssetBalance: string
   swapToAsset: AccountAssetOptionType
   swapFromAsset: AccountAssetOptionType
   selectedNetwork: EthereumChain
   selectedAccount: UserAccountType
+  selectedTab: BuySendSwapTypes
   exchangeRate: string
   slippageTolerance: SlippagePresetObjectType
+  swapValidationError?: SwapValidationErrorType
   orderExpiration: ExpirationPresetObjectType
   buyAmount: string
   sendAmount: string
@@ -33,10 +40,16 @@ export interface Props {
   toAmount: string
   fromAssetBalance: string
   toAssetBalance: string
+  toAddressOrUrl: string
   toAddress: string
+  addressError: string
   buyAssetOptions: AccountAssetOptionType[]
   sendAssetOptions: AccountAssetOptionType[]
   swapAssetOptions: AccountAssetOptionType[]
+  isFetchingSwapQuote: boolean
+  isSwapSubmitDisabled: boolean
+  customSlippageTolerance: string
+  onCustomSlippageToleranceChange: (value: string) => void
   onSubmitBuy: (asset: AccountAssetOptionType) => void
   onSubmitSend: () => void
   onSubmitSwap: () => void
@@ -51,10 +64,13 @@ export interface Props {
   onSetBuyAmount: (value: string) => void
   onSetSendAmount: (value: string) => void
   onSetFromAmount: (value: string) => void
-  onSetToAddress: (value: string) => void
+  onSetToAddressOrUrl: (value: string) => void
   onSetToAmount: (value: string) => void
   onSelectPresetFromAmount: (percent: number) => void
   onSelectPresetSendAmount: (percent: number) => void
+  onSelectTab: (tab: BuySendSwapTypes) => void
+  onSwapQuoteRefresh: () => void
+  onSelectSendAsset: (asset: AccountAssetOptionType, toOrFrom: ToOrFromType) => void
 }
 
 function BuySendSwap (props: Props) {
@@ -66,6 +82,7 @@ function BuySendSwap (props: Props) {
     swapFromAsset,
     selectedNetwork,
     selectedAccount,
+    selectedTab,
     exchangeRate,
     slippageTolerance,
     orderExpiration,
@@ -73,12 +90,21 @@ function BuySendSwap (props: Props) {
     sendAmount,
     fromAmount,
     toAmount,
+    addressError,
+    selectedSendAsset,
+    sendAssetBalance,
     fromAssetBalance,
     toAssetBalance,
     toAddress,
+    toAddressOrUrl,
     buyAssetOptions,
     sendAssetOptions,
     swapAssetOptions,
+    swapValidationError,
+    isFetchingSwapQuote,
+    isSwapSubmitDisabled,
+    customSlippageTolerance,
+    onCustomSlippageToleranceChange,
     onSubmitBuy,
     onSubmitSend,
     onSubmitSwap,
@@ -93,19 +119,47 @@ function BuySendSwap (props: Props) {
     onSetBuyAmount,
     onSetSendAmount,
     onSetFromAmount,
-    onSetToAddress,
+    onSetToAddressOrUrl,
     onSetToAmount,
     onSelectPresetFromAmount,
-    onSelectPresetSendAmount
+    onSelectPresetSendAmount,
+    onSelectTab,
+    onSwapQuoteRefresh,
+    onSelectSendAsset
   } = props
-  const [selectedTab, setSelectedTab] = React.useState<BuySendSwapTypes>('buy')
+
+  // Switched this to useLayoutEffect to fix bad setState call error
+  // that was accouring when you would switch to a network that doesn't
+  // support swap and buy.
+  React.useLayoutEffect(() => {
+    if (selectedTab === 'buy' && !BuySupportedChains.includes(selectedNetwork.chainId)) {
+      onSelectTab('send')
+    }
+    if (selectedTab === 'swap' && !SwapSupportedChains.includes(selectedNetwork.chainId)) {
+      onSelectTab('send')
+    }
+  }, [selectedNetwork, selectedTab, BuySupportedChains])
+
+  const isBuyDisabled = React.useMemo(() => {
+    return !BuySupportedChains.includes(selectedNetwork.chainId)
+  }, [BuySupportedChains, selectedNetwork])
+
+  const isSwapDisabled = React.useMemo(() => {
+    return !SwapSupportedChains.includes(selectedNetwork.chainId)
+  }, [SwapSupportedChains, selectedNetwork])
 
   const changeTab = (tab: BuySendSwapTypes) => () => {
-    setSelectedTab(tab)
+    onSelectTab(tab)
   }
 
   return (
-    <Layout selectedTab={selectedTab} onChangeTab={changeTab}>
+    <Layout
+      selectedNetwork={selectedNetwork}
+      isBuyDisabled={isBuyDisabled}
+      isSwapDisabled={isSwapDisabled}
+      selectedTab={selectedTab}
+      onChangeTab={changeTab}
+    >
       {selectedTab === 'swap' &&
         <Swap
           accounts={accounts}
@@ -122,6 +176,11 @@ function BuySendSwap (props: Props) {
           toAmount={toAmount}
           fromAssetBalance={fromAssetBalance}
           toAssetBalance={toAssetBalance}
+          isFetchingQuote={isFetchingSwapQuote}
+          isSubmitDisabled={isSwapSubmitDisabled}
+          validationError={swapValidationError}
+          customSlippageTolerance={customSlippageTolerance}
+          onCustomSlippageToleranceChange={onCustomSlippageToleranceChange}
           onSubmitSwap={onSubmitSwap}
           flipSwapAssets={flipSwapAssets}
           onSelectNetwork={onSelectNetwork}
@@ -135,25 +194,28 @@ function BuySendSwap (props: Props) {
           onSetToAmount={onSetToAmount}
           onSelectPresetAmount={onSelectPresetFromAmount}
           assetOptions={swapAssetOptions}
+          onQuoteRefresh={onSwapQuoteRefresh}
         />
       }
       {selectedTab === 'send' &&
         <Send
+          addressError={addressError}
           accounts={accounts}
           networkList={networkList}
           selectedAssetAmount={sendAmount}
-          selectedAssetBalance={fromAssetBalance}
+          selectedAssetBalance={sendAssetBalance}
+          toAddressOrUrl={toAddressOrUrl}
           toAddress={toAddress}
           onSelectAccount={onSelectAccount}
           onSelectNetwork={onSelectNetwork}
           onSelectPresetAmount={onSelectPresetSendAmount}
-          onSelectAsset={onSelectAsset}
+          onSelectAsset={onSelectSendAsset}
           onSetSendAmount={onSetSendAmount}
-          onSetToAddress={onSetToAddress}
+          onSetToAddressOrUrl={onSetToAddressOrUrl}
           onSubmit={onSubmitSend}
           selectedAccount={selectedAccount}
           selectedNetwork={selectedNetwork}
-          selectedAsset={swapFromAsset}
+          selectedAsset={selectedSendAsset}
           showHeader={true}
           assetOptions={sendAssetOptions}
         />

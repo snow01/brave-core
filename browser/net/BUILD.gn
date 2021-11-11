@@ -1,13 +1,8 @@
-import("//brave/browser/translate/buildflags/buildflags.gni")
 import("//brave/components/brave_referrals/buildflags/buildflags.gni")
-import("//brave/components/brave_wallet/common/buildflags/buildflags.gni")
 import("//brave/components/brave_webtorrent/browser/buildflags/buildflags.gni")
 import("//brave/components/decentralized_dns/buildflags/buildflags.gni")
 import("//brave/components/ipfs/buildflags/buildflags.gni")
 import("//build/config/features.gni")
-
-# Refer to the keyed API spec for more details about the Brave Services Key
-defines = brave_service_key_defines
 
 source_set("net") {
   # Remove when https://github.com/brave/brave-browser/issues/10659 is resolved
@@ -52,13 +47,11 @@ source_set("net") {
     "//base",
     "//brave/app:brave_generated_resources_grit",
     "//brave/browser/safebrowsing",
-    "//brave/browser/translate/buildflags",
     "//brave/common",
     "//brave/components/brave_component_updater/browser",
     "//brave/components/brave_referrals/buildflags",
     "//brave/components/brave_shields/browser",
     "//brave/components/brave_shields/common",
-    "//brave/components/brave_wallet/common/buildflags",
     "//brave/components/brave_webtorrent/browser/buildflags",
     "//brave/components/decentralized_dns/buildflags",
     "//brave/components/ipfs/buildflags",
@@ -114,14 +107,7 @@ source_set("net") {
     ]
   }
 
-  if (enable_brave_translate_go) {
-    sources += [
-      "brave_translate_redirect_network_delegate_helper.cc",
-      "brave_translate_redirect_network_delegate_helper.h",
-    ]
-  }
-
-  if (decentralized_dns_enabled && brave_wallet_enabled) {
+  if (decentralized_dns_enabled) {
     sources += [
       "decentralized_dns_network_delegate_helper.cc",
       "decentralized_dns_network_delegate_helper.h",

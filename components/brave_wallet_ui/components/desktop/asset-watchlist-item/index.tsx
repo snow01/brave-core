@@ -1,5 +1,8 @@
 import * as React from 'react'
 import { Checkbox } from 'brave-ui'
+import { ERCToken } from '../../../constants/types'
+import { withPlaceholderIcon } from '../../shared'
+import { hexToNumber } from '../../../utils/format-balances'
 
 // Styled Components
 import {
@@ -7,43 +10,61 @@ import {
   AssetName,
   NameAndIcon,
   AssetIcon,
-  Balance,
-  CheckboxRow
+  DeleteButton,
+  DeleteIcon,
+  RightSide,
+  NameAndSymbol,
+  AssetSymbol
 } from './style'
 
 export interface Props {
-  onSelectAsset: (key: string, selected: boolean) => void
+  onSelectAsset: (key: string, selected: boolean, token: ERCToken, isCustom: boolean) => void
+  onRemoveAsset: (token: ERCToken) => void
+  isCustom: boolean
   isSelected: boolean
-  id: string
-  name: string
-  symbol: string
-  icon?: string
-  assetBalance: string
+  token: ERCToken
 }
 
 const AssetWatchlistItem = (props: Props) => {
   const {
-    name,
-    assetBalance,
-    icon,
-    symbol,
-    id,
     onSelectAsset,
+    onRemoveAsset,
+    isCustom,
+    token,
     isSelected
   } = props
+
+  const onCheck = (key: string, selected: boolean) => {
+    onSelectAsset(key, selected, token, isCustom)
+  }
+
+  const onClickRemoveAsset = () => {
+    onRemoveAsset(token)
+  }
+
+  const AssetIconWithPlaceholder = React.useMemo(() => {
+    return withPlaceholderIcon(AssetIcon, { size: 'big', marginLeft: 0, marginRight: 8 })
+  }, [])
 
   return (
     <StyledWrapper>
       <NameAndIcon>
-        <AssetIcon icon={icon ? icon : ''} />
-        <AssetName>{name}</AssetName>
+        <AssetIconWithPlaceholder selectedAsset={token} />
+        <NameAndSymbol>
+          <AssetName>{token.name} {token.isErc721 ? hexToNumber(token.tokenId ?? '') : ''}</AssetName>
+          <AssetSymbol>{token.symbol}</AssetSymbol>
+        </NameAndSymbol>
       </NameAndIcon>
-      <Balance>{Number(assetBalance).toFixed(6)} {symbol}</Balance>
-      <CheckboxRow>
-        <Checkbox value={{ [id]: isSelected }} onChange={onSelectAsset}>
-          <div data-key={id} />
+      <RightSide>
+        {isCustom &&
+          <DeleteButton onClick={onClickRemoveAsset}>
+            <DeleteIcon />
+          </DeleteButton>
+        }
+        <Checkbox value={{ [token.contractAddress]: isSelected }} onChange={onCheck}>
+          <div data-key={token.contractAddress} />
         </Checkbox>
-      </CheckboxRow>
+      </RightSide>
     </StyledWrapper>
   )
 }

@@ -72,7 +72,17 @@ declare namespace Rewards {
       disconnectWalletError: boolean
       emptyWallet: boolean
       modalBackup: boolean
-      modalRedirect: 'show' | 'hide' | 'error' | 'notAllowed' | 'batLimit' | 'mismatchedProviderAccountsModal'
+      modalRedirect:
+          'deviceLimitReachedModal'
+        | 'error'
+        | 'hide'
+        | 'kycRequiredModal'
+        | 'mismatchedProviderAccountsModal'
+        | 'show'
+        | 'upholdBATNotAllowedModal'
+        | 'upholdBlockedUserModal'
+        | 'upholdPendingUserModal'
+        | 'upholdRestrictedUserModal'
       paymentIdCheck: boolean
       promosDismissed?: {
         [key: string]: boolean
@@ -243,7 +253,7 @@ declare namespace Rewards {
   export enum RewardsType {
     AUTO_CONTRIBUTE = 2,
     ONE_TIME_TIP = 8,
-    RECURRING_TIP = 21
+    RECURRING_TIP = 16
   }
 
   export interface ContributionSaved {
@@ -279,7 +289,8 @@ declare namespace Rewards {
     CONNECTED = 1,
     VERIFIED = 2,
     DISCONNECTED_NOT_VERIFIED = 3,
-    DISCONNECTED_VERIFIED = 4
+    DISCONNECTED_VERIFIED = 4,
+    PENDING = 5
   }
 
   export interface ExternalWallet {
@@ -292,6 +303,7 @@ declare namespace Rewards {
     userName?: string
     accountUrl: string
     loginUrl: string
+    activityUrl: string
   }
 
   export interface ProcessRewardsPageUrl {

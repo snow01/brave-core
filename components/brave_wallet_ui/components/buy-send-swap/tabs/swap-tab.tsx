@@ -7,7 +7,8 @@ import {
   SlippagePresetObjectType,
   ExpirationPresetObjectType,
   ToOrFromType,
-  EthereumChain
+  EthereumChain,
+  SwapValidationErrorType
 } from '../../../constants/types'
 import {
   AccountsAssetsNetworks,
@@ -31,6 +32,11 @@ export interface Props {
   fromAssetBalance: string
   toAssetBalance: string
   assetOptions: AccountAssetOptionType[]
+  isFetchingQuote: boolean
+  isSubmitDisabled: boolean
+  validationError?: SwapValidationErrorType
+  customSlippageTolerance: string
+  onCustomSlippageToleranceChange: (value: string) => void
   onSubmitSwap: () => void
   flipSwapAssets: () => void
   onSelectNetwork: (network: EthereumChain) => void
@@ -43,6 +49,7 @@ export interface Props {
   onSetFromAmount: (value: string) => void
   onSetToAmount: (value: string) => void
   onSelectPresetAmount: (percent: number) => void
+  onQuoteRefresh: () => void
 }
 
 function SwapTab (props: Props) {
@@ -62,6 +69,11 @@ function SwapTab (props: Props) {
     fromAssetBalance,
     toAssetBalance,
     assetOptions,
+    isFetchingQuote,
+    isSubmitDisabled,
+    validationError,
+    customSlippageTolerance,
+    onCustomSlippageToleranceChange,
     onSubmitSwap,
     flipSwapAssets,
     onSelectNetwork,
@@ -73,7 +85,8 @@ function SwapTab (props: Props) {
     onSetExchangeRate,
     onSetFromAmount,
     onSetToAmount,
-    onSelectPresetAmount
+    onSelectPresetAmount,
+    onQuoteRefresh
   } = props
   const [swapView, setSwapView] = React.useState<BuySendSwapViewTypes>('swap')
   const [isSelectingAsset, setIsSelectingAsset] = React.useState<ToOrFromType>('from')
@@ -142,6 +155,11 @@ function SwapTab (props: Props) {
             exchangeRate={exchangeRate}
             slippageTolerance={slippageTolerance}
             orderExpiration={orderExpiration}
+            isFetchingQuote={isFetchingQuote}
+            isSubmitDisabled={isSubmitDisabled}
+            validationError={validationError}
+            customSlippageTolerance={customSlippageTolerance}
+            onCustomSlippageToleranceChange={onCustomSlippageToleranceChange}
             onInputChange={onInputChange}
             onFlipAssets={flipSwapAssets}
             onSubmitSwap={onSubmitSwap}
@@ -153,6 +171,7 @@ function SwapTab (props: Props) {
             onFilterAssetList={onFilterAssetList}
             fromAssetBalance={fromAssetBalance}
             toAssetBalance={toAssetBalance}
+            onQuoteRefresh={onQuoteRefresh}
           />
         </>
       }

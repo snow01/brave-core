@@ -7,6 +7,7 @@ package org.chromium.chrome.browser.feed;
 
 import android.app.Activity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ScrollView;
 
@@ -16,10 +17,10 @@ import androidx.annotation.Nullable;
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.supplier.Supplier;
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.bookmarks.BookmarkBridge;
 import org.chromium.chrome.browser.feed.shared.FeedSurfaceDelegate;
 import org.chromium.chrome.browser.native_page.NativePageNavigationDelegate;
 import org.chromium.chrome.browser.ntp.NewTabPageLaunchOrigin;
-import org.chromium.chrome.browser.ntp.ScrollableContainerDelegate;
 import org.chromium.chrome.browser.ntp.SnapScrollHelper;
 import org.chromium.chrome.browser.ntp.snippets.SectionHeaderView;
 import org.chromium.chrome.browser.privacy.settings.PrivacyPreferencesManagerImpl;
@@ -51,13 +52,14 @@ public class BraveFeedSurfaceCoordinator extends FeedSurfaceCoordinator {
             PrivacyPreferencesManagerImpl privacyPreferencesManager,
             @NonNull Supplier<Toolbar> toolbarSupplier,
             FeedLaunchReliabilityLoggingState launchReliabilityLoggingState,
-            @Nullable FeedSwipeRefreshLayout swipeRefreshLayout, boolean overScrollDisabled) {
+            @Nullable FeedSwipeRefreshLayout swipeRefreshLayout, boolean overScrollDisabled,
+            @Nullable ViewGroup viewportView, @NonNull BookmarkBridge bookmarkBridge) {
         super(activity, snackbarManager, windowAndroid, snapScrollHelper, ntpHeader,
                 sectionHeaderView, showDarkBackground, delegate, pageNavigationDelegate, profile,
                 isPlaceholderShownInitially, bottomSheetController, shareDelegateSupplier,
                 externalScrollableContainerDelegate, launchOrigin, privacyPreferencesManager,
                 toolbarSupplier, launchReliabilityLoggingState, swipeRefreshLayout,
-                overScrollDisabled);
+                overScrollDisabled, viewportView, bookmarkBridge);
     }
 
     @Override

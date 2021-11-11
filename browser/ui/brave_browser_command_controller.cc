@@ -5,6 +5,7 @@
 
 #include "brave/browser/ui/brave_browser_command_controller.h"
 
+#include <utility>
 #include <vector>
 
 #include "base/feature_list.h"
@@ -15,7 +16,6 @@
 #include "brave/browser/ui/browser_commands.h"
 #include "brave/common/pref_names.h"
 #include "brave/components/brave_vpn/buildflags/buildflags.h"
-#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/sidebar/buildflags/buildflags.h"
 #include "brave/components/speedreader/features.h"
@@ -69,7 +69,12 @@ BraveBrowserCommandController::BraveBrowserCommandController(Browser* browser)
       browser_(browser),
       brave_command_updater_(nullptr) {
   InitBraveCommandState();
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+  Observe(BraveVpnServiceFactory::GetForProfile(browser_->profile()));
+#endif
 }
+
+BraveBrowserCommandController::~BraveBrowserCommandController() = default;
 
 bool BraveBrowserCommandController::SupportsCommand(int id) const {
   return IsBraveCommands(id)
@@ -126,9 +131,7 @@ void BraveBrowserCommandController::InitBraveCommandState() {
   const bool is_guest_session = browser_->profile()->IsGuestSession();
   if (!is_guest_session) {
     UpdateCommandForBraveRewards();
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
     UpdateCommandForBraveWallet();
-#endif
     if (switches::IsSyncAllowedByFlag())
       UpdateCommandForBraveSync();
   }
@@ -206,11 +209,13 @@ void BraveBrowserCommandController::UpdateCommandForBraveVPN() {
   UpdateCommandEnabled(IDC_ABOUT_BRAVE_VPN, true);
   UpdateCommandEnabled(IDC_MANAGE_BRAVE_VPN_PLAN, true);
 
-  auto* vpn_service =
-      BraveVpnServiceFactory::GetForProfile(browser_->profile());
-  // Only show vpn sub menu for purchased user.
-  UpdateCommandEnabled(IDC_BRAVE_VPN_MENU, vpn_service->is_purchased_user());
-  UpdateCommandEnabled(IDC_TOGGLE_BRAVE_VPN, vpn_service->is_purchased_user());
+  if (auto* vpn_service =
+          BraveVpnServiceFactory::GetForProfile(browser_->profile())) {
+    // Only show vpn sub menu for purchased user.
+    UpdateCommandEnabled(IDC_BRAVE_VPN_MENU, vpn_service->is_purchased_user());
+    UpdateCommandEnabled(IDC_TOGGLE_BRAVE_VPN,
+                         vpn_service->is_purchased_user());
+  }
 #endif
 }
 
@@ -296,7 +301,7 @@ bool BraveBrowserCommandController::ExecuteBraveCommandWithDisposition(
     case IDC_SEND_BRAVE_VPN_FEEDBACK:
     case IDC_ABOUT_BRAVE_VPN:
     case IDC_MANAGE_BRAVE_VPN_PLAN:
-      NOTIMPLEMENTED();
+      brave::OpenBraveVPNUrls(browser_, id);
       break;
     default:
       LOG(WARNING) << "Received Unimplemented Command: " << id;
@@ -305,5 +310,12 @@ bool BraveBrowserCommandController::ExecuteBraveCommandWithDisposition(
 
   return true;
 }
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+void BraveBrowserCommandController::OnPurchasedStateChanged(
+    brave_vpn::mojom::PurchasedState state) {
+  UpdateCommandForBraveVPN();
+}
+#endif
 
 }  // namespace chrome

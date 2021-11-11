@@ -7,6 +7,7 @@
 
 #include "base/strings/string_number_conversions.h"
 #include "bat/ads/internal/unittest_base.h"
+#include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
@@ -26,12 +27,12 @@ class BatAdsDaypartFrequencyCapTest : public UnitTestBase {
 
 TEST_F(BatAdsDaypartFrequencyCapTest, AllowIfDaypartsIsEmpty) {
   // Arrange
-  CreativeAdInfo ad;
-  ad.creative_set_id = kCreativeSetId;
+  CreativeAdInfo creative_ad;
+  creative_ad.creative_set_id = kCreativeSetId;
 
   // Act
   DaypartFrequencyCap frequency_cap;
-  const bool should_exclude = frequency_cap.ShouldExclude(ad);
+  const bool should_exclude = frequency_cap.ShouldExclude(creative_ad);
 
   // Assert
   EXPECT_FALSE(should_exclude);
@@ -39,11 +40,11 @@ TEST_F(BatAdsDaypartFrequencyCapTest, AllowIfDaypartsIsEmpty) {
 
 TEST_F(BatAdsDaypartFrequencyCapTest, AllowIfRightDayAndHours) {
   // Arrange
-  CreativeAdInfo ad;
-  ad.creative_set_id = kCreativeSetId;
+  CreativeAdInfo creative_ad;
+  creative_ad.creative_set_id = kCreativeSetId;
 
   base::Time::Exploded exploded;
-  base::Time::Now().LocalExplode(&exploded);
+  Now().LocalExplode(&exploded);
   const int current_time =
       base::Time::kMinutesPerHour * exploded.hour + exploded.minute;
 
@@ -51,11 +52,11 @@ TEST_F(BatAdsDaypartFrequencyCapTest, AllowIfRightDayAndHours) {
   daypart_info.dow = base::NumberToString(exploded.day_of_week);
   daypart_info.start_minute = current_time - base::Time::kMinutesPerHour;
   daypart_info.end_minute = current_time + base::Time::kMinutesPerHour;
-  ad.dayparts.push_back(daypart_info);
+  creative_ad.dayparts.push_back(daypart_info);
 
   // Act
   DaypartFrequencyCap frequency_cap;
-  const bool should_exclude = frequency_cap.ShouldExclude(ad);
+  const bool should_exclude = frequency_cap.ShouldExclude(creative_ad);
 
   // Assert
   EXPECT_FALSE(should_exclude);
@@ -63,22 +64,22 @@ TEST_F(BatAdsDaypartFrequencyCapTest, AllowIfRightDayAndHours) {
 
 TEST_F(BatAdsDaypartFrequencyCapTest, AllowForMultipleDays) {
   // Arrange
-  CreativeAdInfo ad;
-  ad.creative_set_id = kCreativeSetId;
+  CreativeAdInfo creative_ad;
+  creative_ad.creative_set_id = kCreativeSetId;
 
   base::Time::Exploded exploded;
-  base::Time::Now().LocalExplode(&exploded);
+  Now().LocalExplode(&exploded);
   const int current_time =
       base::Time::kMinutesPerHour * exploded.hour + exploded.minute;
 
   CreativeDaypartInfo daypart_info;
   daypart_info.start_minute = current_time - base::Time::kMinutesPerHour;
   daypart_info.end_minute = current_time + base::Time::kMinutesPerHour;
-  ad.dayparts.push_back(daypart_info);
+  creative_ad.dayparts.push_back(daypart_info);
 
   // Act
   DaypartFrequencyCap frequency_cap;
-  const bool should_exclude = frequency_cap.ShouldExclude(ad);
+  const bool should_exclude = frequency_cap.ShouldExclude(creative_ad);
 
   // Assert
   EXPECT_FALSE(should_exclude);
@@ -86,11 +87,11 @@ TEST_F(BatAdsDaypartFrequencyCapTest, AllowForMultipleDays) {
 
 TEST_F(BatAdsDaypartFrequencyCapTest, AllowIfOneMatchExists) {
   // Arrange
-  CreativeAdInfo ad;
-  ad.creative_set_id = kCreativeSetId;
+  CreativeAdInfo creative_ad;
+  creative_ad.creative_set_id = kCreativeSetId;
 
   base::Time::Exploded exploded;
-  base::Time::Now().LocalExplode(&exploded);
+  Now().LocalExplode(&exploded);
   const int current_time =
       base::Time::kMinutesPerHour * exploded.hour + exploded.minute;
   std::string tomorrow_dow =
@@ -101,23 +102,23 @@ TEST_F(BatAdsDaypartFrequencyCapTest, AllowIfOneMatchExists) {
   daypart_info.dow = tomorrow_dow;
   daypart_info.start_minute = current_time - 2 * base::Time::kMinutesPerHour;
   daypart_info.end_minute = current_time - base::Time::kMinutesPerHour;
-  ad.dayparts.push_back(daypart_info);
+  creative_ad.dayparts.push_back(daypart_info);
 
   CreativeDaypartInfo daypart_info_2;
   daypart_info_2.dow = tomorrow_dow;
   daypart_info_2.start_minute = current_time + 2 * base::Time::kMinutesPerHour;
   daypart_info_2.end_minute = current_time + 3 * base::Time::kMinutesPerHour;
-  ad.dayparts.push_back(daypart_info_2);
+  creative_ad.dayparts.push_back(daypart_info_2);
 
   CreativeDaypartInfo daypart_info_3;
   daypart_info_3.dow = current_dow;
   daypart_info_3.start_minute = current_time - base::Time::kMinutesPerHour;
   daypart_info_3.end_minute = current_time + base::Time::kMinutesPerHour;
-  ad.dayparts.push_back(daypart_info_3);
+  creative_ad.dayparts.push_back(daypart_info_3);
 
   // Act
   DaypartFrequencyCap frequency_cap;
-  const bool should_exclude = frequency_cap.ShouldExclude(ad);
+  const bool should_exclude = frequency_cap.ShouldExclude(creative_ad);
 
   // Assert
   EXPECT_FALSE(should_exclude);
@@ -125,11 +126,11 @@ TEST_F(BatAdsDaypartFrequencyCapTest, AllowIfOneMatchExists) {
 
 TEST_F(BatAdsDaypartFrequencyCapTest, DisallowIfNoMatches) {
   // Arrange
-  CreativeAdInfo ad;
-  ad.creative_set_id = kCreativeSetId;
+  CreativeAdInfo creative_ad;
+  creative_ad.creative_set_id = kCreativeSetId;
 
   base::Time::Exploded exploded;
-  base::Time::Now().LocalExplode(&exploded);
+  Now().LocalExplode(&exploded);
   const int current_time =
       base::Time::kMinutesPerHour * exploded.hour + exploded.minute;
   std::string tomorrow_dow =
@@ -140,23 +141,23 @@ TEST_F(BatAdsDaypartFrequencyCapTest, DisallowIfNoMatches) {
   daypart_info.dow = tomorrow_dow;
   daypart_info.start_minute = current_time - 2 * base::Time::kMinutesPerHour;
   daypart_info.end_minute = current_time - base::Time::kMinutesPerHour;
-  ad.dayparts.push_back(daypart_info);
+  creative_ad.dayparts.push_back(daypart_info);
 
   CreativeDaypartInfo daypart_info_2;
   daypart_info_2.dow = tomorrow_dow;
   daypart_info_2.start_minute = current_time + 2 * base::Time::kMinutesPerHour;
   daypart_info_2.end_minute = current_time + 3 * base::Time::kMinutesPerHour;
-  ad.dayparts.push_back(daypart_info_2);
+  creative_ad.dayparts.push_back(daypart_info_2);
 
   CreativeDaypartInfo daypart_info_3;
   daypart_info_3.dow = current_dow;
   daypart_info_3.start_minute = current_time + base::Time::kMinutesPerHour;
   daypart_info_3.end_minute = current_time + 2 * base::Time::kMinutesPerHour;
-  ad.dayparts.push_back(daypart_info_3);
+  creative_ad.dayparts.push_back(daypart_info_3);
 
   // Act
   DaypartFrequencyCap frequency_cap;
-  const bool should_exclude = frequency_cap.ShouldExclude(ad);
+  const bool should_exclude = frequency_cap.ShouldExclude(creative_ad);
 
   // Assert
   EXPECT_TRUE(should_exclude);
@@ -164,11 +165,11 @@ TEST_F(BatAdsDaypartFrequencyCapTest, DisallowIfNoMatches) {
 
 TEST_F(BatAdsDaypartFrequencyCapTest, DisallowIfWrongDay) {
   // Arrange
-  CreativeAdInfo ad;
-  ad.creative_set_id = kCreativeSetId;
+  CreativeAdInfo creative_ad;
+  creative_ad.creative_set_id = kCreativeSetId;
 
   base::Time::Exploded exploded;
-  base::Time::Now().LocalExplode(&exploded);
+  Now().LocalExplode(&exploded);
   const int current_time =
       base::Time::kMinutesPerHour * exploded.hour + exploded.minute;
 
@@ -180,11 +181,11 @@ TEST_F(BatAdsDaypartFrequencyCapTest, DisallowIfWrongDay) {
   daypart_info.dow = tomorrow_dow;
   daypart_info.start_minute = current_time - 2 * base::Time::kMinutesPerHour;
   daypart_info.end_minute = current_time - base::Time::kMinutesPerHour;
-  ad.dayparts.push_back(daypart_info);
+  creative_ad.dayparts.push_back(daypart_info);
 
   // Act
   DaypartFrequencyCap frequency_cap;
-  const bool should_exclude = frequency_cap.ShouldExclude(ad);
+  const bool should_exclude = frequency_cap.ShouldExclude(creative_ad);
 
   // Assert
   EXPECT_TRUE(should_exclude);
@@ -192,11 +193,11 @@ TEST_F(BatAdsDaypartFrequencyCapTest, DisallowIfWrongDay) {
 
 TEST_F(BatAdsDaypartFrequencyCapTest, DisallowIfWrongHours) {
   // Arrange
-  CreativeAdInfo ad;
-  ad.creative_set_id = kCreativeSetId;
+  CreativeAdInfo creative_ad;
+  creative_ad.creative_set_id = kCreativeSetId;
 
   base::Time::Exploded exploded;
-  base::Time::Now().LocalExplode(&exploded);
+  Now().LocalExplode(&exploded);
   const int current_time =
       base::Time::kMinutesPerHour * exploded.hour + exploded.minute;
   std::string current_dow = base::NumberToString(exploded.day_of_week);
@@ -205,11 +206,11 @@ TEST_F(BatAdsDaypartFrequencyCapTest, DisallowIfWrongHours) {
   daypart_info.dow = current_dow;
   daypart_info.start_minute = current_time - base::Time::kMinutesPerHour;
   daypart_info.end_minute = current_time - base::Time::kMinutesPerHour;
-  ad.dayparts.push_back(daypart_info);
+  creative_ad.dayparts.push_back(daypart_info);
 
   // Act
   DaypartFrequencyCap frequency_cap;
-  const bool should_exclude = frequency_cap.ShouldExclude(ad);
+  const bool should_exclude = frequency_cap.ShouldExclude(creative_ad);
 
   // Assert
   EXPECT_TRUE(should_exclude);

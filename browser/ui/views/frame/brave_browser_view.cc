@@ -8,12 +8,12 @@
 #include <utility>
 
 #include "brave/browser/sparkle_buildflags.h"
-#include "brave/browser/translate/buildflags/buildflags.h"
 #include "brave/browser/ui/views/toolbar/bookmark_button.h"
 #include "brave/browser/ui/views/toolbar/brave_toolbar_view.h"
+#include "brave/browser/ui/views/toolbar/wallet_button.h"
 #include "brave/common/pref_names.h"
-#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/speedreader/buildflags.h"
+#include "brave/components/translate/core/common/buildflags.h"
 #include "chrome/browser/ui/views/frame/tab_strip_region_view.h"
 #include "chrome/browser/ui/views/tabs/tab_search_button.h"
 #include "chrome/browser/ui/views/toolbar/browser_app_menu_button.h"
@@ -24,6 +24,7 @@
 
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
 #include "brave/browser/ui/views/toolbar/brave_vpn_button.h"
+#include "brave/components/brave_vpn/pref_names.h"
 #endif
 
 #if BUILDFLAG(ENABLE_SIDEBAR)
@@ -47,13 +48,9 @@
 #include "chrome/browser/ui/views/location_bar/location_bar_bubble_delegate_view.h"
 #endif
 
-#if BUILDFLAG(ENABLE_BRAVE_TRANSLATE_EXTENSION)
-#include "extensions/browser/extension_registry.h"
-#include "extensions/common/constants.h"
-#endif
-
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
-#include "brave/browser/ui/views/toolbar/wallet_button.h"
+#if BUILDFLAG(ENABLE_BRAVE_TRANSLATE_EXTENSION) || \
+    BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
+#include "brave/browser/translate/brave_translate_utils.h"
 #endif
 
 class BraveBrowserView::TabCyclingEventHandler : public ui::EventObserver,
@@ -133,6 +130,14 @@ BraveBrowserView::BraveBrowserView(std::unique_ptr<Browser> browser)
       kTabsSearchShow,
       base::BindRepeating(&BraveBrowserView::OnPreferenceChanged,
                           base::Unretained(this)));
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+  pref_change_registrar_.Add(
+      brave_vpn::prefs::kBraveVPNShowButton,
+      base::BindRepeating(&BraveBrowserView::OnPreferenceChanged,
+                          base::Unretained(this)));
+#endif
+
   // Show the correct value in settings on initial start
   UpdateSearchTabsButtonState();
 #if BUILDFLAG(ENABLE_SIDEBAR)
@@ -170,7 +175,15 @@ BraveBrowserView::BraveBrowserView(std::unique_ptr<Browser> browser)
 void BraveBrowserView::OnPreferenceChanged(const std::string& pref_name) {
   if (pref_name == kTabsSearchShow) {
     UpdateSearchTabsButtonState();
+    return;
   }
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+  if (pref_name == brave_vpn::prefs::kBraveVPNShowButton) {
+    vpn_panel_controller_.ResetBubbleManager();
+    return;
+  }
+#endif
 }
 
 void BraveBrowserView::UpdateSearchTabsButtonState() {
@@ -207,7 +220,7 @@ ContentsLayoutManager* BraveBrowserView::GetContentsLayoutManager() const {
 
 void BraveBrowserView::ShowBraveVPNBubble() {
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
-  vpn_panel_host_.ShowBraveVPNPanel();
+  vpn_panel_controller_.ShowBraveVPNPanel();
 #endif
 }
 
@@ -253,24 +266,16 @@ ShowTranslateBubbleResult BraveBrowserView::ShowTranslateBubble(
     const std::string& target_language,
     translate::TranslateErrors::Type error_type,
     bool is_user_gesture) {
-#if BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
-  return BrowserView::ShowTranslateBubble(web_contents,
-                                          step,
-                                          source_language,
-                                          target_language,
-                                          error_type,
-                                          is_user_gesture);
-#elif BUILDFLAG(ENABLE_BRAVE_TRANSLATE_EXTENSION)
-  if (!extensions::ExtensionRegistry::Get(GetProfile())
-      ->GetInstalledExtension(google_translate_extension_id)) {
-    return BrowserView::ShowTranslateBubble(web_contents,
-                                            step,
-                                            source_language,
-                                            target_language,
-                                            error_type,
+#if BUILDFLAG(ENABLE_BRAVE_TRANSLATE_EXTENSION) || \
+    BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
+  if (translate::ShouldOfferExtensionInstallation(GetProfile()) ||
+      translate::IsInternalTranslationEnabled(GetProfile())) {
+    return BrowserView::ShowTranslateBubble(web_contents, step, source_language,
+                                            target_language, error_type,
                                             is_user_gesture);
   }
-#endif
+#endif  // BUILDFLAG(ENABLE_BRAVE_TRANSLATE_EXTENSION) ||
+        // BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
   return ShowTranslateBubbleResult::BROWSER_WINDOW_NOT_VALID;
 }
 
@@ -300,21 +305,13 @@ speedreader::SpeedreaderBubbleView* BraveBrowserView::ShowSpeedreaderBubble(
 }
 
 WalletButton* BraveBrowserView::GetWalletButton() {
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
   return static_cast<BraveToolbarView*>(toolbar())->wallet_button();
-#else
-  return nullptr;
-#endif
 }
 
 views::View* BraveBrowserView::GetWalletButtonAnchorView() {
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
   return static_cast<BraveToolbarView*>(toolbar())
       ->wallet_button()
       ->GetAsAnchorView();
-#else
-  return nullptr;
-#endif
 }
 
 void BraveBrowserView::CreateWalletBubble() {

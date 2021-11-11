@@ -24,6 +24,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import org.chromium.base.Log;
+import org.chromium.base.ThreadUtils;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.BraveRewardsHelper;
 import org.chromium.chrome.browser.app.BraveActivity;
@@ -35,14 +36,20 @@ import org.chromium.chrome.browser.preferences.ChromePreferenceKeys;
 import org.chromium.chrome.browser.preferences.SharedPreferencesManager;
 import org.chromium.chrome.browser.util.PackageUtils;
 
+import java.lang.Math;
+
 public class P3aOnboardingActivity extends FirstRunActivityBase {
-    private boolean mNativeInitialized;
+    // mInitializeViewsDone and mInvokePostWorkAtInitializeViews are accessed
+    // from the same thread, so no need to use extra locks
+    private boolean mInitializeViewsDone;
+    private boolean mInvokePostWorkAtInitializeViews;
     private boolean mIsP3aEnabled;
     private FirstRunFlowSequencer mFirstRunFlowSequencer;
     private CheckBox mP3aOnboardingCheckbox;
     private Button mBtnContinue;
 
     private void initializeViews() {
+        assert !mInitializeViewsDone;
         setContentView(R.layout.activity_p3a_onboarding);
 
         boolean isFirstInstall = PackageUtils.isFirstInstall(this);
@@ -81,10 +88,7 @@ public class P3aOnboardingActivity extends FirstRunActivityBase {
                         getResources().getString(R.string.private_product_analysis_text)));
         int productAnalysisIndex = productAnalysisString.indexOf(
                 getResources().getString(R.string.private_product_analysis_text));
-        Spanned productAnalysisSpanned =
-                BraveRewardsHelper.spannedFromHtmlString(productAnalysisString);
-        SpannableString productAnalysisTextSS =
-                new SpannableString(productAnalysisSpanned.toString());
+        SpannableString productAnalysisTextSS = new SpannableString(productAnalysisString);
 
         ClickableSpan productAnalysisClickableSpan = new ClickableSpan() {
             @Override
@@ -99,25 +103,32 @@ public class P3aOnboardingActivity extends FirstRunActivityBase {
         };
 
         productAnalysisTextSS.setSpan(productAnalysisClickableSpan, productAnalysisIndex,
-                productAnalysisIndex
-                        + getResources().getString(R.string.private_product_analysis_text).length(),
+                Math.min(productAnalysisIndex
+                                + getResources()
+                                          .getString(R.string.private_product_analysis_text)
+                                          .length(),
+                        productAnalysisTextSS.length()),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         productAnalysisTextSS.setSpan(
                 new ForegroundColorSpan(getResources().getColor(R.color.brave_blue_tint_color)),
                 productAnalysisIndex,
-                productAnalysisIndex
-                        + getResources().getString(R.string.private_product_analysis_text).length(),
+                Math.min(productAnalysisIndex
+                                + getResources()
+                                          .getString(R.string.private_product_analysis_text)
+                                          .length(),
+                        productAnalysisTextSS.length()),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         p3aOnboardingText.setMovementMethod(LinkMovementMethod.getInstance());
         p3aOnboardingText.setText(productAnalysisTextSS);
+
+        mInitializeViewsDone = true;
+        if (mInvokePostWorkAtInitializeViews) {
+            finishNativeInitializationPostWork();
+        }
     }
 
-    @Override
-    public void finishNativeInitialization() {
-        super.finishNativeInitialization();
-        assert !mNativeInitialized;
-
-        mNativeInitialized = true;
+    private void finishNativeInitializationPostWork() {
+        assert mInitializeViewsDone;
 
         try {
             mIsP3aEnabled = BravePrefServiceBridge.getInstance().getP3AEnabled();
@@ -137,6 +148,20 @@ public class P3aOnboardingActivity extends FirstRunActivityBase {
                         }
                     }
                 });
+
+        mBtnContinue.setEnabled(true);
+    }
+
+    @Override
+    public void finishNativeInitialization() {
+        ThreadUtils.assertOnUiThread();
+        super.finishNativeInitialization();
+
+        if (mInitializeViewsDone) {
+            finishNativeInitializationPostWork();
+        } else {
+            mInvokePostWorkAtInitializeViews = true;
+        }
     }
 
     @Override
@@ -165,12 +190,6 @@ public class P3aOnboardingActivity extends FirstRunActivityBase {
     }
 
     private void accept() {
-        if (!mNativeInitialized) {
-            // Disable the "accept" button to indicate that "something is happening".
-            mBtnContinue.setEnabled(false);
-            return;
-        }
-
         // Do not use existing function because it contains consent to Google crash report upload
         SharedPreferencesManager.getInstance().writeBoolean(
                 ChromePreferenceKeys.FIRST_RUN_CACHED_TOS_ACCEPTED, true);

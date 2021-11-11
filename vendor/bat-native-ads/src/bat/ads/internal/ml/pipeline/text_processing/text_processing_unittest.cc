@@ -17,6 +17,7 @@
 #include "bat/ads/internal/ml/transformation/lowercase_transformation.h"
 #include "bat/ads/internal/ml/transformation/transformation.h"
 #include "bat/ads/internal/unittest_base.h"
+#include "bat/ads/internal/unittest_file_util.h"
 #include "bat/ads/internal/unittest_util.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
@@ -28,6 +29,9 @@ namespace {
 
 const char kValidSegmentClassificationPipeline[] =
     "ml/pipeline/text_processing/valid_segment_classification_min.json";
+
+const char kEmptySegmentClassificationPipeline[] =
+    "ml/pipeline/text_processing/empty_segment_classification.json";
 
 const char kInvalidSpamClassificationPipeline[] =
     "ml/pipeline/text_processing/invalid_spam_classification.json";
@@ -151,6 +155,21 @@ TEST_F(BatAdsTextProcessingPipelineTest, InvalidModelTest) {
   ASSERT_TRUE(json_optional.has_value());
   const std::string json = json_optional.value();
   bool loaded_successfully = text_processing_pipeline.FromJson(json);
+
+  // Assert
+  EXPECT_FALSE(loaded_successfully);
+}
+
+TEST_F(BatAdsTextProcessingPipelineTest, EmptySegmentModelTest) {
+  // Arrange
+  pipeline::TextProcessing text_processing_pipeline;
+  const absl::optional<std::string> json_optional =
+      ReadFileFromTestPathToString(kEmptySegmentClassificationPipeline);
+
+  // Act
+  ASSERT_TRUE(json_optional.has_value());
+  const std::string json = json_optional.value();
+  const bool loaded_successfully = text_processing_pipeline.FromJson(json);
 
   // Assert
   EXPECT_FALSE(loaded_successfully);

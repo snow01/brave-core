@@ -15,6 +15,7 @@
 #include "content/public/renderer/render_frame.h"
 #include "content/public/renderer/render_frame_observer.h"
 #include "mojo/public/cpp/bindings/remote.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "url/gurl.h"
 #include "v8/include/v8.h"
 
@@ -33,7 +34,10 @@ class CosmeticFiltersJSHandler {
   // Adds the "cs_worker" JavaScript object and its functions to the current
   // render_frame_.
   void AddJavaScriptObjectToFrame(v8::Local<v8::Context> context);
-  void ProcessURL(const GURL& url, base::OnceClosure callback);
+  // Fetches an initial set of resources to inject into the page if cosmetic
+  // filtering is enabled, and returns whether or not to proceed with cosmetic
+  // filtering.
+  bool ProcessURL(const GURL& url, absl::optional<base::OnceClosure> callback);
   void ApplyRules();
 
  private:
@@ -49,15 +53,16 @@ class CosmeticFiltersJSHandler {
   bool EnsureConnected();
   void OnRemoteDisconnect();
 
+  // Injects content_cosmetic bundle (if needed) and calls the entry point.
+  void ExecuteObservingBundleEntryPoint();
+
   void CreateWorkerObject(v8::Isolate* isolate, v8::Local<v8::Context> context);
 
   // A function to be called from JS
   void HiddenClassIdSelectors(const std::string& input);
 
-  void OnShouldDoCosmeticFiltering(base::OnceClosure callback,
-                                   bool enabled,
-                                   bool first_party_enabled);
-  void OnUrlCosmeticResources(base::OnceClosure callback, base::Value result);
+  void OnUrlCosmeticResources(base::OnceClosure callback,
+                              base::Value result);
   void CSSRulesRoutine(base::DictionaryValue* resources_dict);
   void OnHiddenClassIdSelectors(base::Value result);
   bool OnIsFirstParty(const std::string& url_string);
@@ -70,6 +75,10 @@ class CosmeticFiltersJSHandler {
   std::vector<std::string> exceptions_;
   GURL url_;
   std::unique_ptr<base::DictionaryValue> resources_dict_;
+
+  // True if the content_cosmetic.bundle.js has injected in the current frame.
+  bool bundle_injected_ = false;
+
   base::WeakPtrFactory<CosmeticFiltersJSHandler> weak_ptr_factory_{this};
 };
 

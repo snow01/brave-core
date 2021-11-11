@@ -8,11 +8,13 @@
 #include <memory>
 #include <utility>
 
+#include "brave/browser/brave_wallet/asset_ratio_controller_factory.h"
 #include "brave/browser/brave_wallet/brave_wallet_context_utils.h"
 #include "brave/browser/brave_wallet/keyring_controller_factory.h"
 #include "brave/browser/brave_wallet/rpc_controller_factory.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_constants.h"
 #include "brave/components/brave_wallet/browser/eth_tx_controller.h"
+#include "brave/components/brave_wallet/factory/eth_tx_controller_factory_helper.h"
 #include "chrome/browser/profiles/incognito_helpers.h"
 #include "components/keyed_service/content/browser_context_dependency_manager.h"
 #include "components/user_prefs/user_prefs.h"
@@ -54,27 +56,19 @@ EthTxControllerFactory::EthTxControllerFactory()
           BrowserContextDependencyManager::GetInstance()) {
   DependsOn(brave_wallet::RpcControllerFactory::GetInstance());
   DependsOn(brave_wallet::KeyringControllerFactory::GetInstance());
+  DependsOn(brave_wallet::AssetRatioControllerFactory::GetInstance());
 }
 
 EthTxControllerFactory::~EthTxControllerFactory() {}
 
 KeyedService* EthTxControllerFactory::BuildServiceInstanceFor(
     content::BrowserContext* context) const {
-  auto tx_state_manager = std::make_unique<EthTxStateManager>(
-      user_prefs::UserPrefs::Get(context),
-      RpcControllerFactory::GetForContext(context));
-  auto eth_nonce_tracker = std::make_unique<EthNonceTracker>(
-      tx_state_manager.get(),
-      RpcControllerFactory::GetControllerForContext(context));
-  auto eth_pending_tx_tracker = std::make_unique<EthPendingTxTracker>(
-      tx_state_manager.get(),
-      RpcControllerFactory::GetControllerForContext(context),
-      eth_nonce_tracker.get());
-  return new EthTxController(
-      RpcControllerFactory::GetControllerForContext(context),
-      KeyringControllerFactory::GetControllerForContext(context),
-      std::move(tx_state_manager), std::move(eth_nonce_tracker),
-      std::move(eth_pending_tx_tracker), user_prefs::UserPrefs::Get(context));
+  return brave_wallet::BuildEthTxController(
+             RpcControllerFactory::GetControllerForContext(context),
+             KeyringControllerFactory::GetControllerForContext(context),
+             AssetRatioControllerFactory::GetControllerForContext(context),
+             user_prefs::UserPrefs::Get(context))
+      .release();
 }
 
 content::BrowserContext* EthTxControllerFactory::GetBrowserContextToUse(

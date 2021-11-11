@@ -16,13 +16,18 @@ MarkedToNoLongerReceiveFrequencyCap::MarkedToNoLongerReceiveFrequencyCap() =
 MarkedToNoLongerReceiveFrequencyCap::~MarkedToNoLongerReceiveFrequencyCap() =
     default;
 
+std::string MarkedToNoLongerReceiveFrequencyCap::GetUuid(
+    const CreativeAdInfo& creative_ad) const {
+  return creative_ad.creative_set_id;
+}
+
 bool MarkedToNoLongerReceiveFrequencyCap::ShouldExclude(
-    const CreativeAdInfo& ad) {
-  if (!DoesRespectCap(ad)) {
+    const CreativeAdInfo& creative_ad) {
+  if (!DoesRespectCap(creative_ad)) {
     last_message_ = base::StringPrintf(
         "creativeSetId %s excluded due to being marked to no longer receive "
         "ads",
-        ad.creative_set_id.c_str());
+        creative_ad.creative_set_id.c_str());
 
     return true;
   }
@@ -30,13 +35,13 @@ bool MarkedToNoLongerReceiveFrequencyCap::ShouldExclude(
   return false;
 }
 
-std::string MarkedToNoLongerReceiveFrequencyCap::get_last_message() const {
+std::string MarkedToNoLongerReceiveFrequencyCap::GetLastMessage() const {
   return last_message_;
 }
 
 bool MarkedToNoLongerReceiveFrequencyCap::DoesRespectCap(
-    const CreativeAdInfo& ad) {
-  if (ShouldFilterSegment(ad.segment)) {
+    const CreativeAdInfo& creative_ad) {
+  if (ShouldFilterSegment(creative_ad.segment)) {
     return false;
   }
 

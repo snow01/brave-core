@@ -1,17 +1,18 @@
 import styled from 'styled-components'
+import { AssetIconProps, AssetIconFactory, WalletButton } from '../../shared/style'
 
 interface StyleProps {
-  icon: string
+  disabled: boolean
 }
 
-export const StyledWrapper = styled.button`
+export const StyledWrapper = styled(WalletButton) <StyleProps>`
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-direction: row;
   width: 100%;
   margin: 8px 0px;
-  cursor: pointer;
+  cursor: ${(p) => p.disabled ? 'default' : 'pointer'};
   outline: none;
   background: none;
   border: none;
@@ -55,10 +56,11 @@ export const AssetBalanceText = styled.span`
   color: ${(p) => p.theme.color.text03};
 `
 
-export const AssetIcon = styled.div<StyleProps>`
-  width: 40px;
-  height: 40px;
-  border-radius: 100%;
-  background: ${(p) => p.icon ? `url(${p.icon})` : p.theme.color.background01}};
-  margin-right: 8px;
-`
+// Construct styled-component using JS object instead of string, for editor
+// support with custom AssetIconFactory.
+//
+// Ref: https://styled-components.com/docs/advanced#style-objects
+export const AssetIcon = AssetIconFactory<AssetIconProps>({
+  width: '40px',
+  height: 'auto'
+})

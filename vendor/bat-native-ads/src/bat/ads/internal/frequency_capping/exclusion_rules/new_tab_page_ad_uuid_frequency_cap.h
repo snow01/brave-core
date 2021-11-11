@@ -9,34 +9,32 @@
 #include <string>
 
 #include "bat/ads/ad_info.h"
-#include "bat/ads/internal/ad_events/ad_event_info.h"
+#include "bat/ads/internal/ad_events/ad_event_info_aliases.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/exclusion_rule.h"
 
 namespace ads {
 
-class NewTabPageAdUuidFrequencyCap : public ExclusionRule<AdInfo> {
+class NewTabPageAdUuidFrequencyCap final : public ExclusionRule<AdInfo> {
  public:
   explicit NewTabPageAdUuidFrequencyCap(const AdEventList& ad_events);
-
   ~NewTabPageAdUuidFrequencyCap() override;
 
   NewTabPageAdUuidFrequencyCap(const NewTabPageAdUuidFrequencyCap&) = delete;
   NewTabPageAdUuidFrequencyCap& operator=(const NewTabPageAdUuidFrequencyCap&) =
       delete;
 
+  std::string GetUuid(const AdInfo& ad) const override;
+
   bool ShouldExclude(const AdInfo& ad) override;
 
-  std::string get_last_message() const override;
+  std::string GetLastMessage() const override;
 
  private:
   AdEventList ad_events_;
 
   std::string last_message_;
 
-  bool DoesRespectCap(const AdEventList& ad_events);
-
-  AdEventList FilterAdEvents(const AdEventList& ad_events,
-                             const AdInfo& ad) const;
+  bool DoesRespectCap(const AdEventList& ad_events, const AdInfo& ad);
 };
 
 }  // namespace ads

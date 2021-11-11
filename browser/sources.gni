@@ -6,10 +6,13 @@
 import("//brave/browser/autocomplete/sources.gni")
 import("//brave/browser/binance/sources.gni")
 import("//brave/browser/brave_adaptive_captcha/sources.gni")
+import("//brave/browser/brave_ads/sources.gni")
+import("//brave/browser/brave_news/sources.gni")
 import("//brave/browser/brave_rewards/sources.gni")
 import("//brave/browser/brave_shields/sources.gni")
 import("//brave/browser/brave_stats/sources.gni")
 import("//brave/browser/brave_vpn/sources.gni")
+import("//brave/browser/brave_wallet/android/sources.gni")
 import("//brave/browser/browsing_data/sources.gni")
 import("//brave/browser/component_updater/sources.gni")
 import("//brave/browser/crypto_dot_com/sources.gni")
@@ -23,19 +26,22 @@ import("//brave/browser/greaselion/sources.gni")
 import("//brave/browser/importer/sources.gni")
 import("//brave/browser/ipfs/sources.gni")
 import("//brave/browser/new_tab/sources.gni")
+import("//brave/browser/ntp_background_images/sources.gni")
 import("//brave/browser/permissions/sources.gni")
 import("//brave/browser/search_engines/sources.gni")
 import("//brave/browser/speedreader/sources.gni")
 import("//brave/browser/themes/sources.gni")
+import("//brave/browser/web_discovery/sources.gni")
 import("//brave/chromium_src/chrome/browser/prefs/sources.gni")
 import("//brave/chromium_src/chrome/browser/sources.gni")
 import("//brave/components/brave_referrals/buildflags/buildflags.gni")
-import("//brave/components/brave_wallet/common/buildflags/buildflags.gni")
+import("//brave/components/brave_vpn/buildflags/buildflags.gni")
 import("//brave/components/brave_wayback_machine/buildflags/buildflags.gni")
 import("//brave/components/brave_webtorrent/browser/buildflags/buildflags.gni")
 import("//brave/components/ftx/browser/buildflags/buildflags.gni")
 import("//brave/components/sidebar/buildflags/buildflags.gni")
 import("//brave/components/tor/buildflags/buildflags.gni")
+import("//brave/components/translate/core/common/buildflags.gni")
 import("//extensions/buildflags/buildflags.gni")
 
 brave_chrome_browser_visibility = [
@@ -90,20 +96,19 @@ brave_chrome_browser_deps = [
   "//base",
   "//brave/app:brave_generated_resources_grit",
   "//brave/browser:browser_process",
-  "//brave/browser/brave_ads",
-  "//brave/browser/brave_ads/notifications",
+  "//brave/browser/brave_wallet",
+  "//brave/browser/brave_wallet:brave_wallet_delegate",
+  "//brave/browser/brave_wallet:tab_helper",
   "//brave/browser/component_updater",
   "//brave/browser/content_settings",
   "//brave/browser/gcm_driver",
   "//brave/browser/metrics/buildflags",
   "//brave/browser/net",
-  "//brave/browser/ntp_background_images",
   "//brave/browser/profiles",
   "//brave/browser/renderer_context_menu",
   "//brave/browser/search",
   "//brave/browser/sync",
   "//brave/browser/themes",
-  "//brave/browser/translate/buildflags",
   "//brave/browser/ui",
   "//brave/common",
   "//brave/common:pref_names",
@@ -124,8 +129,10 @@ brave_chrome_browser_deps = [
   "//brave/components/brave_sync:features",
   "//brave/components/brave_sync:network_time_helper",
   "//brave/components/brave_sync:prefs",
-  "//brave/components/brave_talk",
-  "//brave/components/brave_wallet/common/buildflags",
+  "//brave/components/brave_vpn/buildflags",
+  "//brave/components/brave_wallet/browser",
+  "//brave/components/brave_wallet/common",
+  "//brave/components/brave_wallet/common:mojom",
   "//brave/components/brave_wayback_machine:buildflags",
   "//brave/components/brave_webtorrent/browser/buildflags",
   "//brave/components/cosmetic_filters/browser",
@@ -143,8 +150,10 @@ brave_chrome_browser_deps = [
   "//brave/components/p3a:buildflags",
   "//brave/components/resources",
   "//brave/components/sidebar/buildflags",
+  "//brave/components/skus/browser",
   "//brave/components/speedreader:buildflags",
   "//brave/components/tor/buildflags",
+  "//brave/components/translate/core/common:buildflags",
   "//brave/components/version_info",
   "//brave/services/network/public/cpp",
   "//chrome/browser:browser_process",
@@ -167,6 +176,7 @@ brave_chrome_browser_deps = [
   "//components/permissions",
   "//components/pref_registry",
   "//components/prefs",
+  "//components/privacy_sandbox:privacy_sandbox_prefs",
   "//components/safe_browsing/core/common:safe_browsing_prefs",
   "//components/search_engines",
   "//components/services/heap_profiling/public/mojom",
@@ -204,15 +214,8 @@ if (enable_sparkle) {
   ]
 }
 
-if (brave_wallet_enabled) {
-  brave_chrome_browser_deps += [
-    "//brave/browser/brave_wallet",
-    "//brave/browser/brave_wallet:brave_wallet_delegate",
-    "//brave/browser/brave_wallet:tab_helper",
-    "//brave/components/brave_wallet/browser",
-    "//brave/components/brave_wallet/common",
-    "//brave/components/brave_wallet/common:mojom",
-  ]
+if (enable_brave_vpn) {
+  brave_chrome_browser_deps += [ "//brave/components/brave_vpn" ]
 }
 
 if (ethereum_remote_client_enabled) {
@@ -226,6 +229,8 @@ if (is_android) {
     "//brave/browser/sync/brave_sync_devices_android.cc",
     "//brave/browser/sync/brave_sync_devices_android.h",
   ]
+
+  brave_chrome_browser_sources += brave_browser_brave_wallet_android_sources
 
   brave_chrome_browser_deps += [
     "//brave/browser/android:android_browser_process",
@@ -304,6 +309,13 @@ if (enable_ftx) {
   brave_chrome_browser_deps += [ "//brave/browser/ftx" ]
 }
 
+if (enable_brave_translate_go || enable_brave_translate_extension) {
+  brave_chrome_browser_sources += [
+    "//brave/browser/translate/brave_translate_utils.cc",
+    "//brave/browser/translate/brave_translate_utils.h",
+  ]
+}
+
 if (is_win) {
   brave_chrome_browser_sources += [
     "//brave/browser/microsoft_edge_protocol_util.cc",
@@ -333,6 +345,8 @@ brave_chrome_browser_defines = []
 brave_chrome_browser_sources += brave_browser_autocomplete_sources
 brave_chrome_browser_sources += brave_browser_binance_sources
 brave_chrome_browser_sources += brave_browser_brave_adaptive_captcha_sources
+brave_chrome_browser_sources += brave_browser_brave_ads_sources
+brave_chrome_browser_sources += brave_browser_brave_news_sources
 brave_chrome_browser_sources += brave_browser_brave_vpn_sources
 brave_chrome_browser_sources += brave_browser_brave_rewards_sources
 brave_chrome_browser_sources += brave_browser_brave_shields_sources
@@ -349,14 +363,18 @@ brave_chrome_browser_sources += brave_browser_greaselion_sources
 brave_chrome_browser_sources += brave_browser_importer_sources
 brave_chrome_browser_sources += brave_browser_ipfs_sources
 brave_chrome_browser_sources += brave_browser_new_tab_sources
+brave_chrome_browser_sources += brave_browser_ntp_background_images_sources
 brave_chrome_browser_sources += brave_browser_permissions_sources
 brave_chrome_browser_sources += brave_browser_search_engines_sources
 brave_chrome_browser_sources += brave_browser_speedreader_sources
 brave_chrome_browser_sources += brave_browser_themes_sources
+brave_chrome_browser_sources += brave_browser_web_discovery_sources
 
 brave_chrome_browser_deps += brave_browser_autocomplete_deps
 brave_chrome_browser_deps += brave_browser_binance_deps
 brave_chrome_browser_deps += brave_browser_brave_adaptive_captcha_deps
+brave_chrome_browser_deps += brave_browser_brave_ads_deps
+brave_chrome_browser_deps += brave_browser_brave_news_deps
 brave_chrome_browser_deps += brave_browser_brave_vpn_deps
 brave_chrome_browser_deps += brave_browser_brave_rewards_deps
 brave_chrome_browser_deps += brave_browser_brave_shields_deps
@@ -373,10 +391,12 @@ brave_chrome_browser_deps += brave_browser_greaselion_deps
 brave_chrome_browser_deps += brave_browser_importer_deps
 brave_chrome_browser_deps += brave_browser_ipfs_deps
 brave_chrome_browser_deps += brave_browser_new_tab_deps
+brave_chrome_browser_deps += brave_browser_ntp_background_images_deps
 brave_chrome_browser_deps += brave_browser_permissions_deps
 brave_chrome_browser_deps += brave_browser_search_engines_deps
 brave_chrome_browser_deps += brave_browser_speedreader_deps
 brave_chrome_browser_deps += brave_browser_themes_deps
+brave_chrome_browser_deps += brave_browser_web_discovery_deps
 brave_chrome_browser_deps += brave_chromium_src_chrome_browser_deps
 brave_chrome_browser_deps += brave_chromium_src_chrome_browser_prefs_deps
 

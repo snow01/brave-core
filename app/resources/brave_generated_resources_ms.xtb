@@ -187,13 +187,11 @@ Dengan memasang sambungan, anda bersetuju dengan Terma Penggunaan Google Widevin
 <translation id="8488282162676695335">Dompet Brave</translation>
 <translation id="2356070529366658676">Tanya</translation>
 <translation id="7701040980221191251">Tiada</translation>
-<translation id="5655621391922317800">Dompet Crypto</translation>
-<translation id="1696548911367097044">Sambungan Dompet Kripto yang tidak digunakan</translation>
-<translation id="1085027414516521238">MetaMask</translation>
-<translation id="7090046810227878892">Penyedia Ethereum untuk menggunakan Dapps</translation>
-<translation id="5913089932885076110">Muatkan Dompet Kripto ketika bermula</translation>
-<translation id="757886143331967039">Memuatkan sambungan Dompet Kripto yang tidak digunakan pada permulaan</translation>
+<translation id="1274962333945373242">Sambungan Dompet Kripto yang tidak digunakan</translation>
+<translation id="9131889008937672866">Dompet mata wang kripto lalai</translation>
 <translation id="1834467296210148203">Tunjukkan ikon Dompet Brave pada bar alat</translation>
+<translation id="8239147115686034860">Kunci Brave Wallet secara automatik</translation>
+<translation id="414639769490080648">Bilangan minit untuk menunggu sehingga Brave Wallet dikunci secara automatik</translation>
 <translation id="6864914031231797928">Benarkan log masuk Google untuk sambungan</translation>
 <translation id="5927916530277631319">Kaedah untuk menyelesaikan Domain yang tidak dapat Dihentikan</translation>
 <translation id="5248318250177143470">Kaedah untuk menyelesaikan Ethereum Name Service (ENS)</translation>
@@ -209,7 +207,6 @@ Dengan memasang sambungan, anda bersetuju dengan Terma Penggunaan Google Widevin
 <translation id="6476061084931271248">Mulakan semula nod untuk menggunakan perubahan</translation>
 <translation id="3754226427671882382">Mulakan semula nod</translation>
 <translation id="949667118776341807">Putar</translation>
-<translation id="635013291822406289">/ip4/46.21.210.45/tcp/14406/quic/p2p/12D3KooWBdmLJjhpgJ9KZgLM3f894ff9xyBfPvPjFNn7MKJpyrC2</translation>
 <translation id="724513921936768901">Nama ini tidak sah</translation>
 <translation id="6758961763875471084">Ubah suai senarai rakan</translation>
 <translation id="1295874070797049002">Eksport kekunci</translation>
@@ -233,6 +230,7 @@ Dengan memasang sambungan, anda bersetuju dengan Terma Penggunaan Google Widevin
 <translation id="1251574393468476924">Saiz cache IPFS maksimum (GB)</translation>
 <translation id="2503497578400410320">Had atas yang lembut untuk saiz datastore repositori IPFS.</translation>
 <translation id="7703184801853248830">Alamat gerbang tidak sah</translation>
+<translation id="7690058578502751948">Hanya get laluan IPFS yang sah dengan pengasingan Origin yang diaktifkan dapat digunakan di Brave</translation>
 <translation id="585868419599255817">Undur balik get laluan awam IPFS</translation>
 <translation id="207763736230883589">Kembali ke gerbang IPFS awam secara automatik apabila nod tempatan anda tidak boleh dicapai.</translation>
 <translation id="4107552920076294723">Halakan semula sumber IPFS kepada gerbang IPFS yang dikonfigurasi</translation>
@@ -240,6 +238,7 @@ Dengan memasang sambungan, anda bersetuju dengan Terma Penggunaan Google Widevin
 <translation id="8655170717758778983">Ubah hala ke halaman IPFS secara automatik melalui DNSLink apabila mungkin</translation>
 <translation id="2233724520223030977">Mengunakan DNSLink secara automatik untuk menavigasi ke versi IPFS laman web apabila mungkin</translation>
 <translation id="6554397389149987360">Menggunakan komponen Hangouts untuk mendayakan perkongsian skrin dan lain-lain ciri dalam pelayar.</translation>
+<translation id="7878791177459550035">Penghala media mendayakan ciri siaran dalam pelayar.</translation>
 <translation id="9156965752763025780">Perubahan anda akan dilaksanakan apabila anda melancarkan semula Brave pada masa hadapan.</translation>
 <translation id="7179921470347911571">Lancarkan Semula Sekarang</translation>
 <translation id="8068526464562249859">Menggunakan sambungan Teman IPFS untuk sokongan IPFS dirangsang dalam Brave, termasuk akses kepada tugasan IPFS umum daripada bar pelayar anda.</translation>
@@ -300,6 +299,10 @@ Dengan memasang sambungan, anda bersetuju dengan Terma Penggunaan Google Widevin
 <translation id="1391855377994926460">Teruskan menyemak lalu web lebih pantas - sehingga 6x lebih pantas pada tapak berita utama.</translation>
 <translation id="9218430445555521422">Tetapkan sebagai lalai</translation>
 <translation id="3479552764303398839">Bukan sekarang</translation>
+<translation id="732814027519296280">Mahu menjadikan Brave Search lebih baik?</translation>
+<translation id="2677865600861971449">Ikut serta dalam Projek Penemuan Web untuk menyumbang sebilangan carian data penyemakan imbas tanpa nama, dan tingkatkan hasil Carian Brave untuk semua. Privasi Terpelihara. Tanpa bimbang. <ph name="LEARN_MORE_TEXT"/></translation>
+<translation id="5860491529813859533">Hidupkan</translation>
+<translation id="780301667611848630">Tidak, terima kasih</translation>
 <translation id="5039804452771397117">Benarkan</translation>
 <translation id="7053983685419859001">Sekat</translation>
 <translation id="7815301689257843278">Hantar laporan ranap secara automatik supaya Brave dapat mencegah isu ini daripada berulang lagi?</translation>
@@ -309,6 +312,8 @@ Dengan memasang sambungan, anda bersetuju dengan Terma Penggunaan Google Widevin
 <translation id="6873781976650514089">tetapan ini</translation>
 <translation id="6040143037577758943">Tutup</translation>
 <translation id="5600566490506283344">Pemberitahuan Iklan Brave</translation>
+<translation id="4174337572777167894">Projek Penemuan Web</translation>
+<translation id="8659271182272561965">Lakukan penyemakan imbas data tanpa nama &amp; untuk memperhalusi Brave Search.</translation>
 <translation id="1516554614404600536">Petua Alat Brave</translation>
 <translation id="4877147287319222750">Tambah ke bar sisi</translation>
 <translation id="4233010476457917696">Tunjukkan bar sisi</translation>
@@ -350,7 +355,23 @@ Dengan memasang sambungan, anda bersetuju dengan Terma Penggunaan Google Widevin
         Anda boleh membaca <ph name="BEGIN_LINK_BUILD_INSTRUCTIONS"/>arahan tentang cara  untuk memuat turun dan membina untuk diri anda sendiri<ph name="END_LINK_BUILD_INSTRUCTIONS"/> kod sumber <ph name="BEGIN_LINK_SOURCE_CODE"/>khusus yang digunakan untuk mencipta salinan ini<ph name="END_LINK_SOURCE_CODE"/>.</translation>
 <translation id="4474155171896946103">Tanda halaman semua tab...</translation>
 <translation id="2336228925368920074">Tanda Halaman Semua Tab...</translation>
+<translation id="4235920711083356755">Tunjukkan butang VPN</translation>
+<translation id="4070612712151038707">Menunjukkan butang VPN dalam bar alat</translation>
 <translation id="7705524343798198388">VPN</translation>
+<translation id="3960619311638643872">VPN Brave</translation>
+<translation id="2345974803401546682">Perihal VPN Brave</translation>
+<translation id="4378551569595875038">Menyambung...</translation>
+<translation id="3368922792935385530">Disambungkan</translation>
+<translation id="1536754031901697553">Memutuskan sambungan...</translation>
+<translation id="8030169304546394654">Sambungan Terputus</translation>
+<translation id="1863950594388384201">Tunjukkan Butang VPN dalam Bar Alat</translation>
+<translation id="5187139277471084437">Sembunyikan Butang VPN dalam Bar Alat</translation>
+<translation id="8041089156583427627">Hantar Maklum Balas</translation>
+<translation id="4049186905514157504">Urus Pelan Saya</translation>
+<translation id="7570585565843385325">Tunjukkan butang VPM dalam bar alat</translation>
+<translation id="5310426188697803101">Sembunyikan butang VPN dalam bar alat</translation>
+<translation id="945522503751344254">Hantar maklum balas</translation>
+<translation id="3015685033234401792">Urus pelan saya</translation>
 <translation id="796831669370432378">Untuk menambahkan penanda buku, klik butang penanda buku di sebelah palang alamat</translation>
 <translation id="4989337484121655457">Akses Cakera Penuh diperlukan</translation>
 <translation id="8025559074845816210">Brave memerlukan Akses Cakera Penuh untuk mengimport Tanda Buku anda daripada Safari.</translation>

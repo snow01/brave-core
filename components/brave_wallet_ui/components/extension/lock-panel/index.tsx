@@ -4,22 +4,23 @@ import {
   StyledWrapper,
   Title,
   Column,
-  PageIcon,
-  IconBackground
+  PanelIcon,
+  RestoreButton
 } from './style'
 import { PasswordInput } from '../../shared'
 import { NavButton } from '../'
-import locale from '../../../constants/locale'
+import { getLocale } from '../../../../common/locale'
 
 export interface Props {
   onSubmit: () => void
   onPasswordChanged: (value: string) => void
+  onClickRestore: () => void
   hasPasswordError: boolean
   disabled: boolean
 }
 
 function LockPanel (props: Props) {
-  const { onSubmit, onPasswordChanged, disabled, hasPasswordError } = props
+  const { onSubmit, onPasswordChanged, onClickRestore, disabled, hasPasswordError } = props
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !disabled) {
@@ -29,26 +30,25 @@ function LockPanel (props: Props) {
 
   return (
     <StyledWrapper>
-      <IconBackground>
-        <PageIcon />
-      </IconBackground>
-      <Title>{locale.lockScreenTitle}</Title>
+      <PanelIcon />
+      <Title>{getLocale('braveWalletLockScreenTitle')}</Title>
       <Column>
         <PasswordInput
-          placeholder={locale.createPasswordInput}
+          placeholder={getLocale('braveWalletCreatePasswordInput')}
           onChange={onPasswordChanged}
           onKeyDown={handleKeyDown}
-          error={locale.lockScreenError}
+          error={getLocale('braveWalletLockScreenError')}
           hasError={hasPasswordError}
           autoFocus={true}
         />
       </Column>
       <NavButton
         buttonType='primary'
-        text={locale.lockScreenButton}
+        text={getLocale('braveWalletLockScreenButton')}
         onSubmit={onSubmit}
         disabled={disabled}
       />
+      <RestoreButton onClick={onClickRestore}>{getLocale('braveWalletWelcomeRestoreButton')}</RestoreButton>
     </StyledWrapper>
   )
 }

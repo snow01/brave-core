@@ -13,6 +13,7 @@
 #include "base/bind.h"
 #include "base/command_line.h"
 #include "base/containers/flat_map.h"
+#include "base/cxx17_backports.h"
 #include "base/debug/dump_without_crashing.h"
 #include "base/feature_list.h"
 #include "base/files/file_path.h"
@@ -24,7 +25,6 @@
 #include "base/logging.h"
 #include "base/memory/ptr_util.h"
 #include "base/metrics/field_trial_params.h"
-#include "base/numerics/ranges.h"
 #include "base/path_service.h"
 #include "base/sequenced_task_runner.h"
 #include "base/strings/string_number_conversions.h"
@@ -37,6 +37,7 @@
 #include "bat/ads/ad_notification_info.h"
 #include "bat/ads/ads.h"
 #include "bat/ads/ads_history_info.h"
+#include "bat/ads/inline_content_ad_info.h"
 #include "bat/ads/pref_names.h"
 #include "bat/ads/resources/grit/bat_ads_resources.h"
 #include "bat/ads/statement_info.h"
@@ -48,6 +49,7 @@
 #include "brave/common/pref_names.h"
 #include "brave/components/brave_adaptive_captcha/buildflags/buildflags.h"
 #include "brave/components/brave_ads/browser/ads_p2a.h"
+#include "brave/components/brave_ads/browser/ads_storage_cleanup.h"
 #include "brave/components/brave_ads/browser/frequency_capping_helper.h"
 #include "brave/components/brave_ads/browser/notification_helper.h"
 #include "brave/components/brave_ads/browser/service_sandbox_type.h"
@@ -58,6 +60,7 @@
 #include "brave/components/brave_rewards/browser/rewards_p3a.h"
 #include "brave/components/brave_rewards/browser/rewards_service.h"
 #include "brave/components/brave_rewards/common/pref_names.h"
+#include "brave/components/brave_today/buildflags/buildflags.h"
 #include "brave/components/l10n/browser/locale_helper.h"
 #include "brave/components/l10n/common/locale_util.h"
 #include "brave/components/ntp_background_images/common/pref_names.h"
@@ -110,6 +113,10 @@
 #if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
 #include "brave/components/brave_adaptive_captcha/brave_adaptive_captcha_service.h"
 #include "brave/components/brave_ads/browser/ads_tooltips_delegate.h"
+#endif
+
+#if BUILDFLAG(ENABLE_BRAVE_NEWS)
+#include "brave/components/brave_today/common/pref_names.h"
 #endif
 
 using brave_rewards::RewardsNotificationService;
@@ -408,8 +415,8 @@ void AdsServiceImpl::ReconcileAdRewards() {
   bat_ads_->ReconcileAdRewards();
 }
 
-void AdsServiceImpl::GetAdsHistory(const uint64_t from_timestamp,
-                                   const uint64_t to_timestamp,
+void AdsServiceImpl::GetAdsHistory(const double from_timestamp,
+                                   const double to_timestamp,
                                    OnGetAdsHistoryCallback callback) {
   if (!connected()) {
     return;
@@ -527,8 +534,12 @@ bool AdsServiceImpl::IsEnabled() const {
 }
 
 bool AdsServiceImpl::IsBraveNewsEnabled() const {
-  return GetBooleanPref(kBraveTodayOptedIn) &&
-         GetBooleanPref(kNewTabPageShowToday);
+#if BUILDFLAG(ENABLE_BRAVE_NEWS)
+  return GetBooleanPref(brave_news::prefs::kBraveTodayOptedIn) &&
+         GetBooleanPref(brave_news::prefs::kNewTabPageShowToday);
+#else
+  return false;
+#endif
 }
 
 bool AdsServiceImpl::ShouldStart() const {
@@ -546,9 +557,9 @@ int64_t AdsServiceImpl::GetAdsPerHour() const {
         ads::kDefaultAdNotificationsPerHour);
   }
 
-  return base::ClampToRange(
-      ads_per_hour, static_cast<int64_t>(ads::kMinimumAdNotificationsPerHour),
-      static_cast<int64_t>(ads::kMaximumAdNotificationsPerHour));
+  return base::clamp(ads_per_hour,
+                     static_cast<int64_t>(ads::kMinimumAdNotificationsPerHour),
+                     static_cast<int64_t>(ads::kMaximumAdNotificationsPerHour));
 }
 
 bool AdsServiceImpl::ShouldAllowAdsSubdivisionTargeting() const {
@@ -667,15 +678,17 @@ void AdsServiceImpl::Initialize() {
       brave_rewards::prefs::kWalletBrave,
       base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
                           base::Unretained(this)));
+#if BUILDFLAG(ENABLE_BRAVE_NEWS)
+  profile_pref_change_registrar_.Add(
+      brave_news::prefs::kBraveTodayOptedIn,
+      base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
+                          base::Unretained(this)));
 
   profile_pref_change_registrar_.Add(
-      kBraveTodayOptedIn, base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
-                                              base::Unretained(this)));
-
-  profile_pref_change_registrar_.Add(
-      kNewTabPageShowToday, base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
-                                                base::Unretained(this)));
-
+      brave_news::prefs::kNewTabPageShowToday,
+      base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
+                          base::Unretained(this)));
+#endif
   MaybeStart(false);
 }
 
@@ -701,6 +714,12 @@ void AdsServiceImpl::OnInitialize(const bool success) {
   MaybeOpenNewTabWithAd();
 
   StartCheckIdleStateTimer();
+
+  if (!deprecated_data_files_removed_) {
+    deprecated_data_files_removed_ = true;
+    file_task_runner_->PostTask(
+        FROM_HERE, base::BindOnce(&RemoveDeprecatedAdsDataFiles, base_path_));
+  }
 }
 
 void AdsServiceImpl::ShutdownBatAds() {
@@ -935,8 +954,6 @@ void AdsServiceImpl::SetEnvironment() {
     environment = ads::mojom::Environment::kProduction;
   } else if (command_line.HasSwitch(switches::kStaging)) {
     environment = ads::mojom::Environment::kStaging;
-  } else if (command_line.HasSwitch(switches::kDevelopment)) {
-    environment = ads::mojom::Environment::kDevelopment;
   }
 #endif
 
@@ -1141,6 +1158,7 @@ void AdsServiceImpl::OnPromotedContentAdEvent(
 void AdsServiceImpl::GetInlineContentAd(const std::string& dimensions,
                                         OnGetInlineContentAdCallback callback) {
   if (!connected()) {
+    std::move(callback).Run(false, "", base::DictionaryValue());
     return;
   }
 
@@ -1351,7 +1369,7 @@ void AdsServiceImpl::OnGetAdsHistory(OnGetAdsHistoryCallback callback,
     base::DictionaryValue dictionary;
 
     dictionary.SetKey("uuid", base::Value(std::to_string(uuid++)));
-    auto time = base::Time::FromDoubleT(item.timestamp_in_seconds);
+    auto time = base::Time::FromDoubleT(item.timestamp);
     auto js_time = time.ToJsTime();
     dictionary.SetKey("timestampInMilliseconds", base::Value(js_time));
 
@@ -1795,24 +1813,6 @@ void AdsServiceImpl::DisableAdsForUnsupportedCountryCodes(
   SetEnabled(false);
 }
 
-uint64_t AdsServiceImpl::MigrateTimestampToDoubleT(
-    const uint64_t timestamp_in_seconds) const {
-  if (timestamp_in_seconds < 10000000000) {
-    // Already migrated as DoubleT will never reach 10000000000 in our lifetime
-    // and legacy timestamps are above 10000000000
-    return timestamp_in_seconds;
-  }
-
-  // Migrate date to DoubleT
-  auto now = base::Time::Now();
-  auto now_in_seconds = static_cast<uint64_t>((now - base::Time()).InSeconds());
-
-  auto delta = timestamp_in_seconds - now_in_seconds;
-
-  auto date = now + base::TimeDelta::FromSeconds(delta);
-  return static_cast<uint64_t>(date.ToDoubleT());
-}
-
 void AdsServiceImpl::MaybeShowMyFirstAdNotification() {
   if (!ShouldShowMyFirstAdNotification()) {
     return;
@@ -1837,33 +1837,33 @@ bool AdsServiceImpl::PrefExists(const std::string& path) const {
 }
 
 void AdsServiceImpl::OnPrefsChanged(const std::string& pref) {
-  if (pref == ads::prefs::kEnabled || pref == kBraveTodayOptedIn ||
-      pref == kNewTabPageShowToday) {
-    if (pref == ads::prefs::kEnabled) {
-      rewards_service_->OnAdsEnabled(IsEnabled());
-
-      if (!IsEnabled()) {
-        SuspendP2AHistograms();
-        VLOG(1) << "P2A histograms suspended";
+  if (pref == ads::prefs::kEnabled) {
+    rewards_service_->OnAdsEnabled(IsEnabled());
+    if (!IsEnabled()) {
+      SuspendP2AHistograms();
+      VLOG(1) << "P2A histograms suspended";
 
 #if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
-        // Close any open captcha tooltip
-        ads_tooltips_delegate_->CloseCaptchaTooltip();
+      // Close any open captcha tooltip
+      ads_tooltips_delegate_->CloseCaptchaTooltip();
 
-        // Clear any scheduled captcha
-        adaptive_captcha_service_->ClearScheduledCaptcha();
+      // Clear any scheduled captcha
+      adaptive_captcha_service_->ClearScheduledCaptcha();
 #endif
-      }
-
-      brave_rewards::p3a::UpdateAdsStateOnPreferenceChange(profile_->GetPrefs(),
-                                                           pref);
     }
 
+    brave_rewards::p3a::UpdateAdsStateOnPreferenceChange(profile_->GetPrefs(),
+                                                         pref);
     MaybeStart(/* should_restart */ false);
   } else if (pref == ads::prefs::kIdleTimeThreshold) {
     StartCheckIdleStateTimer();
   } else if (pref == brave_rewards::prefs::kWalletBrave) {
     OnWalletUpdated();
+#if BUILDFLAG(ENABLE_BRAVE_NEWS)
+  } else if (pref == brave_news::prefs::kBraveTodayOptedIn ||
+             pref == brave_news::prefs::kNewTabPageShowToday) {
+    MaybeStart(/* should_restart */ false);
+#endif
   }
 }
 
@@ -2032,12 +2032,12 @@ void AdsServiceImpl::CloseNotification(const std::string& uuid) {
 
 void AdsServiceImpl::RecordAdEvent(const std::string& ad_type,
                                    const std::string& confirmation_type,
-                                   const uint64_t timestamp) const {
+                                   const double timestamp) const {
   FrequencyCappingHelper::GetInstance()->RecordAdEvent(
       ad_type, confirmation_type, timestamp);
 }
 
-std::vector<uint64_t> AdsServiceImpl::GetAdEvents(
+std::vector<double> AdsServiceImpl::GetAdEvents(
     const std::string& ad_type,
     const std::string& confirmation_type) const {
   return FrequencyCappingHelper::GetInstance()->GetAdEvents(ad_type,

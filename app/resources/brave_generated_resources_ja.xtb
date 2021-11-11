@@ -188,13 +188,11 @@
 <translation id="8488282162676695335">Braveウォレット</translation>
 <translation id="2356070529366658676">確認する</translation>
 <translation id="7701040980221191251">なし</translation>
-<translation id="5655621391922317800">仮想通貨ウォレット</translation>
-<translation id="1696548911367097044">非推奨のCryptoウォレット拡張機能</translation>
-<translation id="1085027414516521238">MetaMask</translation>
-<translation id="7090046810227878892">Dappsを使用するためのイーサリアムプロバイダー</translation>
-<translation id="5913089932885076110">開始時にクリプトウォレットをロードする</translation>
-<translation id="757886143331967039">起動時に非推奨のCryptoウォレット拡張機能を読み込む</translation>
+<translation id="1274962333945373242">非推奨のCryptoウォレット拡張機能</translation>
+<translation id="9131889008937672866">デフォルトの暗号資産ウォレット</translation>
 <translation id="1834467296210148203">Brave Walletのアイコンをツールバーに表示</translation>
+<translation id="8239147115686034860">Brave Wallet を自動的にロック</translation>
+<translation id="414639769490080648">Brave Wallet が自動的にロックされるまで待機する分数</translation>
 <translation id="6864914031231797928">拡張機能のGoogleログインを許可する</translation>
 <translation id="5927916530277631319">「Unstoppable Domains」を解決する方法</translation>
 <translation id="5248318250177143470">イーサリアムネームサービス（ENS）を解決する方法</translation>
@@ -210,7 +208,6 @@
 <translation id="6476061084931271248">変更を適用するにはノードを再起動します</translation>
 <translation id="3754226427671882382">ノードを再起動</translation>
 <translation id="949667118776341807">ローテーション</translation>
-<translation id="635013291822406289">/ip4/46.21.210.45/tcp/14406/quic/p2p/12D3KooWBdmLJjhpgJ9KZgLM3f894ff9xyBfPvPjFNn7MKJpyrC2</translation>
 <translation id="724513921936768901">この名前は無効です</translation>
 <translation id="6758961763875471084">ピアリストを修正</translation>
 <translation id="1295874070797049002">キーのエクスポート</translation>
@@ -234,6 +231,7 @@
 <translation id="1251574393468476924">最大IPFSキャッシュサイズ（GB）</translation>
 <translation id="2503497578400410320">IPFSリポジトリのデータストアのサイズに対するソフトな上限。</translation>
 <translation id="7703184801853248830">無効なゲートウェイアドレス</translation>
+<translation id="7690058578502751948">Brave で使用できるのは、オリジンアイソレーションが有効になっている有効な IPFS ゲートウェイのみです。</translation>
 <translation id="585868419599255817">IPFSパブリックゲートウェイのフォールバック</translation>
 <translation id="207763736230883589">ローカルノードに到達できない場合は、自動的にパブリックIPFSゲートウェイにフォールバックします。</translation>
 <translation id="4107552920076294723">IPFSリソースを構成済みIPFSゲートウェイにリダイレクトします</translation>
@@ -241,6 +239,7 @@
 <translation id="8655170717758778983">可能な場合は、DNSLink経由でIPFSページに自動的にリダイレクトする</translation>
 <translation id="2233724520223030977">可能な場合、DNSLinkを自動的に使用してウェブサイトのIPFSバージョンに移動する</translation>
 <translation id="6554397389149987360">ハングアウトコンポーネントでスクリーン共有やその他の機能を有効にします</translation>
+<translation id="7878791177459550035">メディアルーターは、ブラウザのキャスト機能を有効にします。</translation>
 <translation id="9156965752763025780">変更内容は次に Brave を再起動したときに有効になります。</translation>
 <translation id="7179921470347911571">今すぐ再起動</translation>
 <translation id="8068526464562249859">ブラウザーバーからの一般的なIPFSタスクにアクセスするなど、BraveでのIPFSサポートを強化するために「IPFS Companion」拡張機能を使用します。</translation>
@@ -301,6 +300,10 @@
 <translation id="1391855377994926460">ウェブの閲覧をより高速に - 主要なニュースサイトよりも最大6倍速</translation>
 <translation id="9218430445555521422">デフォルトとして設定</translation>
 <translation id="3479552764303398839">後で</translation>
+<translation id="732814027519296280">Brave Search を改善したいですか？</translation>
+<translation id="2677865600861971449">Web Discovery Project にオプトインして、検索ブラウジングデータを匿名で提供し、すべての人の Brave Search 結果を改善します。プライバシーは保護され、あなたになにか作業が求められることはありません。<ph name="LEARN_MORE_TEXT"/></translation>
+<translation id="5860491529813859533">オンにする</translation>
+<translation id="780301667611848630">利用しない</translation>
 <translation id="5039804452771397117">許可</translation>
 <translation id="7053983685419859001">ブロック</translation>
 <translation id="7815301689257843278">クラッシュレポートを自動的にBraveに送信して、このような問題の再発防止対策にご協力いただけますか？</translation>
@@ -310,6 +313,8 @@
 <translation id="6873781976650514089">この設定</translation>
 <translation id="6040143037577758943">閉じる</translation>
 <translation id="5600566490506283344">Brave Adの通知</translation>
+<translation id="4174337572777167894">Web Discovery Project</translation>
+<translation id="8659271182272561965">Brave Search の改善のために匿名の検索ブラウジングデータを提供します。</translation>
 <translation id="1516554614404600536">Braveのツールヒント</translation>
 <translation id="4877147287319222750">サイドバーに追加</translation>
 <translation id="4233010476457917696">サイドバーを表示</translation>
@@ -351,7 +356,23 @@
 <ph name="BEGIN_LINK_SOURCE_CODE"/>このコピーの作成に使われた特定のソースコード<ph name="END_LINK_SOURCE_CODE"/>を<ph name="BEGIN_LINK_BUILD_INSTRUCTIONS"/>ダウンロードして、自分で構築する方法については説明書<ph name="END_LINK_BUILD_INSTRUCTIONS"/>をお読みください。</translation>
 <translation id="4474155171896946103">すべてのタブをブックマークに追加...</translation>
 <translation id="2336228925368920074">すべてのタブをブックマークに追加...</translation>
+<translation id="4235920711083356755">VPNボタンを表示</translation>
+<translation id="4070612712151038707">ツールバーにVPNボタンを表示します</translation>
 <translation id="7705524343798198388">VPN</translation>
+<translation id="3960619311638643872">Brave VPN</translation>
+<translation id="2345974803401546682">Brave VPNについて</translation>
+<translation id="4378551569595875038">接続しています...</translation>
+<translation id="3368922792935385530">接続済み</translation>
+<translation id="1536754031901697553">切断しています...</translation>
+<translation id="8030169304546394654">切断されました</translation>
+<translation id="1863950594388384201">ツールバーにVPNボタンを表示</translation>
+<translation id="5187139277471084437">ツールバーにVPNボタンを非表示</translation>
+<translation id="8041089156583427627">フィードバックを送信</translation>
+<translation id="4049186905514157504">プランの管理</translation>
+<translation id="7570585565843385325">ツールバーにVPNボタンを表示</translation>
+<translation id="5310426188697803101">ツールバーにVPNボタンを非表示</translation>
+<translation id="945522503751344254">フィードバックを送信</translation>
+<translation id="3015685033234401792">プランの管理</translation>
 <translation id="796831669370432378">ブックマークを追加するには、アドレスバーの横にあるブックマークボタンをクリックしてください</translation>
 <translation id="4989337484121655457">フルディスクアクセスが必要です</translation>
 <translation id="8025559074845816210">Safariからあなたのブックマークをインポートするために、Braveは「フルディスクアクセス」が必要です。</translation>

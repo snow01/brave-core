@@ -12,6 +12,15 @@ export const StyledWrapper = styled.div`
 `
 
 export const SelectAddressContainer = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+`
+export const SelectAddressInnerContainer = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -31,7 +40,7 @@ export const SelectAddressScrollContainer = styled.div`
   overflow-y: scroll;
   overflow-x: hidden;
   position: relative;
-  max-height: 200px;
+  max-height: 150px;
   box-sizing: border-box;
 `
 
@@ -79,6 +88,7 @@ export const ConfirmTextColumn = styled.div`
 	flex-direction: column;
 	align-items: flex-start;
 	justify-content: center;
+  width: 70%;
 `
 
 export const ConfirmText = styled.span`

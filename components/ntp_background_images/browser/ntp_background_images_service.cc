@@ -25,10 +25,7 @@
 #include "brave/components/l10n/common/locale_util.h"
 #include "brave/components/ntp_background_images/browser/features.h"
 #include "brave/components/ntp_background_images/browser/ntp_background_images_component_installer.h"
-#if BUILDFLAG(ENABLE_NTP_BACKGROUND_IMAGES)
 #include "brave/components/ntp_background_images/browser/ntp_background_images_data.h"
-#endif
-#include "brave/components/ntp_background_images/browser/ntp_background_images_source.h"
 #include "brave/components/ntp_background_images/browser/ntp_sponsored_images_data.h"
 #include "brave/components/ntp_background_images/browser/sponsored_images_component_data.h"
 #include "brave/components/ntp_background_images/browser/switches.h"
@@ -44,7 +41,6 @@ namespace ntp_background_images {
 
 namespace {
 
-constexpr int kSIComponentUpdateCheckIntervalHours = 1;
 constexpr char kNTPManifestFile[] = "photo.json";
 constexpr char kNTPSRMappingTableFile[] = "mapping-table.json";
 
@@ -121,9 +117,7 @@ void NTPBackgroundImagesService::Init() {
              << " from local path at: " << forced_local_path.LossyDisplayName();
     OnSponsoredComponentReady(false, forced_local_path);
   } else {
-#if BUILDFLAG(ENABLE_NTP_BACKGROUND_IMAGES)
     RegisterBackgroundImagesComponent();
-#endif
     RegisterSponsoredImagesComponent();
   }
 
@@ -152,7 +146,6 @@ void NTPBackgroundImagesService::CheckImagesComponentUpdate(
   BraveOnDemandUpdater::GetInstance()->OnDemandUpdate(component_id);
 }
 
-#if BUILDFLAG(ENABLE_NTP_BACKGROUND_IMAGES)
 void NTPBackgroundImagesService::RegisterBackgroundImagesComponent() {
   DVLOG(2) << __func__ << ": Start NTP BI component";
   RegisterNTPBackgroundImagesComponent(
@@ -160,7 +153,6 @@ void NTPBackgroundImagesService::RegisterBackgroundImagesComponent() {
       base::BindRepeating(&NTPBackgroundImagesService::OnComponentReady,
                           weak_factory_.GetWeakPtr()));
 }
-#endif
 
 void NTPBackgroundImagesService::RegisterSponsoredImagesComponent() {
   const std::string locale =
@@ -182,10 +174,11 @@ void NTPBackgroundImagesService::RegisterSponsoredImagesComponent() {
           weak_factory_.GetWeakPtr(), false));
   // SI component checks update more frequently than other components.
   // By default, browser check update status every 5 hours.
-  // However, this background interval is too long for SI. Use 1 hour interval.
+  // However, this background interval is too long for SI. Use 15mins interval.
+  constexpr int kSIComponentUpdateCheckIntervalMins = 15;
   si_update_check_timer_.Start(
       FROM_HERE,
-      base::TimeDelta::FromHours(kSIComponentUpdateCheckIntervalHours),
+      base::TimeDelta::FromMinutes(kSIComponentUpdateCheckIntervalMins),
       base::BindRepeating(
           &NTPBackgroundImagesService::CheckImagesComponentUpdate,
           base::Unretained(this), data->component_id));
@@ -405,7 +398,6 @@ bool NTPBackgroundImagesService::HasObserver(Observer* observer) {
   return observer_list_.HasObserver(observer);
 }
 
-#if BUILDFLAG(ENABLE_NTP_BACKGROUND_IMAGES)
 NTPBackgroundImagesData* NTPBackgroundImagesService::GetBackgroundImagesData()
     const {
   if (bi_images_data_ && bi_images_data_->IsValid()) {
@@ -414,7 +406,6 @@ NTPBackgroundImagesData* NTPBackgroundImagesService::GetBackgroundImagesData()
 
   return nullptr;
 }
-#endif
 
 NTPSponsoredImagesData* NTPBackgroundImagesService::GetBrandedImagesData(
     bool super_referral) const {
@@ -446,7 +437,6 @@ NTPSponsoredImagesData* NTPBackgroundImagesService::GetBrandedImagesData(
   return nullptr;
 }
 
-#if BUILDFLAG(ENABLE_NTP_BACKGROUND_IMAGES)
 void NTPBackgroundImagesService::OnComponentReady(
     const base::FilePath& installed_dir) {
   bi_installed_dir_ = installed_dir;
@@ -469,7 +459,6 @@ void NTPBackgroundImagesService::OnGetComponentJsonData(
     observer.OnUpdated(bi_images_data_.get());
   }
 }
-#endif
 
 void NTPBackgroundImagesService::OnSponsoredComponentReady(
     bool is_super_referral,

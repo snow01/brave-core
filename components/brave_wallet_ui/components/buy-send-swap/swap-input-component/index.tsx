@@ -1,15 +1,25 @@
 import * as React from 'react'
-import { AccountAssetOptionType, OrderTypes, SlippagePresetObjectType, ExpirationPresetObjectType } from '../../../constants/types'
+import {
+  AccountAssetOptionType,
+  OrderTypes,
+  SlippagePresetObjectType,
+  ExpirationPresetObjectType,
+  SwapValidationErrorType,
+  AmountPresetTypes
+} from '../../../constants/types'
 import { AmountPresetOptions } from '../../../options/amount-preset-options'
 import { SlippagePresetOptions } from '../../../options/slippage-preset-options'
 import { ExpirationPresetOptions } from '../../../options/expiration-preset-options'
-import locale from '../../../constants/locale'
+import { formatWithCommasAndDecimals } from '../../../utils/format-prices'
+import { getLocale } from '../../../../common/locale'
+import { reduceAddress } from '../../../utils/reduce-address'
+import { withPlaceholderIcon } from '../../shared'
+import { hexToNumber } from '../../../utils/format-balances'
 
 // Styled Components
 import {
   RefreshButton,
   RefreshIcon,
-  MarketLimitButton,
   FromBalanceText,
   AssetIcon,
   AssetButton,
@@ -22,7 +32,11 @@ import {
   Input,
   Row,
   PasteIcon,
-  PasteButton
+  PasteButton,
+  SlippageInput,
+  WarningText,
+  AddressConfirmationText,
+  ButtonLeftSide
 } from './style'
 
 import { BubbleContainer } from '../shared-styles'
@@ -40,11 +54,16 @@ export interface Props {
   selectedAssetBalance?: string
   selectedAsset?: AccountAssetOptionType
   selectedAssetInputAmount?: string
+  addressError?: string
+  toAddressOrUrl?: string
   toAddress?: string
   inputName?: string
   orderType?: OrderTypes
   slippageTolerance?: SlippagePresetObjectType
   orderExpiration?: ExpirationPresetObjectType
+  validationError?: SwapValidationErrorType
+  customSlippageTolerance?: string
+  onCustomSlippageToleranceChange?: (value: string) => void
   onInputChange?: (value: string, name: string) => void
   onSelectPresetAmount?: (percent: number) => void
   onSelectSlippageTolerance?: (slippage: SlippagePresetObjectType) => void
@@ -62,21 +81,27 @@ function SwapInputComponent (props: Props) {
     componentType,
     selectedAssetInputAmount,
     inputName,
+    addressError,
+    toAddressOrUrl,
     toAddress,
     orderType,
     slippageTolerance,
     orderExpiration,
+    validationError,
+    customSlippageTolerance,
+    onCustomSlippageToleranceChange,
     onInputChange,
     onPaste,
     onRefresh,
     onSelectPresetAmount,
     onSelectSlippageTolerance,
     onSelectExpiration,
-    onToggleOrderType,
     onShowSelection
   } = props
   const [spin, setSpin] = React.useState<number>(0)
   const [expandSelector, setExpandSelector] = React.useState<boolean>(false)
+  const [showSlippageWarning, setShowSlippageWarning] = React.useState<boolean>(false)
+  const [selectedPreset, setSelectedPreset] = React.useState<AmountPresetTypes | undefined>()
 
   const toggleExpandSelector = () => {
     setExpandSelector(!expandSelector)
@@ -103,8 +128,9 @@ function SwapInputComponent (props: Props) {
     }
   }
 
-  const setPresetAmmountValue = (percent: number) => () => {
+  const setPresetAmountValue = (percent: AmountPresetTypes) => () => {
     if (onSelectPresetAmount) {
+      setSelectedPreset(percent)
       onSelectPresetAmount(percent)
     }
   }
@@ -112,29 +138,29 @@ function SwapInputComponent (props: Props) {
   const getTitle = () => {
     switch (componentType) {
       case 'fromAmount':
-        return locale.swapFrom
+        return getLocale('braveWalletSwapFrom')
       case 'toAmount':
         if (orderType === 'market') {
-          return `${locale.swapTo} (${locale.swapEstimate})`
+          return `${getLocale('braveWalletSwapTo')} (${getLocale('braveWalletSwapEstimate')})`
         } else {
-          return locale.swapTo
+          return getLocale('braveWalletSwapTo')
         }
       case 'buyAmount':
-        return locale.buy
+        return getLocale('braveWalletBuy')
       case 'exchange':
         if (orderType === 'market') {
-          return `${locale.swapMarket} ${locale.swapPriceIn} ${selectedAsset?.asset.symbol}`
+          return `${getLocale('braveWalletSwapMarket')} ${getLocale('braveWalletSwapPriceIn')} ${selectedAsset?.asset.symbol}`
         } else {
-          return `${locale.swapPriceIn} ${selectedAsset?.asset.symbol}`
+          return `${getLocale('braveWalletSwapPriceIn')} ${selectedAsset?.asset.symbol}`
         }
       case 'selector':
         if (orderType === 'market') {
-          return 'Slippage tolerance'
+          return getLocale('braveWalletSlippageToleranceTitle')
         } else {
-          return 'Expires in'
+          return getLocale('braveWalletExpiresInTitle')
         }
       case 'toAddress':
-        return locale.swapTo
+        return getLocale('braveWalletSwapTo')
     }
   }
 
@@ -144,43 +170,86 @@ function SwapInputComponent (props: Props) {
     }
   }
 
+  React.useMemo(() => {
+    // Show Warning if slippage is to high
+    if (Number(customSlippageTolerance) >= 6) {
+      setShowSlippageWarning(true)
+      return
+    }
+    setShowSlippageWarning(false)
+  }, [customSlippageTolerance])
+
+  const handleCustomSlippageToleranceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (onCustomSlippageToleranceChange) {
+      // This will only formate to only allow Numbers and remove multiple . decimals
+      const value = event.target.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')
+      // Sets the value to not go higher than 100
+      if (Number(value) > 100) {
+        onCustomSlippageToleranceChange('100')
+        return
+      }
+      // Prevents double 00 before decimal place and formats to 0. if value starts with .
+      if (value === '00' || value === '.') {
+        onCustomSlippageToleranceChange('0.')
+        return
+      }
+      onCustomSlippageToleranceChange(value)
+    }
+  }
+
   const resetAnimation = () => {
     setSpin(0)
   }
+
+  const fromAmountHasErrors = validationError && (
+    validationError === 'insufficientBalance' ||
+    validationError === 'insufficientEthBalance'
+  )
+
+  const AssetIconWithPlaceholder = React.useMemo(() => {
+    return withPlaceholderIcon(AssetIcon, { size: 'small', marginLeft: 4, marginRight: 8 })
+  }, [])
 
   return (
     <BubbleContainer>
       {componentType !== 'selector' &&
         <>
-          <Row>
-            <FromBalanceText componentType={componentType}>{getTitle()}</FromBalanceText>
-            {componentType === 'exchange' &&
-              <MarketLimitButton onClick={onToggleOrderType}>{orderType === 'market' ? locale.swapLimit : locale.swapMarket}</MarketLimitButton>
-            }
-            {componentType !== 'exchange' && componentType !== 'toAddress' && componentType !== 'buyAmount' &&
-              <FromBalanceText>{locale.balance}: {selectedAssetBalance}</FromBalanceText>
-            }
-            {componentType === 'toAddress' &&
-              <PasteButton onClick={onPaste}>
-                <PasteIcon />
-              </PasteButton>
-            }
-          </Row>
+          {!selectedAsset?.asset.isErc721 &&
+            <Row>
+              <FromBalanceText componentType={componentType}>{getTitle()}</FromBalanceText>
+
+              {/* Limit orders on Swap are currently disabled.
+              componentType === 'exchange' &&
+                <MarketLimitButton onClick={onToggleOrderType}>{orderType === 'market' ? locale.swapLimit : locale.swapMarket}</MarketLimitButton>
+            */}
+
+              {componentType !== 'exchange' && componentType !== 'toAddress' && componentType !== 'buyAmount' &&
+                <FromBalanceText>{getLocale('braveWalletBalance')}: {formatWithCommasAndDecimals(selectedAssetBalance?.toString() ?? '')}</FromBalanceText>
+              }
+              {componentType === 'toAddress' &&
+                <PasteButton onClick={onPaste}>
+                  <PasteIcon />
+                </PasteButton>
+              }
+            </Row>
+          }
           <Row componentType={componentType}>
             {componentType === 'buyAmount' &&
               <AssetTicker>$</AssetTicker>
             }
-            <Input
-              componentType={componentType}
-              type={componentType === 'toAddress' ? 'text' : 'number'}
-              placeholder={componentType === 'toAddress' ? '0x address or url' : '0'}
-              value={componentType === 'toAddress' ? toAddress : selectedAssetInputAmount}
-              name={inputName}
-              onChange={onInputChanged}
-              spellCheck={false}
-              hasError={selectedAssetBalance && componentType === 'fromAmount' ? Number(selectedAssetInputAmount) > Number(selectedAssetBalance) : false}
-              disabled={orderType === 'market' && componentType === 'exchange' || orderType === 'limit' && componentType === 'toAmount'}
-            />
+            {!selectedAsset?.asset.isErc721 &&
+              <Input
+                componentType={componentType}
+                type={componentType === 'toAddress' ? 'text' : 'number'}
+                placeholder={componentType === 'toAddress' ? getLocale('braveWalletSendPlaceholder') : '0'}
+                value={componentType === 'toAddress' ? toAddressOrUrl : selectedAssetInputAmount}
+                name={inputName}
+                onChange={onInputChanged}
+                spellCheck={false}
+                hasError={componentType === 'fromAmount' && fromAmountHasErrors}
+                disabled={orderType === 'market' && componentType === 'exchange' || orderType === 'limit' && componentType === 'toAmount'}
+              />
+            }
             {componentType === 'exchange' && orderType === 'market' &&
               <RefreshButton onClick={refresh}>
                 <RefreshIcon
@@ -190,19 +259,22 @@ function SwapInputComponent (props: Props) {
               </RefreshButton>
             }
             {componentType !== 'exchange' && componentType !== 'toAddress' &&
-              <AssetButton onClick={onShowSelection}>
-                <AssetIcon icon={selectedAsset?.asset.icon} />
-                <AssetTicker>{selectedAsset?.asset.symbol}</AssetTicker>
+              <AssetButton isERC721={selectedAsset?.asset.isErc721} onClick={onShowSelection}>
+                <ButtonLeftSide>
+                  <AssetIconWithPlaceholder selectedAsset={selectedAsset?.asset} />
+                  <AssetTicker>{selectedAsset?.asset.symbol} {selectedAsset?.asset.isErc721 ? hexToNumber(selectedAsset?.asset.tokenId ?? '') : ''}</AssetTicker>
+                </ButtonLeftSide>
                 <CaratDownIcon />
               </AssetButton>
             }
           </Row>
-          {componentType === 'fromAmount' &&
+          {componentType === 'fromAmount' && !selectedAsset?.asset.isErc721 &&
             <PresetRow>
-              {AmountPresetOptions.map((preset) =>
+              {AmountPresetOptions().map((preset, idx) =>
                 <PresetButton
-                  key={preset.id}
-                  onClick={setPresetAmmountValue(preset.id)}
+                  isSelected={selectedPreset === preset.value}
+                  key={idx}
+                  onClick={setPresetAmountValue(preset.value)}
                 >
                   {preset.name}
                 </PresetButton>
@@ -216,7 +288,7 @@ function SwapInputComponent (props: Props) {
           <Row>
             <SelectText>{getTitle()}</SelectText>
             <AssetButton onClick={toggleExpandSelector}>
-              <SelectValueText>{orderType === 'market' ? `${slippageTolerance?.slippage}%` : `${orderExpiration?.expiration} days`}</SelectValueText>
+              <SelectValueText>{orderType === 'market' ? customSlippageTolerance ? `${customSlippageTolerance}%` : `${slippageTolerance?.slippage}%` : `${orderExpiration?.expiration} days`}</SelectValueText>
               <CaratDownIcon />
             </AssetButton>
           </Row>
@@ -227,11 +299,21 @@ function SwapInputComponent (props: Props) {
                   {SlippagePresetOptions.map((preset) =>
                     <PresetButton
                       key={preset.id}
+                      isSlippage={true}
+                      isSelected={customSlippageTolerance === '' ? slippageTolerance?.slippage === preset.slippage : false}
                       onClick={setPresetSlippageValue(preset)}
                     >
                       {preset.slippage}%
                     </PresetButton>
                   )}
+                  <SlippageInput
+                    value={customSlippageTolerance}
+                    placeholder='%'
+                    type='text'
+                    isSelected={customSlippageTolerance !== ''}
+                    onChange={handleCustomSlippageToleranceChange}
+                    maxLength={4}
+                  />
                 </>
               ) : (
                 <>
@@ -248,6 +330,15 @@ function SwapInputComponent (props: Props) {
             </PresetRow>
           }
         </>
+      }
+      {showSlippageWarning &&
+        <WarningText>{getLocale('braveWalletSlippageToleranceWarning')}</WarningText>
+      }
+      {componentType === 'toAddress' && addressError &&
+        <WarningText>{addressError}</WarningText>
+      }
+      {componentType === 'toAddress' && toAddress !== toAddressOrUrl && !addressError &&
+        <AddressConfirmationText>{reduceAddress(toAddress ?? '')}</AddressConfirmationText>
       }
     </BubbleContainer >
   )

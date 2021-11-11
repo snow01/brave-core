@@ -24,30 +24,12 @@ class GURL;
 namespace brave_wallet {
 
 bool IsNativeWalletEnabled();
-// Equivalent to web3.utils.toHex(string);
-std::string ToHex(const std::string& data);
-std::string ToHex(const std::vector<uint8_t>& data);
 // Equivalent to web3.utils.keccak256(string)
 std::string KeccakHash(const std::string& input, bool to_hex = true);
 std::vector<uint8_t> KeccakHash(const std::vector<uint8_t>& input);
 // Returns the hex encoding of the first 4 bytes of the hash.
 // For example: keccak('balanceOf(address)')
 std::string GetFunctionHash(const std::string& input);
-// Pads a hex encoded parameter to 32-bytes
-// i.e. 64 hex characters.
-// Input must be prefixed with 0x
-bool PadHexEncodedParameter(const std::string& hex_input, std::string* out);
-// Determines if the passed in hex string is valid
-bool IsValidHexString(const std::string& hex_input);
-// Takes 2 inputs prefixed by 0x and combines them into an output with a single
-// 0x. For example 0x1 and 0x2 would return 0x12.
-// Note thta this doesn't do any special casing like 0x and 0x will make 0x00
-// and not 0x.
-bool ConcatHexStrings(const std::string& hex_input1,
-                      const std::string& hex_input2,
-                      std::string* out);
-bool ConcatHexStrings(const std::vector<std::string>& hex_inputs,
-                      std::string* out);
 
 bool HexValueToUint256(const std::string& hex_input, uint256_t* out);
 std::string Uint256ValueToHex(uint256_t input);
@@ -65,6 +47,9 @@ std::string GenerateMnemonicForTest(const std::vector<uint8_t>& entropy);
 std::unique_ptr<std::vector<uint8_t>> MnemonicToSeed(
     const std::string& mnemonic,
     const std::string& passphrase);
+// This is mainly used for restoring legacy brave crypto wallet
+std::unique_ptr<std::vector<uint8_t>> MnemonicToEntropy(
+    const std::string& mnemonic);
 bool IsValidMnemonic(const std::string& mnemonic);
 
 bool EncodeString(const std::string& input, std::string* output);
@@ -95,15 +80,35 @@ base::Value TransactionReceiptToValue(const TransactionReceipt& tx_receipt);
 absl::optional<TransactionReceipt> ValueToTransactionReceipt(
     const base::Value& value);
 
-void GetAllKnownChains(std::vector<mojom::EthereumChainPtr>* chains);
-const std::vector<mojom::EthereumChain> GetAllKnownNetworks();
+void GetAllKnownChains(PrefService* prefs,
+                       std::vector<mojom::EthereumChainPtr>* chains);
+const std::vector<mojom::EthereumChain> GetAllKnownNetworksForTesting();
 void GetAllCustomChains(PrefService* prefs,
                         std::vector<mojom::EthereumChainPtr>* result);
 void GetAllChains(PrefService* prefs,
                   std::vector<mojom::EthereumChainPtr>* result);
 GURL GetNetworkURL(PrefService* prefs, const std::string& chain_id);
 std::string GetInfuraSubdomainForKnownChainId(const std::string& chain_id);
-mojom::EthereumChainPtr GetKnownChain(const std::string& chain_id);
+mojom::EthereumChainPtr GetKnownChain(PrefService* prefs,
+                                      const std::string& chain_id);
+std::string GetNetworkId(PrefService* prefs, const std::string& chain_id);
+void SetDefaultWallet(PrefService* prefs, mojom::DefaultWallet default_wallet);
+mojom::DefaultWallet GetDefaultWallet(PrefService* prefs);
+void SetDefaultBaseCurrency(PrefService* prefs, const std::string& currency);
+std::string GetDefaultBaseCurrency(PrefService* prefs);
+void SetDefaultBaseCryptocurrency(PrefService* prefs,
+                                  const std::string& cryptocurrency);
+std::string GetDefaultBaseCryptocurrency(PrefService* prefs);
+std::vector<std::string> GetAllKnownNetworkIds();
+std::string GetKnownNetworkId(const std::string& chain_id);
+
+std::string GetUnstoppableDomainsProxyReaderContractAddress(
+    const std::string& chain_id);
+std::string GetEnsRegistryContractAddress(const std::string& chain_id);
+
+// Append chain value to kBraveWalletCustomNetworks list pref.
+void AddCustomNetwork(PrefService* prefs, mojom::EthereumChainPtr chain);
+
 }  // namespace brave_wallet
 
 #endif  // BRAVE_COMPONENTS_BRAVE_WALLET_BROWSER_BRAVE_WALLET_UTILS_H_

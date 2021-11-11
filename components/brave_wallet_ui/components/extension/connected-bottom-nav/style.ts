@@ -1,5 +1,10 @@
 import styled from 'styled-components'
 import UnCheckStar from '../../../assets/svg-icons/star-unchecked.svg'
+import { WalletButton } from '../../shared/style'
+
+interface StyleProps {
+  disabled?: boolean
+}
 
 export const StyledWrapper = styled.div`
   display: flex;
@@ -20,7 +25,6 @@ export const NavOutline = styled.div`
   border: 1px solid rgba(255,255,255,0.5);
   border-radius: 12px;
   margin-bottom: 15px;
-  overflow: hidden;
   max-width: 300px;
 `
 
@@ -31,25 +35,27 @@ export const NavDivider = styled.div`
   background-color: rgba(255,255,255,0.5);
 `
 
-export const NavButton = styled.button`
+export const NavButton = styled(WalletButton) <StyleProps>`
   flex: 1;
   display: flex;
   height: 100%;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: ${(p) => p.disabled ? 'default' : 'pointer'};
   outline: none;
   border: none;
   background: none;
+  pointer-events: ${(p) => p.disabled ? 'none' : 'auto'};
 `
 
-export const NavButtonText = styled.span`
+export const NavButtonText = styled.span<StyleProps>`
   font-family: Poppins;
   font-size: 14px;
   line-height: 20px;
   font-weight: 600;
   letter-spacing: 0.01em;
   color: ${(p) => p.theme.palette.white};
+  opacity: ${(p) => p.disabled ? '0.6' : '1'};
 `
 
 export const AppsIcon = styled.div`

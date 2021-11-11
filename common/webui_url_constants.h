@@ -23,6 +23,7 @@ extern const char kBraveUIWebcompatReporterURL[];
 extern const char kBraveUITipHost[];
 extern const char kBraveUITipURL[];
 extern const char kBraveUIWalletURL[];
+extern const char kBraveUIWalletOnboardingURL[];
 extern const char kBraveUIWalletPanelURL[];
 extern const char kWalletPanelHost[];
 extern const char kVPNPanelURL[];
@@ -34,5 +35,7 @@ extern const char kWalletSettingsURL[];
 extern const char kBraveSyncPath[];
 extern const char kBraveSyncSetupPath[];
 extern const char kTorInternalsHost[];
+extern const char kUntrustedTrezorHost[];
+extern const char kUntrustedTrezorURL[];
 
 #endif  // BRAVE_COMMON_WEBUI_URL_CONSTANTS_H_

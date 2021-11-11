@@ -26,15 +26,23 @@ enum class ProviderErrors {
   kDisconnected = 4900,         // The provider is disconnected from all chains
   kChainDisconnected = 4901,    // The provider is disconnected from the
                                 // specified chain
+  kUnknownChain = 4902,         // The provider doesn't know this chain
   kInvalidParams = -32602,      // Invalid method parameters
   kInternalError = -32603,      // Internal JSON-RPC error
 };
 
 constexpr char kEthAccounts[] = "eth_accounts";
 constexpr char kEthRequestAccounts[] = "eth_requestAccounts";
+constexpr char kEthSendTransaction[] = "eth_sendTransaction";
+constexpr char kEthGetBlockByNumber[] = "eth_getBlockByNumber";
+constexpr char kEthBlockNumber[] = "eth_blockNumber";
+constexpr char kEthSign[] = "eth_sign";
+constexpr char kPersonalSign[] = "personal_sign";
+constexpr char kId[] = "id";
 constexpr char kMethod[] = "method";
 constexpr char kParams[] = "params";
 constexpr char kAddEthereumChainMethod[] = "wallet_addEthereumChain";
+constexpr char kSwitchEthereumChainMethod[] = "wallet_switchEthereumChain";
 
 }  // namespace brave_wallet
 

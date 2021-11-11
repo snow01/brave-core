@@ -187,13 +187,11 @@
 <translation id="8488282162676695335">کیف پول Brave</translation>
 <translation id="2356070529366658676">سؤال شود</translation>
 <translation id="7701040980221191251">هیچ کدام</translation>
-<translation id="5655621391922317800">کیف پول‌های رمزنگاری</translation>
-<translation id="1696548911367097044">افزونه منسوخ Crypto Wallets</translation>
-<translation id="1085027414516521238">MetaMask</translation>
-<translation id="7090046810227878892">ارائه‌دهنده Ethereum برای استفاده از Dapps</translation>
-<translation id="5913089932885076110">بارگیری «کیف پول‌های رمزگذاری‌شده» در شروع به کار</translation>
-<translation id="757886143331967039">بار کردن افزونه منسوخ Crypto Wallets رمزگذاری‌شده هنگام شروع به کار</translation>
+<translation id="1274962333945373242">افزونه منسوخ Crypto Wallets</translation>
+<translation id="9131889008937672866">کیف پول پیش‌فرض رمزارز</translation>
 <translation id="1834467296210148203">نمایش آیکون «کیف پول Brave» در نوار ابزار</translation>
+<translation id="8239147115686034860">کیف پول Brave به‌طور خودکار قفل شود</translation>
+<translation id="414639769490080648">تعداد دقایقی که باید منتظر بمانید تا کیف پول Brave به‌طور خودکار قفل شود</translation>
 <translation id="6864914031231797928">مجاز کردن ورود به سیستم Google برای افزونه‌ها</translation>
 <translation id="5927916530277631319">روش تحلیل دامنه‌های توقف‌ناپذیر</translation>
 <translation id="5248318250177143470">روشی برای تحلیل «سرویس نام اتریوم» (ENS)</translation>
@@ -209,7 +207,6 @@
 <translation id="6476061084931271248">برای اعمال تغییرات، گره را مجدداً راه‌اندازی کنید</translation>
 <translation id="3754226427671882382">راه‌اندازی مجدد گره</translation>
 <translation id="949667118776341807">چرخش</translation>
-<translation id="635013291822406289">/ip4/46.21.210.45/tcp/14406/quic/p2p/12D3KooWBdmLJjhpgJ9KZgLM3f894ff9xyBfPvPjFNn7MKJpyrC2</translation>
 <translation id="724513921936768901">این نام معتبر نیست</translation>
 <translation id="6758961763875471084">تغییر فهرست همتایان</translation>
 <translation id="1295874070797049002">کلید صدور</translation>
@@ -233,6 +230,7 @@
 <translation id="1251574393468476924">حداکثر اندازه حافظه پنهان IPFS (گیگابایت)</translation>
 <translation id="2503497578400410320">حداکثر مجاز نرم برای اندازه محل ذخیره‌سازی داده مخزن IPFS.</translation>
 <translation id="7703184801853248830">نشانی دروازه نامعتبر است</translation>
+<translation id="7690058578502751948">فقط یک گذرگاه IPFS معتبر با جداسازی Origin فعال می‌تواند در Brave استفاده شود</translation>
 <translation id="585868419599255817">بازگشت دروازه عمومی IPFS</translation>
 <translation id="207763736230883589">اگر دسترسی به گره محلی ممکن نیست، به‌طور خودکار به دروازه IPFS عمومی برگردانده می‌شوید.</translation>
 <translation id="4107552920076294723">منابع IPFS را به دروازه IPFS پیکربندی‌شده هدایت کنید</translation>
@@ -240,6 +238,7 @@
 <translation id="8655170717758778983">درصورت امکان، به‌طور خودکار ازطریق DNSLink به صفحات IPFS هدایت می‌شود</translation>
 <translation id="2233724520223030977">به‌طور خودکار از DNSLink استفاده می‌کند تا درصورت امکان به نسخه IPFS پیمایش کند</translation>
 <translation id="6554397389149987360">از مؤلفه‌های Hangouts برای فعال کردن اشتراک‌گذاری صفحه و سایر ویژگی‌ها در مرورگر استفاده می‌کند.</translation>
+<translation id="7878791177459550035">روتر رسانه قابلیت پخش را در مرورگر ممکن می‌سازد.</translation>
 <translation id="9156965752763025780">‏دفعه بعدی که Brave را مجدداً راه‌اندازی می‌کنید، این تغییرات اعمال می‌شوند.</translation>
 <translation id="7179921470347911571">اکنون راه‌اندازی مجدد شود</translation>
 <translation id="8068526464562249859">برای پشتیبانی بهبودیافته IPFS در Brave (از جمله دسترسی به کارهای معمول IPFS از نوار مرورگر)، از افزونه همراه IPFS استفاده می‌کند.</translation>
@@ -300,6 +299,10 @@
 <translation id="1391855377994926460">همچنان وب را سریع‌تر - تا 6 برابر سریع‌تر در سایت‌های خبری اصلی - مرور کنید.</translation>
 <translation id="9218430445555521422">تنظیم به‌عنوان پیش‌فرض</translation>
 <translation id="3479552764303398839">اکنون نه</translation>
+<translation id="732814027519296280">می‌خواهید جستجوی Brave را حتی بهتر از این کنید؟</translation>
+<translation id="2677865600861971449">برای مشارکت ناشناس در ارائه برخی داده‌های جستجو و مرور، و بهبود نتایج جستجوی Brave برای همه، در «پروژه کشف وب» شرکت کنید. حفظ حریم خصوصی. بدون هیچ دردسری. <ph name="LEARN_MORE_TEXT"/></translation>
+<translation id="5860491529813859533">روشن کردن</translation>
+<translation id="780301667611848630">نه متشکرم</translation>
 <translation id="5039804452771397117">اجازه دادن</translation>
 <translation id="7053983685419859001">مسدود کردن</translation>
 <translation id="7815301689257843278">آیا گزارش‌های خرابی به‌طور خودکار ارسال شود تا Brave بتواند از برور مجدد این مشکل جلوگیری کند؟</translation>
@@ -309,6 +312,8 @@
 <translation id="6873781976650514089">این تنظیم</translation>
 <translation id="6040143037577758943">بستن</translation>
 <translation id="5600566490506283344">اعلان آگهی Brave</translation>
+<translation id="4174337572777167894">پروژه کشف وب</translation>
+<translation id="8659271182272561965">در جستجوی ناشناس مشارکت کنید تا داده‌های جستجو و مرور را برای جستجوی Brave پالایش کنید.</translation>
 <translation id="1516554614404600536">نکته‌ابزار Brave</translation>
 <translation id="4877147287319222750">افزودن به نوار جانبی</translation>
 <translation id="4233010476457917696">نمایش نوار جانبی</translation>
@@ -350,7 +355,23 @@
 شما می‌توانید <ph name="BEGIN_LINK_BUILD_INSTRUCTIONS"/>دستورالعمل‌های مربوط به نحوه دانلود و ایجاد<ph name="END_LINK_BUILD_INSTRUCTIONS"/> کد منبع مشخص <ph name="BEGIN_LINK_SOURCE_CODE"/>استفاده‌شده برای ایجاد این نسخه را مطالعه کنید<ph name="END_LINK_SOURCE_CODE"/>.</translation>
 <translation id="4474155171896946103">نشانک‌گذاری همه برگه‌ها...</translation>
 <translation id="2336228925368920074">نشانک‌گذاری همه برگه‌ها...</translation>
+<translation id="4235920711083356755">نمایش دکمه VPN</translation>
+<translation id="4070612712151038707">دکمه VPN را در نوار ابزار نمایش می‌دهد</translation>
 <translation id="7705524343798198388">VPN</translation>
+<translation id="3960619311638643872">Brave VPN</translation>
+<translation id="2345974803401546682">درباره Brave VPN</translation>
+<translation id="4378551569595875038">در حال اتصال...</translation>
+<translation id="3368922792935385530">متصل</translation>
+<translation id="1536754031901697553">درحال قطع اتصال...</translation>
+<translation id="8030169304546394654">ارتباط قطع شد</translation>
+<translation id="1863950594388384201">نمایش دکمه VPN در نوار ابزار</translation>
+<translation id="5187139277471084437">پنهان کردن دکمه VPN در نوار ابزار</translation>
+<translation id="8041089156583427627">ارسال بازخورد</translation>
+<translation id="4049186905514157504">مدیریت طرح من</translation>
+<translation id="7570585565843385325">نمایش دکمه VPN در نوار ابزار</translation>
+<translation id="5310426188697803101">پنهان کردن دکمه VPN در نوار ابزار</translation>
+<translation id="945522503751344254">ارسال بازخورد</translation>
+<translation id="3015685033234401792">مدیریت طرح من</translation>
 <translation id="796831669370432378">برای افزودن نشانک، روی دکمه نشانک در کنار نوار نشانی کلیک کنید</translation>
 <translation id="4989337484121655457">دسترسی کامل به دیسک الزامی است</translation>
 <translation id="8025559074845816210">Brave برای وارد کردن «نشانک‌ها» از Safari، به مجوز دسترسی کامل به دیسک نیاز دارد.</translation>

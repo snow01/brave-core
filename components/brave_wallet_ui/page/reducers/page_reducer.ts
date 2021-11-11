@@ -9,7 +9,10 @@ import * as Actions from '../actions/wallet_page_actions'
 import {
   PageState,
   AssetPriceTimeframe,
-  TokenInfo
+  ERCToken,
+  SwapResponse,
+  SwapErrorResponse,
+  ImportWalletError
 } from '../../constants/types'
 import {
   WalletCreatedPayloadType,
@@ -23,7 +26,8 @@ const defaultState: PageState = {
   showAddModal: false,
   showRecoveryPhrase: false,
   invalidMnemonic: false,
-  importError: false,
+  importAccountError: false,
+  importWalletError: { hasError: false },
   selectedTimeline: AssetPriceTimeframe.OneDay,
   selectedAsset: undefined,
   selectedUSDAssetPrice: undefined,
@@ -32,7 +36,10 @@ const defaultState: PageState = {
   portfolioPriceHistory: [],
   isFetchingPriceHistory: false,
   showIsRestoring: false,
-  setupStillInProgress: false
+  setupStillInProgress: false,
+  isCryptoWalletsInstalled: false,
+  swapQuote: undefined,
+  swapError: undefined
 }
 
 const reducer = createReducer<PageState>({}, defaultState)
@@ -66,9 +73,11 @@ reducer.on(Actions.doneViewingPrivateKey, (state: PageState) => {
 })
 
 reducer.on(Actions.walletSetupComplete, (state: PageState) => {
-  const newState = { ...state }
+  const newState: PageState = {
+    ...state,
+    setupStillInProgress: false
+  }
   delete newState.mnemonic
-  delete newState.setupStillInProgress
   return newState
 })
 
@@ -95,7 +104,7 @@ reducer.on(Actions.hasMnemonicError, (state: PageState, payload: boolean) => {
   }
 })
 
-reducer.on(Actions.updateSelectedAsset, (state: PageState, payload: TokenInfo) => {
+reducer.on(Actions.updateSelectedAsset, (state: PageState, payload: ERCToken) => {
   return {
     ...state,
     selectedAsset: payload
@@ -128,10 +137,17 @@ reducer.on(Actions.setShowIsRestoring, (state: PageState, payload: boolean) => {
   }
 })
 
-reducer.on(Actions.setImportError, (state: PageState, payload: boolean) => {
+reducer.on(Actions.setImportAccountError, (state: PageState, payload: boolean) => {
   return {
     ...state,
-    importError: payload
+    importAccountError: payload
+  }
+})
+
+reducer.on(Actions.setImportWalletError, (state: PageState, payload: ImportWalletError) => {
+  return {
+    ...state,
+    importWalletError: payload
   }
 })
 
@@ -139,6 +155,27 @@ reducer.on(Actions.setShowAddModal, (state: PageState, payload: boolean) => {
   return {
     ...state,
     showAddModal: payload
+  }
+})
+
+reducer.on(Actions.setCryptoWalletsInstalled, (state: PageState, payload: boolean) => {
+  return {
+    ...state,
+    isCryptoWalletsInstalled: payload
+  }
+})
+
+reducer.on(Actions.setPageSwapQuote, (state: any, payload: SwapResponse) => {
+  return {
+    ...state,
+    swapQuote: payload
+  }
+})
+
+reducer.on(Actions.setPageSwapError, (state: any, payload?: SwapErrorResponse) => {
+  return {
+    ...state,
+    swapError: payload
   }
 })
 

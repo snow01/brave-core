@@ -8,12 +8,14 @@ package org.chromium.chrome.browser.appmenu;
 import android.content.Context;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.ImageButton;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.content.res.AppCompatResources;
 
+import org.chromium.base.Log;
 import org.chromium.base.supplier.ObservableSupplier;
 import org.chromium.base.supplier.OneshotSupplier;
 import org.chromium.chrome.R;
@@ -38,6 +40,9 @@ import org.chromium.chrome.browser.toolbar.menu_button.BraveMenuButtonCoordinato
 import org.chromium.chrome.browser.ui.appmenu.AppMenuDelegate;
 import org.chromium.chrome.browser.ui.appmenu.AppMenuHandler;
 import org.chromium.chrome.browser.ui.messages.snackbar.SnackbarManager;
+import org.chromium.chrome.browser.vpn.BraveVpnProfileUtils;
+import org.chromium.chrome.browser.vpn.BraveVpnUtils;
+import org.chromium.chrome.features.start_surface.StartSurface;
 import org.chromium.ui.modaldialog.ModalDialogManager;
 
 public class BraveTabbedAppMenuPropertiesDelegate extends TabbedAppMenuPropertiesDelegate {
@@ -50,12 +55,14 @@ public class BraveTabbedAppMenuPropertiesDelegate extends TabbedAppMenuPropertie
             TabModelSelector tabModelSelector, ToolbarManager toolbarManager, View decorView,
             AppMenuDelegate appMenuDelegate,
             OneshotSupplier<OverviewModeBehavior> overviewModeBehaviorSupplier,
+            OneshotSupplier<StartSurface> startSurfaceSupplier,
             ObservableSupplier<BookmarkBridge> bookmarkBridgeSupplier,
             WebFeedSnackbarController.FeedLauncher feedLauncher,
             ModalDialogManager modalDialogManager, SnackbarManager snackbarManager) {
         super(context, activityTabProvider, multiWindowModeStateDispatcher, tabModelSelector,
                 toolbarManager, decorView, appMenuDelegate, overviewModeBehaviorSupplier,
-                bookmarkBridgeSupplier, feedLauncher, modalDialogManager, snackbarManager);
+                startSurfaceSupplier, bookmarkBridgeSupplier, feedLauncher, modalDialogManager,
+                snackbarManager);
 
         mAppMenuDelegate = appMenuDelegate;
     }
@@ -64,11 +71,29 @@ public class BraveTabbedAppMenuPropertiesDelegate extends TabbedAppMenuPropertie
     public void prepareMenu(Menu menu, AppMenuHandler handler) {
         super.prepareMenu(menu, handler);
 
+        if (BraveVpnUtils.isBraveVpnFeatureEnable()) {
+            menu.addSubMenu(Menu.NONE, R.id.request_brave_vpn_row_menu_id, 0, null);
+            SubMenu vpnSubMenu = menu.findItem(R.id.request_brave_vpn_row_menu_id).getSubMenu();
+            vpnSubMenu.clear();
+            MenuItem braveVpnSubMenuItem =
+                    vpnSubMenu.add(Menu.NONE, R.id.request_brave_vpn_id, 0, R.string.brave_vpn);
+            if (shouldShowIconBeforeItem()) {
+                braveVpnSubMenuItem.setIcon(
+                        AppCompatResources.getDrawable(mContext, R.drawable.ic_vpn));
+            }
+            MenuItem braveVpnCheckedSubMenuItem =
+                    vpnSubMenu.add(Menu.NONE, R.id.request_brave_vpn_check_id, 0, null);
+            braveVpnCheckedSubMenuItem.setCheckable(true);
+            braveVpnCheckedSubMenuItem.setChecked(
+                    BraveVpnProfileUtils.getInstance().isVPNConnected(mContext));
+        }
+
         mMenu = menu;
 
         // Brave's items are only visible for page menu.
         // To make logic simple, below three items are added whenever menu gets visible
         // and removed when menu is dismissed.
+
         if (!shouldShowPageMenu()) return;
 
         if (isMenuButtonInBottomToolbar()) {
@@ -98,8 +123,7 @@ public class BraveTabbedAppMenuPropertiesDelegate extends TabbedAppMenuPropertie
                         AppCompatResources.getDrawable(mContext, R.drawable.brave_menu_rewards));
             }
         }
-        if (BraveConfig.NATIVE_WALLET_ENABLED
-                && ChromeFeatureList.isEnabled(BraveFeatureList.NATIVE_BRAVE_WALLET)) {
+        if (ChromeFeatureList.isEnabled(BraveFeatureList.NATIVE_BRAVE_WALLET)) {
             MenuItem braveWallet =
                     menu.add(Menu.NONE, R.id.brave_wallet_id, 0, R.string.menu_brave_wallet);
             if (shouldShowIconBeforeItem()) {
@@ -139,6 +163,8 @@ public class BraveTabbedAppMenuPropertiesDelegate extends TabbedAppMenuPropertie
         mMenu.removeItem(R.id.brave_rewards_id);
         mMenu.removeItem(R.id.brave_wallet_id);
         mMenu.removeItem(R.id.exit_id);
+        if (BraveVpnUtils.isBraveVpnFeatureEnable())
+            mMenu.removeItem(R.id.request_brave_vpn_row_menu_id);
     }
 
     @Override

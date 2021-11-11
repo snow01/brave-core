@@ -34,7 +34,17 @@ BraveWalletTabHelper::~BraveWalletTabHelper() {
 }
 
 #if !defined(OS_ANDROID) && !defined(OS_IOS)
+void BraveWalletTabHelper::ClosePanelOnDeactivate(bool close) {
+  if (wallet_bubble_manager_delegate_)
+    wallet_bubble_manager_delegate_->CloseOnDeactivate(close);
+  close_on_deactivate_for_testing_ = close;
+}
+
 void BraveWalletTabHelper::ShowBubble() {
+  if (skip_delegate_for_testing_) {
+    is_showing_bubble_for_testing_ = true;
+    return;
+  }
   wallet_bubble_manager_delegate_ =
       WalletBubbleManagerDelegate::Create(web_contents_, GetBubbleURL());
   wallet_bubble_manager_delegate_->ShowBubble();
@@ -43,17 +53,29 @@ void BraveWalletTabHelper::ShowBubble() {
 }
 
 void BraveWalletTabHelper::ShowApproveWalletBubble() {
+  // If the Wallet page is open, then it will try to open the UI.
+  // But the user may have already had the panel UI opened.
+  // We want to avoid a hiding / showing of the panel in that case.
+  if (IsShowingBubble())
+    return;
   wallet_bubble_manager_delegate_ =
       WalletBubbleManagerDelegate::Create(web_contents_, GetApproveBubbleURL());
   wallet_bubble_manager_delegate_->ShowBubble();
 }
 
 void BraveWalletTabHelper::CloseBubble() {
+  if (skip_delegate_for_testing_) {
+    is_showing_bubble_for_testing_ = false;
+    return;
+  }
   if (wallet_bubble_manager_delegate_)
     wallet_bubble_manager_delegate_->CloseBubble();
 }
 
 bool BraveWalletTabHelper::IsShowingBubble() {
+  if (skip_delegate_for_testing_) {
+    return is_showing_bubble_for_testing_;
+  }
   return wallet_bubble_manager_delegate_ &&
          wallet_bubble_manager_delegate_->IsShowingBubble();
 }
@@ -74,7 +96,7 @@ GURL BraveWalletTabHelper::GetBubbleURL() {
   // Only check the first entry because it will not be grouped with other
   // types.
   if (manager->Requests().empty() ||
-      manager->Requests()[0]->GetRequestType() !=
+      manager->Requests()[0]->request_type() !=
           permissions::RequestType::kBraveEthereum)
     return webui_url;
 
@@ -84,7 +106,7 @@ GURL BraveWalletTabHelper::GetBubbleURL() {
   for (auto* request : manager->Requests()) {
     std::string account;
     if (!brave_wallet::ParseRequestingOriginFromSubRequest(
-            request->GetOrigin(), &requesting_origin, &account)) {
+            request->requesting_origin(), &requesting_origin, &account)) {
       continue;
     }
     accounts.push_back(account);
@@ -99,6 +121,10 @@ GURL BraveWalletTabHelper::GetBubbleURL() {
   return webui_url;
 }
 
+content::WebContents* BraveWalletTabHelper::GetBubbleWebContentsForTesting() {
+  return wallet_bubble_manager_delegate_->GetWebContentsForTesting();
+}
+
 GURL BraveWalletTabHelper::GetApproveBubbleURL() {
   GURL webui_url = GURL(kBraveUIWalletPanelURL);
   url::Replacements<char> replacements;
@@ -109,6 +135,6 @@ GURL BraveWalletTabHelper::GetApproveBubbleURL() {
 
 #endif  // !defined(OS_ANDROID) && !defined(OS_IOS)
 
-WEB_CONTENTS_USER_DATA_KEY_IMPL(BraveWalletTabHelper)
+WEB_CONTENTS_USER_DATA_KEY_IMPL(BraveWalletTabHelper);
 
 }  // namespace brave_wallet

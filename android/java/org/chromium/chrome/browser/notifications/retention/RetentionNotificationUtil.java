@@ -5,6 +5,7 @@
 
 package org.chromium.chrome.browser.notifications.retention;
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -15,6 +16,7 @@ import android.util.Pair;
 import androidx.core.app.NotificationCompat;
 
 import org.chromium.base.ContextUtils;
+import org.chromium.base.IntentUtils;
 import org.chromium.base.Log;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.brave_stats.BraveStatsUtil;
@@ -74,6 +76,7 @@ public class RetentionNotificationUtil {
         return mNotificationMap.get(notificationType);
     }
 
+    @SuppressLint("NotificationTrampoline")
     public static Notification getNotification(
             Context context, String notificationType, String notificationText) {
         RetentionNotification retentionNotification = getNotificationObject(notificationType);
@@ -149,14 +152,19 @@ public class RetentionNotificationUtil {
         Intent intent = new Intent(context, RetentionNotificationPublisher.class);
         intent.setAction(RetentionNotificationPublisher.RETENTION_NOTIFICATION_ACTION);
         intent.putExtra(NOTIFICATION_TYPE, notificationType);
-        return PendingIntent.getBroadcast(context, getNotificationObject(notificationType).getNotificationId(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getBroadcast(context,
+                getNotificationObject(notificationType).getNotificationId(), intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+                        | IntentUtils.getPendingIntentMutabilityFlag(true));
     }
 
     public static void scheduleNotification(Context context, String notificationType) {
         RetentionNotification retentionNotification = getNotificationObject(notificationType);
         Intent notificationIntent = new Intent(context, RetentionNotificationPublisher.class);
         notificationIntent.putExtra(NOTIFICATION_TYPE, notificationType);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, retentionNotification.getNotificationId(), notificationIntent, 0);
+        PendingIntent pendingIntent =
+                PendingIntent.getBroadcast(context, retentionNotification.getNotificationId(),
+                        notificationIntent, 0 | IntentUtils.getPendingIntentMutabilityFlag(true));
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
         calendar.add(Calendar.MINUTE, retentionNotification.getNotificationTime());
@@ -164,7 +172,7 @@ public class RetentionNotificationUtil {
         Date date = calendar.getTime();
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         assert alarmManager != null;
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent);
     }
 
     public static void scheduleNotificationForEverySunday(Context context, String notificationType) {
@@ -180,7 +188,9 @@ public class RetentionNotificationUtil {
 
         Intent notificationIntent = new Intent(context, RetentionNotificationPublisher.class);
         notificationIntent.putExtra(NOTIFICATION_TYPE, notificationType);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, retentionNotification.getNotificationId(), notificationIntent, 0);
+        PendingIntent pendingIntent =
+                PendingIntent.getBroadcast(context, retentionNotification.getNotificationId(),
+                        notificationIntent, 0 | IntentUtils.getPendingIntentMutabilityFlag(true));
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         assert am != null;
         am.setRepeating(AlarmManager.RTC_WAKEUP, currentDate.getTimeInMillis(), AlarmManager.INTERVAL_DAY * 7, pendingIntent);

@@ -5,6 +5,8 @@
 
 #include "bat/ads/internal/frequency_capping/permission_rules/minimum_wait_time_frequency_cap.h"
 
+#include <cstdint>
+
 #include "base/time/time.h"
 #include "bat/ads/internal/ad_events/ad_events.h"
 #include "bat/ads/internal/frequency_capping/frequency_capping_util.h"
@@ -14,7 +16,7 @@
 namespace ads {
 
 namespace {
-const uint64_t kMinimumWaitTimeFrequencyCap = 1;
+const int kMinimumWaitTimeFrequencyCap = 1;
 }  // namespace
 
 MinimumWaitTimeFrequencyCap::MinimumWaitTimeFrequencyCap() = default;
@@ -28,7 +30,7 @@ bool MinimumWaitTimeFrequencyCap::ShouldAllow() {
     return true;
   }
 
-  const std::deque<uint64_t> history =
+  const std::deque<base::Time> history =
       GetAdEvents(AdType::kAdNotification, ConfirmationType::kServed);
 
   if (!DoesRespectCap(history)) {
@@ -39,18 +41,19 @@ bool MinimumWaitTimeFrequencyCap::ShouldAllow() {
   return true;
 }
 
-std::string MinimumWaitTimeFrequencyCap::get_last_message() const {
+std::string MinimumWaitTimeFrequencyCap::GetLastMessage() const {
   return last_message_;
 }
 
 bool MinimumWaitTimeFrequencyCap::DoesRespectCap(
-    const std::deque<uint64_t>& history) {
+    const std::deque<base::Time>& history) {
   const uint64_t ads_per_hour = settings::GetAdsPerHour();
   if (ads_per_hour == 0) {
     return false;
   }
 
-  const uint64_t time_constraint = base::Time::kSecondsPerHour / ads_per_hour;
+  const base::TimeDelta time_constraint =
+      base::TimeDelta::FromSeconds(base::Time::kSecondsPerHour / ads_per_hour);
 
   return DoesHistoryRespectCapForRollingTimeConstraint(
       history, time_constraint, kMinimumWaitTimeFrequencyCap);

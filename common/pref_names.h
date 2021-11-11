@@ -6,9 +6,9 @@
 #ifndef BRAVE_COMMON_PREF_NAMES_H_
 #define BRAVE_COMMON_PREF_NAMES_H_
 
-#include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "build/build_config.h"
 #include "components/gcm_driver/gcm_buildflags.h"
+#include "extensions/buildflags/buildflags.h"
 
 extern const char kAdsBlocked[];
 extern const char kTrackersBlocked[];
@@ -26,6 +26,7 @@ extern const char kStatsReportingEnabled[];
 extern const char kWidevineOptedIn[];
 extern const char kAskWidevineInstall[];
 extern const char kUseAlternativeSearchEngineProvider[];
+extern const char kShowAlternativeSearchEngineProviderToggle[];
 extern const char kAlternativeSearchEngineProviderInTor[];
 extern const char kBraveThemeType[];
 extern const char kUseOverriddenBraveThemeType[];
@@ -49,21 +50,13 @@ extern const char kNewTabPageShowClock[];
 extern const char kNewTabPageClockFormat[];
 extern const char kNewTabPageShowTopSites[];
 extern const char kNewTabPageShowStats[];
-extern const char kNewTabPageShowToday[];
 extern const char kNewTabPageShowRewards[];
 extern const char kNewTabPageShowBinance[];
 extern const char kNewTabPageShowGemini[];
 extern const char kNewTabPageShowBraveTalk[];
 extern const char kNewTabPageHideAllWidgets[];
 extern const char kNewTabPageShowsOptions[];
-// TODO(petemill): Move to brave_today component
-extern const char kBraveTodaySources[];
 extern const char kBraveTodayIntroDismissed[];
-extern const char kBraveTodayOptedIn[];
-extern const char kBraveTodayWeeklySessionCount[];
-extern const char kBraveTodayWeeklyCardViewsCount[];
-extern const char kBraveTodayWeeklyCardVisitsCount[];
-extern const char kBraveTodayWeeklyDisplayAdViewedCount[];
 extern const char kAlwaysShowBookmarkBarOnNTP[];
 extern const char kAutocompleteEnabled[];
 extern const char kTopSiteSuggestionsEnabled[];
@@ -74,6 +67,14 @@ extern const char kBraveShieldsSettingsVersion[];
 extern const char kBinanceAccessToken[];
 extern const char kBinanceRefreshToken[];
 extern const char kDefaultBrowserPromptEnabled[];
+
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+// Web discovery project
+extern const char kWebDiscoveryEnabled[];
+extern const char kDontAskEnableWebDiscovery[];
+extern const char kBraveSearchVisitCount[];
+#endif
+
 #if !BUILDFLAG(USE_GCM_FROM_PLATFORM)
 extern const char kBraveGCMChannelStatus[];
 #endif
@@ -91,9 +92,12 @@ extern const char kSafetynetStatus[];
 
 extern const char kDefaultBrowserLaunchingCount[];
 extern const char kTabsSearchShow[];
+extern const char kDontAskForCrashReporting[];
 
-#if BUILDFLAG(ENABLE_BRAVE_VPN)
-extern const char kBraveVPNShowButton[];
-#endif
+// Cast extension requires a browser restart once the setting is toggled.
+// kEnableMediaRouterOnRestart is used as a proxy to identify the current
+// state of the switch and prefs::kEnableMediaRouter is updated to
+// kEnableMediaRouterOnRestart on restart.
+extern const char kEnableMediaRouterOnRestart[];
 
 #endif  // BRAVE_COMMON_PREF_NAMES_H_

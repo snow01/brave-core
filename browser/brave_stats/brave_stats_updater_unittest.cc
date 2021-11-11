@@ -4,22 +4,24 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include <memory>
-
-#include "brave/browser/brave_stats/brave_stats_updater.h"
+#include <utility>
 
 #include "base/files/scoped_temp_dir.h"
 #include "base/system/sys_info.h"
 #include "base/time/time.h"
 #include "bat/ads/pref_names.h"
+#include "brave/browser/brave_stats/brave_stats_updater.h"
 #include "brave/browser/brave_stats/brave_stats_updater_params.h"
 #include "brave/common/pref_names.h"
-#include "brave/components/brave_ads/browser/test_util.h"
+#include "brave/components/brave_ads/browser/ads_service.h"
 #include "brave/components/brave_referrals/browser/brave_referrals_service.h"
+#include "brave/components/brave_rewards/browser/rewards_service.h"
 #include "brave/components/brave_stats/browser/brave_stats_updater_util.h"
+#include "chrome/browser/prefs/browser_prefs.h"
 #include "chrome/browser/profiles/profile.h"
-#include "chrome/test/base/testing_browser_process.h"
-#include "chrome/test/base/testing_profile_manager.h"
+#include "chrome/test/base/testing_profile.h"
 #include "components/prefs/testing_pref_service.h"
+#include "components/sync_preferences/testing_pref_service_syncable.h"
 #include "content/public/test/browser_task_environment.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -39,14 +41,11 @@ const int kNextMonth = 7;
 
 class BraveStatsUpdaterTest : public testing::Test {
  public:
-  BraveStatsUpdaterTest()
-      : profile_manager_(TestingBrowserProcess::GetGlobal()) {}
+  BraveStatsUpdaterTest() {}
   ~BraveStatsUpdaterTest() override {}
 
   void SetUp() override {
-    EXPECT_TRUE(temp_dir_.CreateUniqueTempDir());
-    EXPECT_TRUE(profile_manager_.SetUp());
-    profile_ = brave_ads::CreateBraveAdsProfile(temp_dir_.GetPath());
+    profile_ = CreateBraveAdsProfile();
     EXPECT_TRUE(profile_.get() != NULL);
     brave_stats::RegisterLocalStatePrefs(testing_local_state_.registry());
     brave::RegisterPrefsForBraveReferralsService(
@@ -67,10 +66,20 @@ class BraveStatsUpdaterTest : public testing::Test {
   }
 
  private:
+  std::unique_ptr<Profile> CreateBraveAdsProfile() {
+    auto prefs =
+        std::make_unique<sync_preferences::TestingPrefServiceSyncable>();
+    brave_rewards::RewardsService::RegisterProfilePrefs(prefs->registry());
+    brave_ads::AdsService::RegisterProfilePrefs(prefs->registry());
+    RegisterUserProfilePrefs(prefs->registry());
+
+    TestingProfile::Builder profile_builder;
+    profile_builder.SetPrefService(std::move(prefs));
+    return profile_builder.Build();
+  }
+
   TestingPrefServiceSimple testing_local_state_;
-  TestingProfileManager profile_manager_;
   std::unique_ptr<Profile> profile_;
-  base::ScopedTempDir temp_dir_;
   content::BrowserTaskEnvironment task_environment_;
 };
 
@@ -491,8 +500,9 @@ TEST_F(BraveStatsUpdaterTest, UsageBitstringDaily) {
       GetLocalState(), GetProfilePrefs(), brave_stats::ProcessArch::kArchSkip,
       kToday, kThisWeek, kThisMonth);
   // Note: daily implies weekly and monthly
-  EXPECT_EQ(0b111, brave_stats_updater_params.UsageBitstringFromTimestamp(
-                       last_used_timestamp));
+  EXPECT_EQ(0b111, brave_stats::UsageBitstringFromTimestamp(
+                       last_used_timestamp,
+                       brave_stats_updater_params.GetReferenceTime()));
 }
 
 TEST_F(BraveStatsUpdaterTest, UsageBitstringWeekly) {
@@ -507,8 +517,9 @@ TEST_F(BraveStatsUpdaterTest, UsageBitstringWeekly) {
       GetLocalState(), GetProfilePrefs(), brave_stats::ProcessArch::kArchSkip,
       kToday, kThisWeek, kThisMonth);
   // Note: Weekly implies monthly
-  EXPECT_EQ(0b110, brave_stats_updater_params.UsageBitstringFromTimestamp(
-                       last_used_timestamp));
+  EXPECT_EQ(0b110, brave_stats::UsageBitstringFromTimestamp(
+                       last_used_timestamp,
+                       brave_stats_updater_params.GetReferenceTime()));
 }
 
 TEST_F(BraveStatsUpdaterTest, UsageBitstringMonthly) {
@@ -522,8 +533,9 @@ TEST_F(BraveStatsUpdaterTest, UsageBitstringMonthly) {
   brave_stats::BraveStatsUpdaterParams brave_stats_updater_params(
       GetLocalState(), GetProfilePrefs(), brave_stats::ProcessArch::kArchSkip,
       kToday, kThisWeek, kThisMonth);
-  EXPECT_EQ(0b100, brave_stats_updater_params.UsageBitstringFromTimestamp(
-                       last_used_timestamp));
+  EXPECT_EQ(0b100, brave_stats::UsageBitstringFromTimestamp(
+                       last_used_timestamp,
+                       brave_stats_updater_params.GetReferenceTime()));
 }
 
 TEST_F(BraveStatsUpdaterTest, UsageBitstringInactive) {
@@ -537,6 +549,7 @@ TEST_F(BraveStatsUpdaterTest, UsageBitstringInactive) {
   brave_stats::BraveStatsUpdaterParams brave_stats_updater_params(
       GetLocalState(), GetProfilePrefs(), brave_stats::ProcessArch::kArchSkip,
       kToday, kThisWeek, kThisMonth);
-  EXPECT_EQ(0b000, brave_stats_updater_params.UsageBitstringFromTimestamp(
-                       last_used_timestamp));
+  EXPECT_EQ(0b000, brave_stats::UsageBitstringFromTimestamp(
+                       last_used_timestamp,
+                       brave_stats_updater_params.GetReferenceTime()));
 }

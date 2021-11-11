@@ -3,25 +3,28 @@ import * as React from 'react'
 // Constants
 import {
   PriceDataObjectType,
-  RPCTransactionType,
-  AssetPriceInfo,
+  AccountTransactions,
+  AssetPrice,
   WalletAccountType,
   AssetPriceTimeframe,
   AccountAssetOptionType,
-  TokenInfo,
-  EthereumChain
+  ERCToken,
+  EthereumChain,
+  TransactionInfo
 } from '../../../../constants/types'
-import locale from '../../../../constants/locale'
+import { getLocale } from '../../../../../common/locale'
 
 // Utils
-import { formatPrices } from '../../../../utils/format-prices'
+import { formatWithCommasAndDecimals } from '../../../../utils/format-prices'
 import { formatBalance } from '../../../../utils/format-balances'
+import { sortTransactionByDate } from '../../../../utils/tx-utils'
 
 // Options
 import { ChartTimelineOptions } from '../../../../options/chart-timeline-options'
+// import { ETH } from '../../../../options/asset-options'
 
 // Components
-import { SearchBar, BackButton } from '../../../shared'
+import { SearchBar, BackButton, withPlaceholderIcon } from '../../../shared'
 import {
   ChartControlBar,
   LineChart,
@@ -32,6 +35,9 @@ import {
   SelectNetworkDropdown,
   EditVisibleAssetsModal
 } from '../../'
+
+// Hooks
+import { useTransactionParser } from '../../../../common/hooks'
 
 // Styled Components
 import {
@@ -52,34 +58,47 @@ import {
   PercentBubble,
   PercentText,
   ArrowIcon,
-  BalanceRow
+  BalanceRow,
+  EmptyTransactionContainer,
+  TransactionPlaceholderText,
+  AssetBalanceDisplay,
+  DividerRow,
+  Spacer
 } from './style'
 
 export interface Props {
   toggleNav: () => void
   onChangeTimeline: (path: AssetPriceTimeframe) => void
-  onSelectAsset: (asset: TokenInfo | undefined) => void
+  onSelectAsset: (asset: ERCToken | undefined) => void
+  onSelectAccount: (account: WalletAccountType) => void
   onClickAddAccount: () => void
-  onUpdateVisibleTokens: (list: string[]) => void
   fetchFullTokenList: () => void
   onSelectNetwork: (network: EthereumChain) => void
+  onAddUserAsset: (token: ERCToken) => void
+  onSetUserAssetVisible: (token: ERCToken, isVisible: boolean) => void
+  onRemoveUserAsset: (token: ERCToken) => void
+  addUserAssetError: boolean
   selectedNetwork: EthereumChain
   networkList: EthereumChain[]
   userAssetList: AccountAssetOptionType[]
   accounts: WalletAccountType[]
   selectedTimeline: AssetPriceTimeframe
   selectedPortfolioTimeline: AssetPriceTimeframe
-  selectedAsset: TokenInfo | undefined
-  selectedUSDAssetPrice: AssetPriceInfo | undefined
-  selectedBTCAssetPrice: AssetPriceInfo | undefined
+  selectedAsset: ERCToken | undefined
+  selectedUSDAssetPrice: AssetPrice | undefined
+  selectedBTCAssetPrice: AssetPrice | undefined
   selectedAssetPriceHistory: PriceDataObjectType[]
   portfolioPriceHistory: PriceDataObjectType[]
   portfolioBalance: string
-  transactions: (RPCTransactionType | undefined)[]
+  transactions: AccountTransactions
   isLoading: boolean
-  fullAssetList: TokenInfo[]
-  userWatchList: string[]
+  fullAssetList: ERCToken[]
+  userVisibleTokensInfo: ERCToken[]
   isFetchingPortfolioPriceHistory: boolean
+  transactionSpotPrices: AssetPrice[]
+  onRetryTransaction: (transaction: TransactionInfo) => void
+  onSpeedupTransaction: (transaction: TransactionInfo) => void
+  onCancelTransaction: (transaction: TransactionInfo) => void
 }
 
 const Portfolio = (props: Props) => {
@@ -87,13 +106,17 @@ const Portfolio = (props: Props) => {
     toggleNav,
     onChangeTimeline,
     onSelectAsset,
+    onSelectAccount,
     onClickAddAccount,
     onSelectNetwork,
-    onUpdateVisibleTokens,
     fetchFullTokenList,
+    onAddUserAsset,
+    onSetUserAssetVisible,
+    onRemoveUserAsset,
+    addUserAssetError,
+    userVisibleTokensInfo,
     selectedNetwork,
     fullAssetList,
-    userWatchList,
     portfolioPriceHistory,
     selectedAssetPriceHistory,
     selectedUSDAssetPrice,
@@ -107,7 +130,11 @@ const Portfolio = (props: Props) => {
     transactions,
     userAssetList,
     isLoading,
-    isFetchingPortfolioPriceHistory
+    isFetchingPortfolioPriceHistory,
+    transactionSpotPrices,
+    onRetryTransaction,
+    onSpeedupTransaction,
+    onCancelTransaction
   } = props
 
   const [filteredAssetList, setfilteredAssetList] = React.useState<AccountAssetOptionType[]>(userAssetList)
@@ -115,6 +142,7 @@ const Portfolio = (props: Props) => {
   const [hoverPrice, setHoverPrice] = React.useState<string>()
   const [showNetworkDropdown, setShowNetworkDropdown] = React.useState<boolean>(false)
   const [showVisibleAssetsModal, setShowVisibleAssetsModal] = React.useState<boolean>(false)
+  const parseTransaction = useTransactionParser(selectedNetwork, accounts, transactionSpotPrices, userVisibleTokensInfo)
 
   const toggleShowNetworkDropdown = () => {
     setShowNetworkDropdown(!showNetworkDropdown)
@@ -146,11 +174,7 @@ const Portfolio = (props: Props) => {
     }
   }
 
-  const moreDetails = () => {
-    alert('Will Show More Details Popover!!')
-  }
-
-  const selectAsset = (asset: TokenInfo) => () => {
+  const selectAsset = (asset: ERCToken) => () => {
     onSelectAsset(asset)
     toggleNav()
   }
@@ -164,13 +188,13 @@ const Portfolio = (props: Props) => {
   const onUpdateBalance = (value: number | undefined) => {
     if (!selectedAsset) {
       if (value) {
-        setHoverBalance(formatPrices(value))
+        setHoverBalance(formatWithCommasAndDecimals(value.toString()))
       } else {
         setHoverBalance(undefined)
       }
     } else {
       if (value) {
-        setHoverPrice(formatPrices(value))
+        setHoverPrice(formatWithCommasAndDecimals(value.toString()))
       } else {
         setHoverPrice(undefined)
       }
@@ -189,18 +213,18 @@ const Portfolio = (props: Props) => {
   }
 
   const toggleShowVisibleAssetModal = () => {
-    if (!showVisibleAssetsModal) {
+    if (fullAssetList.length === 0) {
       fetchFullTokenList()
     }
     setShowVisibleAssetsModal(!showVisibleAssetsModal)
   }
 
-  const getFiatBalance = (account: WalletAccountType, asset: TokenInfo) => {
+  const getFiatBalance = (account: WalletAccountType, asset: ERCToken) => {
     const found = account.tokens.find((token) => token.asset.contractAddress === asset.contractAddress)
     return (found) ? found.fiatBalance : '0'
   }
 
-  const getAssetBalance = (account: WalletAccountType, asset: TokenInfo) => {
+  const getAssetBalance = (account: WalletAccountType, asset: ERCToken) => {
     const found = account.tokens.find((token) => token.asset.contractAddress === asset.contractAddress)
     return (found) ? formatBalance(found.assetBalance, found.asset.decimals) : '0'
   }
@@ -213,12 +237,35 @@ const Portfolio = (props: Props) => {
     }
   }, [portfolioHistory, portfolioBalance])
 
+  const selectedAssetTransactions = React.useMemo((): TransactionInfo[] => {
+    const filteredTransactions = Object.values(transactions).flatMap((txInfo) =>
+      txInfo.flatMap((tx) =>
+        parseTransaction(tx).symbol === selectedAsset?.symbol ? tx : []
+      ))
+
+    return sortTransactionByDate(filteredTransactions, 'descending')
+  }, [selectedAsset, transactions])
+
+  const findAccount = (address: string): WalletAccountType | undefined => {
+    return accounts.find((account) => address === account.address)
+  }
+
+  const fullAssetBalances = React.useMemo(() => {
+    return filteredAssetList.find((asset) => asset.asset.contractAddress.toLowerCase() === selectedAsset?.contractAddress.toLowerCase())
+  }, [filteredAssetList, selectedAsset])
+
+  const AssetIconWithPlaceholder = React.useMemo(() => {
+    return withPlaceholderIcon(AssetIcon, { size: 'big', marginLeft: 0, marginRight: 12 })
+  }, [])
+
+  const erc271Tokens = React.useMemo(() => filteredAssetList.filter((token) => token.asset.isErc721), [filteredAssetList])
+
   return (
     <StyledWrapper onClick={onHideNetworkDropdown}>
       <TopRow>
         <BalanceRow>
           {!selectedAsset ? (
-            <BalanceTitle>{locale.balance}</BalanceTitle>
+            <BalanceTitle>{getLocale('braveWalletBalance')}</BalanceTitle>
           ) : (
             <BackButton onSubmit={goBack} />
           )}
@@ -233,7 +280,7 @@ const Portfolio = (props: Props) => {
         <ChartControlBar
           onSubmit={onChangeTimeline}
           selectedTimeline={selectedAsset ? selectedTimeline : selectedPortfolioTimeline}
-          timelineOptions={ChartTimelineOptions}
+          timelineOptions={ChartTimelineOptions()}
         />
       </TopRow>
       {!selectedAsset ? (
@@ -243,12 +290,12 @@ const Portfolio = (props: Props) => {
       ) : (
         <InfoColumn>
           <AssetRow>
-            <AssetIcon icon={selectedAsset.icon} />
+            <AssetIconWithPlaceholder selectedAsset={selectedAsset} />
             <AssetNameText>{selectedAsset.name}</AssetNameText>
           </AssetRow>
-          <DetailText>{selectedAsset.name} {locale.price} ({selectedAsset.symbol})</DetailText>
+          <DetailText>{selectedAsset.name} {getLocale('braveWalletPrice')} ({selectedAsset.symbol})</DetailText>
           <PriceRow>
-            <PriceText>${hoverPrice ? hoverPrice : selectedUSDAssetPrice ? formatPrices(Number(selectedUSDAssetPrice.price)) : 0.00}</PriceText>
+            <PriceText>${hoverPrice ? hoverPrice : selectedUSDAssetPrice ? formatWithCommasAndDecimals(selectedUSDAssetPrice.price) : 0.00}</PriceText>
             <PercentBubble isDown={selectedUSDAssetPrice ? Number(selectedUSDAssetPrice.assetTimeframeChange) < 0 : false}>
               <ArrowIcon isDown={selectedUSDAssetPrice ? Number(selectedUSDAssetPrice.assetTimeframeChange) < 0 : false} />
               <PercentText>{selectedUSDAssetPrice ? Number(selectedUSDAssetPrice.assetTimeframeChange).toFixed(2) : 0.00}%</PercentText>
@@ -267,70 +314,106 @@ const Portfolio = (props: Props) => {
       />
       {selectedAsset &&
         <>
-          <DividerText>{locale.accounts}</DividerText>
+          <DividerRow>
+            <DividerText>{getLocale('braveWalletAccounts')}</DividerText>
+            <AssetBalanceDisplay>${formatWithCommasAndDecimals(fullAssetBalances?.fiatBalance ?? '')} ({formatWithCommasAndDecimals(fullAssetBalances?.assetBalance ?? '')} {selectedAsset.symbol})</AssetBalanceDisplay>
+          </DividerRow>
           <SubDivider />
           {accounts.map((account) =>
             <PortfolioAccountItem
               key={account.address}
-              action={moreDetails}
               assetTicker={selectedAsset.symbol}
               name={account.name}
               address={account.address}
               fiatBalance={getFiatBalance(account, selectedAsset)}
               assetBalance={getAssetBalance(account, selectedAsset)}
+              selectedNetwork={selectedNetwork}
             />
           )}
           <ButtonRow>
             <AddButton
               buttonType='secondary'
               onSubmit={onClickAddAccount}
-              text={locale.addAccount}
+              text={getLocale('braveWalletAddAccount')}
             />
           </ButtonRow>
-          <DividerText>{locale.transactions}</DividerText>
+          <DividerText>{getLocale('braveWalletTransactions')}</DividerText>
           <SubDivider />
-          {transactions?.map((transaction) =>
-            <PortfolioTransactionItem
-              action={moreDetails}
-              key={transaction?.hash}
-              amount={transaction?.amount ? transaction.amount : 0}
-              from={transaction?.from ? transaction.from : ''}
-              to={transaction?.to ? transaction.to : ''}
-              ticker={selectedAsset.symbol}
-            />
+          {selectedAssetTransactions.length !== 0 ? (
+            <>
+              {selectedAssetTransactions.map((transaction: TransactionInfo) =>
+                <PortfolioTransactionItem
+                  key={transaction.id}
+                  selectedNetwork={selectedNetwork}
+                  accounts={accounts}
+                  transaction={transaction}
+                  account={findAccount(transaction.fromAddress)}
+                  transactionSpotPrices={transactionSpotPrices}
+                  visibleTokens={userVisibleTokensInfo}
+                  displayAccountName={true}
+                  onSelectAccount={onSelectAccount}
+                  onSelectAsset={onSelectAsset}
+                  onRetryTransaction={onRetryTransaction}
+                  onSpeedupTransaction={onSpeedupTransaction}
+                  onCancelTransaction={onCancelTransaction}
+                />
+              )}
+            </>
+          ) : (
+            <EmptyTransactionContainer>
+              <TransactionPlaceholderText>{getLocale('braveWalletTransactionPlaceholder')}</TransactionPlaceholderText>
+            </EmptyTransactionContainer>
           )}
+
         </>
       }
       {!selectedAsset &&
         <>
-          <SearchBar placeholder={locale.searchText} action={filterAssets} />
-          {filteredAssetList.map((item) =>
+          <SearchBar placeholder={getLocale('braveWalletSearchText')} action={filterAssets} />
+          {filteredAssetList.filter((asset) => !asset.asset.isErc721).map((item) =>
             <PortfolioAssetItem
               action={selectAsset(item.asset)}
               key={item.asset.contractAddress}
-              name={item.asset.name}
               assetBalance={item.assetBalance}
               fiatBalance={item.fiatBalance}
-              symbol={item.asset.symbol}
-              icon={item.asset.icon}
+              token={item.asset}
             />
           )}
+          {erc271Tokens.length !== 0 &&
+            <>
+              <Spacer />
+              <DividerText>{getLocale('braveWalletTopNavNFTS')}</DividerText>
+              <SubDivider />
+              {erc271Tokens.map((item) =>
+                <PortfolioAssetItem
+                  action={selectAsset(item.asset)}
+                  key={item.asset.contractAddress}
+                  assetBalance={item.assetBalance}
+                  fiatBalance={item.fiatBalance}
+                  token={item.asset}
+                />
+              )}
+            </>
+          }
           <ButtonRow>
             <AddButton
               buttonType='secondary'
               onSubmit={toggleShowVisibleAssetModal}
-              text={locale.accountsEditVisibleAssets}
+              text={getLocale('braveWalletAccountsEditVisibleAssets')}
             />
           </ButtonRow>
         </>
       }
       {showVisibleAssetsModal &&
         <EditVisibleAssetsModal
-          userAssetList={userAssetList}
-          onUpdateVisibleTokens={onUpdateVisibleTokens}
           fullAssetList={fullAssetList}
-          userWatchList={userWatchList}
+          userVisibleTokensInfo={userVisibleTokensInfo}
+          addUserAssetError={addUserAssetError}
           onClose={toggleShowVisibleAssetModal}
+          onAddUserAsset={onAddUserAsset}
+          onSetUserAssetVisible={onSetUserAssetVisible}
+          onRemoveUserAsset={onRemoveUserAsset}
+          selectedNetwork={selectedNetwork}
         />
       }
     </StyledWrapper>

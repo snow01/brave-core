@@ -4,34 +4,34 @@
 // you can obtain one at http://mozilla.org/MPL/2.0/.
 
 import * as React from 'react'
+import * as BraveNews from '../../../../../api/brave_news'
 import VisibilityTimer from '../../../../../helpers/visibilityTimer'
 import { getLocale } from '../../../../../../common/locale'
 import * as Card from '../../cardSizes'
 import useScrollIntoView from '../../useScrollIntoView'
 import useReadArticleClickHandler from '../../useReadArticleClickHandler'
-import { OnReadFeedItem, OnSetPublisherPref } from '../../'
-import CardImage from '../CardImage'
+import { OnPromotedItemViewed, OnReadFeedItem, OnSetPublisherPref } from '../../'
+import { CardImageFromFeedItem } from '../CardImage'
 import PublisherMeta from '../PublisherMeta'
 // TODO(petemill): Large and Medium article should be combined to 1 component.
 
-interface Props {
-  content: (BraveToday.Article | BraveToday.PromotedArticle | undefined)[]
-  publishers: BraveToday.Publishers
-  articleToScrollTo?: BraveToday.FeedItem
+type Props = {
   onReadFeedItem: OnReadFeedItem
   onSetPublisherPref: OnSetPublisherPref
-  onItemViewed?: (item: BraveToday.FeedItem) => any
+  onItemViewed?: OnPromotedItemViewed
   isPromoted?: boolean
 }
 
-type ArticleProps = {
-  item: BraveToday.Article | BraveToday.PromotedArticle
-  publisher?: BraveToday.Publisher
+type ArticlesProps = Props & {
+  content: BraveNews.FeedItem[]
+  publishers: BraveNews.Publishers
+  articleToScrollTo?: BraveNews.FeedItemMetadata
+}
+
+type ArticleProps = Props & {
+  item: BraveNews.FeedItem
+  publisher?: BraveNews.Publisher
   shouldScrollIntoView?: boolean
-  onReadFeedItem: OnReadFeedItem
-  onSetPublisherPref: OnSetPublisherPref
-  onItemViewed?: (item: BraveToday.FeedItem) => any
-  isPromoted?: boolean
 }
 
 const promotedInfoUrl = 'https://brave.com/brave-today'
@@ -50,12 +50,25 @@ const LargeArticle = React.forwardRef<HTMLElement, ArticleProps>(function (props
   const { publisher, item } = props
   const [cardRef] = useScrollIntoView(props.shouldScrollIntoView || false)
 
-  const onClick = useReadArticleClickHandler(props.onReadFeedItem, { item, isPromoted: props.isPromoted })
-
   const innerRef = React.useRef<HTMLElement>(null)
 
-  const onItemViewedRef = React.useRef(props.onItemViewed)
+  const data = item.article?.data || item.promotedArticle?.data
+
+  const uuid = React.useMemo<string | undefined>(function () {
+    if (props.isPromoted) {
+      // @ts-ignore
+      const uuid: string = crypto.randomUUID()
+      return uuid
+    }
+    return undefined
+  }, [props.isPromoted, data?.url.url])
+
+  const onClick = useReadArticleClickHandler(props.onReadFeedItem, { item, isPromoted: props.isPromoted, promotedUUID: uuid })
+
+  const onItemViewedRef = React.useRef<Function | null>()
   onItemViewedRef.current = props.onItemViewed
+    ? props.onItemViewed.bind(undefined, { item: props.item, uuid })
+    : null
 
   React.useEffect(() => {
     if (!innerRef.current) {
@@ -79,7 +92,7 @@ const LargeArticle = React.forwardRef<HTMLElement, ArticleProps>(function (props
     const observer = new VisibilityTimer(() => {
       const onItemViewed = onItemViewedRef.current
       if (onItemViewed) {
-        onItemViewed(item)
+        onItemViewed()
       }
     }, 100, innerRef.current)
 
@@ -90,20 +103,24 @@ const LargeArticle = React.forwardRef<HTMLElement, ArticleProps>(function (props
     }
   }, [innerRef.current, Boolean(props.onItemViewed)])
 
+  if (!data) {
+    return null
+  }
+
   // TODO(petemill): Avoid nested links
   // `ref as any` due to https://github.com/DefinitelyTyped/DefinitelyTyped/issues/28884
   return (
     <Card.Large ref={innerRef}>
-      <a onClick={onClick} href={item.url} ref={cardRef}>
-        <CardImage
-          imageUrl={item.img}
+      <a onClick={onClick} href={data.url.url} ref={cardRef}>
+        <CardImageFromFeedItem
+          data={data}
           isPromoted={props.isPromoted}
         />
         <Card.Content>
           <Card.Heading>
-            {item.title}
+            {data.title}
           </Card.Heading>
-          <Card.Time>{item.relative_time}</Card.Time>
+          <Card.Time>{data.relativeTimeDescription}</Card.Time>
           {
             publisher &&
             <Card.Source>
@@ -136,7 +153,7 @@ const LargeArticle = React.forwardRef<HTMLElement, ArticleProps>(function (props
   )
 })
 
-const CardSingleArticleLarge = React.forwardRef<HTMLElement, Props>(function (props, ref) {
+const CardSingleArticleLarge = React.forwardRef<HTMLElement, ArticlesProps>(function (props, ref) {
   // no full content no render®
   if (props.content.length === 0) {
     return null
@@ -145,19 +162,26 @@ const CardSingleArticleLarge = React.forwardRef<HTMLElement, Props>(function (pr
   return (
     <>
       {props.content.map((item, index) => {
+        const key = `card-key-${index}`
+        const data = item.article?.data || item.promotedArticle?.data
         // If there is a missing item, return nothing
-        if (item === undefined) {
-          return <></>
+        if (!data) {
+          return (
+            <React.Fragment
+              key={key}
+            />
+          )
         }
 
-        const shouldScrollIntoView = props.articleToScrollTo && (props.articleToScrollTo.url === item.url)
+        const shouldScrollIntoView = (props.articleToScrollTo &&
+            (props.articleToScrollTo.url.url === data.url.url))
 
-        const publisher = props.publishers[item.publisher_id]
+        const publisher = props.publishers[data.publisherId]
 
         return (
           <LargeArticle
             ref={ref}
-            key={`card-key-${index}`}
+            key={key}
             publisher={publisher}
             item={item}
             shouldScrollIntoView={shouldScrollIntoView}

@@ -67,7 +67,7 @@ class EthPendingTxTrackerUnitTest : public testing::Test {
 
 TEST_F(EthPendingTxTrackerUnitTest, IsNonceTaken) {
   EthJsonRpcController controller(shared_url_loader_factory(), GetPrefs());
-  EthTxStateManager tx_state_manager(GetPrefs(), controller.MakeRemote());
+  EthTxStateManager tx_state_manager(GetPrefs(), &controller);
   EthNonceTracker nonce_tracker(&tx_state_manager, &controller);
   EthPendingTxTracker pending_tx_tracker(&tx_state_manager, &controller,
                                          &nonce_tracker);
@@ -93,11 +93,12 @@ TEST_F(EthPendingTxTrackerUnitTest, ShouldTxDropped) {
   EthAddress addr =
       EthAddress::FromHex("0x2f015c60e0be116b1f0cd534704db9c92118fb6a");
   EthJsonRpcController controller(shared_url_loader_factory(), GetPrefs());
-  EthTxStateManager tx_state_manager(GetPrefs(), controller.MakeRemote());
+  EthTxStateManager tx_state_manager(GetPrefs(), &controller);
   EthNonceTracker nonce_tracker(&tx_state_manager, &controller);
   EthPendingTxTracker pending_tx_tracker(&tx_state_manager, &controller,
                                          &nonce_tracker);
-  pending_tx_tracker.network_nonce_map_[addr.ToHex()] = uint256_t(3);
+  pending_tx_tracker.network_nonce_map_[addr.ToChecksumAddress()] =
+      uint256_t(3);
 
   EthTxStateManager::TxMeta meta;
   meta.from = addr;
@@ -106,8 +107,9 @@ TEST_F(EthPendingTxTrackerUnitTest, ShouldTxDropped) {
       "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238";
   meta.tx->set_nonce(uint256_t(1));
   EXPECT_TRUE(pending_tx_tracker.ShouldTxDropped(meta));
-  EXPECT_TRUE(pending_tx_tracker.network_nonce_map_.find(addr.ToHex()) ==
-              pending_tx_tracker.network_nonce_map_.end());
+  EXPECT_TRUE(
+      pending_tx_tracker.network_nonce_map_.find(addr.ToChecksumAddress()) ==
+      pending_tx_tracker.network_nonce_map_.end());
 
   meta.tx->set_nonce(uint256_t(4));
   EXPECT_FALSE(pending_tx_tracker.ShouldTxDropped(meta));
@@ -122,7 +124,7 @@ TEST_F(EthPendingTxTrackerUnitTest, ShouldTxDropped) {
 
 TEST_F(EthPendingTxTrackerUnitTest, DropTransaction) {
   EthJsonRpcController controller(shared_url_loader_factory(), GetPrefs());
-  EthTxStateManager tx_state_manager(GetPrefs(), controller.MakeRemote());
+  EthTxStateManager tx_state_manager(GetPrefs(), &controller);
   EthNonceTracker nonce_tracker(&tx_state_manager, &controller);
   EthPendingTxTracker pending_tx_tracker(&tx_state_manager, &controller,
                                          &nonce_tracker);
@@ -141,7 +143,7 @@ TEST_F(EthPendingTxTrackerUnitTest, UpdatePendingTransactions) {
   EthAddress addr2 =
       EthAddress::FromHex("0x2f015c60e0be116b1f0cd534704db9c92118fb6b");
   EthJsonRpcController controller(shared_url_loader_factory(), GetPrefs());
-  EthTxStateManager tx_state_manager(GetPrefs(), controller.MakeRemote());
+  EthTxStateManager tx_state_manager(GetPrefs(), &controller);
   EthNonceTracker nonce_tracker(&tx_state_manager, &controller);
   EthPendingTxTracker pending_tx_tracker(&tx_state_manager, &controller,
                                          &nonce_tracker);
@@ -189,7 +191,9 @@ TEST_F(EthPendingTxTrackerUnitTest, UpdatePendingTransactions) {
             "\"status\": \"0x1\"}}");
       }));
 
-  pending_tx_tracker.UpdatePendingTransactions();
+  size_t num_pending;
+  EXPECT_TRUE(pending_tx_tracker.UpdatePendingTransactions(&num_pending));
+  EXPECT_EQ(3UL, num_pending);
   WaitForResponse();
   auto meta_from_state = tx_state_manager.GetTx("001");
   ASSERT_NE(meta_from_state, nullptr);

@@ -1,8 +1,8 @@
 import styled from 'styled-components'
 import { ArrowUpIcon } from 'brave-ui/components/icons'
+import { AssetIconProps, AssetIconFactory } from '../../../shared/style'
 
 interface StyleProps {
-  icon: string
   isDown: boolean
 }
 
@@ -12,6 +12,7 @@ export const StyledWrapper = styled.div`
   align-items: flex-start;
   justify-content: flex-start;
   width: 100%;
+  margin-bottom: 20px;
 `
 
 export const TopRow = styled.div`
@@ -104,13 +105,14 @@ export const DetailText = styled.span`
   color: ${(p) => p.theme.color.text03};
 `
 
-export const AssetIcon = styled.div<Partial<StyleProps>>`
-  width: 40px;
-  height: 40px;
-  border-radius: 100%;
-  background: ${(p) => p.icon ? `url(${p.icon})` : p.theme.color.background01}};
-  margin-right: 12px;
-`
+// Construct styled-component using JS object instead of string, for editor
+// support with custom AssetIconFactory.
+//
+// Ref: https://styled-components.com/docs/advanced#style-objects
+export const AssetIcon = AssetIconFactory<AssetIconProps>({
+  width: '40px',
+  height: 'auto'
+})
 
 export const SubDivider = styled.div`
   width: 100%;
@@ -153,4 +155,47 @@ export const ArrowIcon = styled(ArrowUpIcon) <Partial<StyleProps>>`
   margin-right: 2px;
   transform: ${(p) => p.isDown ? 'rotate(270deg)' : 'rotate(90deg)'};
   color: ${(p) => p.theme.palette.white};
+`
+
+export const EmptyTransactionContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100px;
+`
+
+export const TransactionPlaceholderText = styled.span`
+  font-family: Poppins;
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+  color: ${(p) => p.theme.color.text03};
+  margin-left: 10px;
+`
+
+export const AssetBalanceDisplay = styled.span`
+  font-family: Poppins;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+  color: ${(p) => p.theme.color.text02};
+`
+
+export const DividerRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  width: 100%;
+`
+
+export const Spacer = styled.div`
+  display: flex;
+  height: 2px;
+  width: 100%;
+  margin-top: 10px;
 `

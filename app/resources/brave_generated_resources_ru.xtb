@@ -188,13 +188,11 @@
 <translation id="8488282162676695335">Кошелек Brave</translation>
 <translation id="2356070529366658676">Спрашивать</translation>
 <translation id="7701040980221191251">Нет</translation>
-<translation id="5655621391922317800">Криптовалютные кошельки</translation>
-<translation id="1696548911367097044">Устаревшее расширение Crypto Wallets</translation>
-<translation id="1085027414516521238">MetaMask</translation>
-<translation id="7090046810227878892">Провайдер Эфириума для использования Dapps</translation>
-<translation id="5913089932885076110">Загружать криптовалютные кошельки при запуске</translation>
-<translation id="757886143331967039">Загружать устаревшее расширение Crypto Wallets при запуске</translation>
+<translation id="1274962333945373242">Устаревшее расширение Crypto Wallets</translation>
+<translation id="9131889008937672866">Кошелек для криптовалюты по умолчанию</translation>
 <translation id="1834467296210148203">Показывает значок кошелька Brave на панели инструментов.</translation>
+<translation id="8239147115686034860">Автоматическая блокировка кошелька Brave</translation>
+<translation id="414639769490080648">Через сколько минут кошелек Brave автоматически блокируется</translation>
 <translation id="6864914031231797928">Разрешить вход с помощью Google для расширений</translation>
 <translation id="5927916530277631319">Метод устранения Unstoppable Domains</translation>
 <translation id="5248318250177143470">Метод разрешения службы имен Ethereum (ENS)</translation>
@@ -210,7 +208,6 @@
 <translation id="6476061084931271248">Чтобы применить изменения, перезапустите узел.</translation>
 <translation id="3754226427671882382">Перезапустить узел</translation>
 <translation id="949667118776341807">Заменить ключ</translation>
-<translation id="635013291822406289">/ip4/46.21.210.45/tcp/14406/quic/p2p/12D3KooWBdmLJjhpgJ9KZgLM3f894ff9xyBfPvPjFNn7MKJpyrC2</translation>
 <translation id="724513921936768901">Недействительное название.</translation>
 <translation id="6758961763875471084">Изменить список одноранговых узлов</translation>
 <translation id="1295874070797049002">Экспортировать ключ</translation>
@@ -234,6 +231,7 @@
 <translation id="1251574393468476924">Максимальный размер кеша IPFS (ГБ)</translation>
 <translation id="2503497578400410320">Мягкий верхний предел размера хранилища данных репозитория IPFS.</translation>
 <translation id="7703184801853248830">Недопустимый адрес шлюза</translation>
+<translation id="7690058578502751948">В Brave можно использовать только действительный адрес шлюза IPFS с включенной изоляцией от источника.</translation>
 <translation id="585868419599255817">Откат к публичному IPFS-шлюзу</translation>
 <translation id="207763736230883589">Автоматически возвращаться к общему шлюзу IPFS, если локальный узел недоступен.</translation>
 <translation id="4107552920076294723">Перенаправлять ресурсы IPFS на указанный IPFS-шлюз</translation>
@@ -241,6 +239,7 @@
 <translation id="8655170717758778983">По возможности автоматически перенаправлять на страницы IPFS через DNSLink</translation>
 <translation id="2233724520223030977">По возможности автоматически использовать DNSLink для перехода к IPFS-версии веб-сайта</translation>
 <translation id="6554397389149987360">С помощью компонента Hangouts можно прямо в браузере демонстрировать свой экран и пользоваться другими возможностями.</translation>
+<translation id="7878791177459550035">Расширение Media router включает в браузере функцию трансляции.</translation>
 <translation id="9156965752763025780">Изменения вступят в силу при следующем входе в Brave.</translation>
 <translation id="7179921470347911571">Перезапустить</translation>
 <translation id="8068526464562249859">Использует расширение IPFS Companion для улучшения поддержки IPFS в Brave, включая доступ к типичным задачам IPFS прямо с панели браузера.</translation>
@@ -301,6 +300,10 @@
 <translation id="1391855377994926460">Популярные сайты с новостями загружаются до 6 раз быстрее.</translation>
 <translation id="9218430445555521422">Сделать браузером по умолчанию</translation>
 <translation id="3479552764303398839">Не сейчас</translation>
+<translation id="732814027519296280">Хотите улучшить Brave Search?</translation>
+<translation id="2677865600861971449">Чтобы анонимно предоставлять Brave Search данные поиска и сведения о действиях в браузере для улучшения работы сервиса, включите Web Discovery Project. Защита конфиденциальности и никаких действий с вашей стороны. <ph name="LEARN_MORE_TEXT"/></translation>
+<translation id="5860491529813859533">Включить</translation>
+<translation id="780301667611848630">Нет, спасибо</translation>
 <translation id="5039804452771397117">Разрешить</translation>
 <translation id="7053983685419859001">Блокировать</translation>
 <translation id="7815301689257843278">Отправлять отчеты о сбоях автоматически, чтобы браузер Brave мог предотвращать подобные ошибки в будущем?</translation>
@@ -310,6 +313,8 @@
 <translation id="6873781976650514089">эту настройку</translation>
 <translation id="6040143037577758943">Закрыть</translation>
 <translation id="5600566490506283344">Уведомление о рекламе Brave</translation>
+<translation id="4174337572777167894">Web Discovery Project</translation>
+<translation id="8659271182272561965">Анонимно предоставлять Brave Search данные поиска и сведения о действиях в браузере для улучшения работы сервиса</translation>
 <translation id="1516554614404600536">Подсказки Brave</translation>
 <translation id="4877147287319222750">Добавить к боковой панели</translation>
 <translation id="4233010476457917696">Показать боковую панель</translation>
@@ -351,7 +356,23 @@
         Вы можете прочитать <ph name="BEGIN_LINK_BUILD_INSTRUCTIONS"/>инструкции о том, как скачать и написать самому<ph name="END_LINK_BUILD_INSTRUCTIONS"/> конкретный <ph name="BEGIN_LINK_SOURCE_CODE"/>исходный код, используемый для создания этой копии<ph name="END_LINK_SOURCE_CODE"/>.</translation>
 <translation id="4474155171896946103">Добавить все вкладки в закладки…</translation>
 <translation id="2336228925368920074">Добавить все вкладки в закладки…</translation>
+<translation id="4235920711083356755">Показать кнопку VPN</translation>
+<translation id="4070612712151038707">Показывает кнопку VPN на панели инструментов</translation>
 <translation id="7705524343798198388">VPN</translation>
+<translation id="3960619311638643872">Brave VPN</translation>
+<translation id="2345974803401546682">О Brave VPN</translation>
+<translation id="4378551569595875038">Connecting...</translation>
+<translation id="3368922792935385530">Подключено</translation>
+<translation id="1536754031901697553">Отключение...</translation>
+<translation id="8030169304546394654">Отключен</translation>
+<translation id="1863950594388384201">Показать кнопку VPN на панели инструментов</translation>
+<translation id="5187139277471084437">Скрыть кнопку VPN на панели инструментов</translation>
+<translation id="8041089156583427627">Отправить отзыв</translation>
+<translation id="4049186905514157504">Настроить мой план</translation>
+<translation id="7570585565843385325">Показать кнопку VPN на панели инструментов</translation>
+<translation id="5310426188697803101">Скрыть кнопку VPN на панели инструментов</translation>
+<translation id="945522503751344254">Отправить отзыв</translation>
+<translation id="3015685033234401792">Настроить мой план</translation>
 <translation id="796831669370432378">Для добавления закладки нажмите кнопку закладки рядом с адресной строкой.</translation>
 <translation id="4989337484121655457">Требуется полный доступ к диску</translation>
 <translation id="8025559074845816210">Brave нужен полный доступ к диску для импорта ваших закладок из Safari.</translation>

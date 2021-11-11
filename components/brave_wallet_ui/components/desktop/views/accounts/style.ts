@@ -2,6 +2,7 @@ import styled from 'styled-components'
 import { SettingsAdvancedIcon, EditOIcon } from 'brave-ui/components/icons'
 import { SafeIcon } from '../../../../assets/svg-icons/nav-button-icons'
 import QRICON from '../../../../assets/svg-icons/qr-code-icon.svg'
+import { WalletButton } from '../../../shared/style'
 
 interface StyleProps {
   isHardwareWallet: boolean
@@ -14,6 +15,7 @@ export const StyledWrapper = styled.div`
   align-items: flex-start;
   justify-content: flex-start;
   width: 100%;
+  margin-bottom: 40px;
 `
 
 export const PrimaryRow = styled.div`
@@ -89,7 +91,7 @@ export const ButtonsRow = styled.div`
   padding-right: 20px;
 `
 
-export const BackupButton = styled.button`
+export const BackupButton = styled(WalletButton)`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -110,7 +112,7 @@ export const BackupButtonText = styled.span`
   color: ${(p) => p.theme.color.text01};
 `
 
-export const Button = styled.button`
+export const Button = styled(WalletButton)`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -180,7 +182,7 @@ export const WalletName = styled.span`
   margin-right: 15px;
 `
 
-export const WalletAddress = styled.button`
+export const WalletAddress = styled(WalletButton)`
   font-family: Poppins;
   font-size: 15px;
   line-height: 20px;
@@ -216,4 +218,14 @@ export const SubviewSectionTitle = styled.span`
   letter-spacing: 0.04em;
   color: ${(p) => p.theme.color.text02};
   margin-bottom: 10px;
+`
+
+export const TransactionPlaceholderContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100px;
+  padding-top: 10px;
 `

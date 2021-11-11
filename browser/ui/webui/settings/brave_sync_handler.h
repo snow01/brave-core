@@ -11,6 +11,7 @@
 #include "base/values.h"
 #include "chrome/browser/ui/webui/settings/settings_page_ui_handler.h"
 #include "chrome/services/qrcode_generator/public/cpp/qrcode_generator_service.h"
+#include "chrome/services/qrcode_generator/public/mojom/qrcode_generator.mojom.h"
 #include "components/sync_device_info/device_info_tracker.h"
 
 namespace syncer {
@@ -36,12 +37,12 @@ class BraveSyncHandler : public settings::SettingsPageUIHandler,
   void OnJavascriptDisallowed() override;
 
   // Custom message handlers:
-  void HandleGetDeviceList(const base::ListValue* args);
-  void HandleGetSyncCode(const base::ListValue* args);
-  void HandleSetSyncCode(const base::ListValue* args);
-  void HandleGetQRCode(const base::ListValue* args);
-  void HandleReset(const base::ListValue* args);
-  void HandleDeleteDevice(const base::ListValue* args);
+  void HandleGetDeviceList(base::Value::ConstListView args);
+  void HandleGetSyncCode(base::Value::ConstListView args);
+  void HandleSetSyncCode(base::Value::ConstListView args);
+  void HandleGetQRCode(base::Value::ConstListView args);
+  void HandleReset(base::Value::ConstListView args);
+  void HandleDeleteDevice(base::Value::ConstListView args);
 
   void OnResetDone(base::Value callback_id);
 

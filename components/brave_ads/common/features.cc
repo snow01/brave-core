@@ -16,7 +16,16 @@ const base::Feature kAdNotifications{"AdNotifications",
 const base::Feature kCustomAdNotifications{"CustomAdNotifications",
                                            base::FEATURE_DISABLED_BY_DEFAULT};
 
+const base::Feature kRequestAdsEnabledApi{"RequestAdsEnabledApi",
+                                          base::FEATURE_DISABLED_BY_DEFAULT};
+
 namespace {
+
+// Set to true to fallback to custom ad notifications if native notifications
+// are disabled or false to never fallback
+const char kFieldTrialParameterCanFallbackToCustomAdNotifications[] =
+    "can_fallback_to_custom_notifications";
+const bool kDefaultCanFallbackToCustomAdNotifications = false;
 
 // Ad notification timeout in seconds. Set to 0 to never time out
 const char kFieldTrialParameterAdNotificationTimeout[] =
@@ -27,18 +36,18 @@ const int kDefaultAdNotificationTimeout = 120;
 const int kDefaultAdNotificationTimeout = 30;
 #endif
 
-// Set to true to fallback from native to custom ad notifications or false to
-// never fallback
-const char kFieldTrialParameterCanFallbackToCustomAdNotifications[] =
-    "can_fallback_to_custom_notifications";
-const bool kDefaultCanFallbackToCustomAdNotifications = false;
-
 #if !defined(OS_ANDROID)
 
 // Ad notification fade animation duration in milliseconds
 const char kFieldTrialParameterAdNotificationFadeDuration[] =
     "ad_notification_fade_duration";
 const int kDefaultAdNotificationFadeDuration = 200;
+
+// Ad notification dark mode background color
+const char kFieldTrialParameterAdNotificationDarkModeBackgroundColor[] =
+    "ad_notification_dark_mode_background_color";
+// Default color value is SkColorSetRGB(0x20, 0x23, 0x27);
+const char kDefaultAdNotificationDarkModeBackgroundColor[] = "202327";
 
 // Ad notification normalized display coordinate for the x component should be
 // between 0.0 and 1.0; coordinates outside this range will be adjusted to fit
@@ -99,6 +108,12 @@ bool IsAdNotificationsEnabled() {
   return base::FeatureList::IsEnabled(kAdNotifications);
 }
 
+bool CanFallbackToCustomAdNotifications() {
+  return GetFieldTrialParamByFeatureAsBool(
+      kAdNotifications, kFieldTrialParameterCanFallbackToCustomAdNotifications,
+      kDefaultCanFallbackToCustomAdNotifications);
+}
+
 int AdNotificationTimeout() {
   return GetFieldTrialParamByFeatureAsInt(
       kAdNotifications, kFieldTrialParameterAdNotificationTimeout,
@@ -109,19 +124,24 @@ bool IsCustomAdNotificationsEnabled() {
   return base::FeatureList::IsEnabled(kCustomAdNotifications);
 }
 
-bool CanFallbackToCustomAdNotifications() {
-  return GetFieldTrialParamByFeatureAsBool(
-      kCustomAdNotifications,
-      kFieldTrialParameterCanFallbackToCustomAdNotifications,
-      kDefaultCanFallbackToCustomAdNotifications);
-}
-
 #if !defined(OS_ANDROID)
 
 int AdNotificationFadeDuration() {
   return GetFieldTrialParamByFeatureAsInt(
       kCustomAdNotifications, kFieldTrialParameterAdNotificationFadeDuration,
       kDefaultAdNotificationFadeDuration);
+}
+
+std::string AdNotificationDarkModeBackgroundColor() {
+  const std::string param_value = GetFieldTrialParamValueByFeature(
+      kCustomAdNotifications,
+      kFieldTrialParameterAdNotificationDarkModeBackgroundColor);
+
+  if (param_value.empty()) {
+    return kDefaultAdNotificationDarkModeBackgroundColor;
+  }
+
+  return param_value;
 }
 
 double AdNotificationNormalizedDisplayCoordinateX() {
@@ -151,6 +171,10 @@ int AdNotificationInsetY() {
 }
 
 #endif  // !defined(OS_ANDROID)
+
+bool IsRequestAdsEnabledApiEnabled() {
+  return base::FeatureList::IsEnabled(kRequestAdsEnabledApi);
+}
 
 }  // namespace features
 }  // namespace brave_ads

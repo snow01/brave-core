@@ -51,6 +51,7 @@ absl::optional<mojom::EthereumChain> ValueToEthereumChain(
   }
   const base::Value* nativeCurrencyValue =
       params_dict->FindDictKey("nativeCurrency");
+  chain.decimals = 0;
   if (nativeCurrencyValue) {
     const std::string* symbol_name = nativeCurrencyValue->FindStringKey("name");
     if (symbol_name) {
@@ -65,6 +66,8 @@ absl::optional<mojom::EthereumChain> ValueToEthereumChain(
       chain.decimals = decimals.value();
     }
   }
+
+  chain.is_eip1559 = params_dict->FindBoolKey("is_eip1559").value_or(false);
   return chain;
 }
 
@@ -72,11 +75,12 @@ base::Value EthereumChainToValue(const mojom::EthereumChainPtr& chain) {
   base::Value dict(base::Value::Type::DICTIONARY);
   dict.SetStringKey("chainId", chain->chain_id);
   dict.SetStringKey("chainName", chain->chain_name);
+  dict.SetBoolKey("is_eip1559", chain->is_eip1559);
 
   base::ListValue blockExplorerUrlsValue;
   if (!chain->block_explorer_urls.empty()) {
     for (const auto& url : chain->block_explorer_urls) {
-      blockExplorerUrlsValue.AppendString(url);
+      blockExplorerUrlsValue.Append(url);
     }
   }
   dict.SetKey("blockExplorerUrls", std::move(blockExplorerUrlsValue));
@@ -84,14 +88,14 @@ base::Value EthereumChainToValue(const mojom::EthereumChainPtr& chain) {
   base::ListValue iconUrlsValue;
   if (!chain->icon_urls.empty()) {
     for (const auto& url : chain->icon_urls) {
-      iconUrlsValue.AppendString(url);
+      iconUrlsValue.Append(url);
     }
   }
   dict.SetKey("iconUrls", std::move(iconUrlsValue));
 
   base::ListValue rpcUrlsValue;
   for (const auto& url : chain->rpc_urls) {
-    rpcUrlsValue.AppendString(url);
+    rpcUrlsValue.Append(url);
   }
   dict.SetKey("rpcUrls", std::move(rpcUrlsValue));
   base::Value currency(base::Value::Type::DICTIONARY);

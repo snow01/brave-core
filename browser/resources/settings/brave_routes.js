@@ -15,8 +15,15 @@ export default function addBraveRoutes(r) {
     r.GET_STARTED = r.BASIC.createSection('/getStarted', 'getStarted')
     // bring back people's /manageProfile (now in getStarted)
     r.MANAGE_PROFILE = r.GET_STARTED.createChild('/manageProfile');
+    // We re-section people page into getStarted section (see people_page Brave
+    // override), so we need to adjust the route accordingly in order for the
+    // direct navigation to brave://settings/importData to work.
+    if (r.IMPORT_DATA) {
+      r.IMPORT_DATA.section = 'getStarted'
+    }
   }
   r.SHIELDS = r.BASIC.createSection('/shields', 'shields')
+  r.REWARDS = r.BASIC.createSection('/rewards', 'rewards')
   r.SOCIAL_BLOCKING = r.BASIC.createSection('/socialBlocking', 'socialBlocking')
   r.EXTENSIONS = r.BASIC.createSection('/extensions', 'extensions')
   if (pageVisibility.braveSync) {
@@ -30,6 +37,7 @@ export default function addBraveRoutes(r) {
   }
   if (pageVisibility.braveWallet) {
     r.BRAVE_WALLET = r.BASIC.createSection('/wallet', 'wallet')
+    r.BRAVE_WALLET_NETWORKS = r.BRAVE_WALLET.createChild('/wallet/networks');
   }
 
   r.BRAVE_HELP_TIPS = r.BASIC.createSection('/braveHelpTips', 'braveHelpTips')

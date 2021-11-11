@@ -1,9 +1,6 @@
 import("//brave/build/config.gni")
 import("//brave/components/brave_wallet/browser/config.gni")
-import("//brave/components/brave_wallet/common/buildflags/buildflags.gni")
 import("//build/config/features.gni")
-
-assert(brave_wallet_enabled)
 
 static_library("browser") {
   configs += [ ":infura_config" ]
@@ -16,9 +13,15 @@ static_library("browser") {
     "asset_ratio_response_parser.h",
     "brave_wallet_constants.cc",
     "brave_wallet_constants.h",
+    "brave_wallet_prefs.cc",
+    "brave_wallet_prefs.h",
     "brave_wallet_provider_delegate.h",
     "brave_wallet_provider_impl.cc",
     "brave_wallet_provider_impl.h",
+    "brave_wallet_service.cc",
+    "brave_wallet_service.h",
+    "brave_wallet_service_delegate.cc",
+    "brave_wallet_service_delegate.h",
     "brave_wallet_types.cc",
     "brave_wallet_types.h",
     "brave_wallet_utils.cc",
@@ -79,9 +82,9 @@ static_library("browser") {
 
   deps = [
     "//base",
-    "//base/util/values:values_util",
     "//brave/components/api_request_helper",
     "//brave/components/brave_component_updater/browser",
+    "//brave/components/brave_stats/browser",
     "//brave/components/brave_wallet/browser:ethereum_permission_utils",
     "//brave/components/brave_wallet/common",
     "//brave/components/brave_wallet/common:common_constants",
@@ -92,6 +95,7 @@ static_library("browser") {
     "//brave/third_party/ethash",
     "//brave/vendor/bip39wally-core-native:bip39wally-core",
     "//components/component_updater",
+    "//components/content_settings/core/browser",
     "//components/keyed_service/core",
     "//components/prefs",
     "//components/sync_preferences",
@@ -99,6 +103,7 @@ static_library("browser") {
     "//services/network/public/cpp",
     "//third_party/abseil-cpp:absl",
     "//third_party/boringssl",
+    "//third_party/re2",
     "//ui/base:base",
     "//url",
   ]

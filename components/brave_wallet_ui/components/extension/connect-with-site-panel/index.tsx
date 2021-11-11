@@ -12,6 +12,7 @@ import {
 import {
   StyledWrapper,
   SelectAddressContainer,
+  SelectAddressInnerContainer,
   NewAccountTitle,
   SelectAddressScrollContainer,
   Details,
@@ -26,7 +27,7 @@ import {
 // Utils
 import { reduceAddress } from '../../../utils/reduce-address'
 import { WalletAccountType } from '../../../constants/types'
-import locale from '../../../constants/locale'
+import { getLocale } from '../../../../common/locale'
 
 export interface Props {
   siteURL: string
@@ -68,6 +69,22 @@ function ConnectWithSite (props: Props) {
     }
   }
 
+  const refs = React.useRef<Array<HTMLDivElement | null>>([])
+  React.useEffect(() => {
+    // Scroll to the first element that was selected
+    refs.current.every((ref) => {
+      if (ref) {
+        ref.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'center'
+        })
+        return false
+      }
+      return true
+    })
+  }, [])
+
   return (
     <StyledWrapper>
       <ConnectHeader url={siteURL} />
@@ -77,20 +94,24 @@ function ConnectWithSite (props: Props) {
             <Details>{createAccountList()}</Details>
           </AccountListWrapper>
         ) : (
-          <Details>{locale.connectWithSiteTitle}</Details>
+          <Details>{getLocale('braveWalletConnectWithSiteTitle')}</Details>
         )}
         {!isReady ? (
           <SelectAddressContainer>
-            <NewAccountTitle>{locale.accounts}</NewAccountTitle>
+            <NewAccountTitle>{getLocale('braveWalletAccounts')}</NewAccountTitle>
             <DividerLine />
             <SelectAddressScrollContainer>
-              {accounts.map((account) => (
-                <SelectAddress
-                  action={toggleSelected(account)}
-                  key={account.id}
-                  account={account}
-                  isSelected={checkIsSelected(account)}
-                />
+              {accounts.map((account, index) => (
+                <SelectAddressInnerContainer
+                  ref={(ref) => refs.current[index] = (checkIsSelected(account) ? ref : null)}
+                >
+                  <SelectAddress
+                    action={toggleSelected(account)}
+                    key={account.id}
+                    account={account}
+                    isSelected={checkIsSelected(account)}
+                  />
+                </SelectAddressInnerContainer>
               ))}
             </SelectAddressScrollContainer>
             <DividerLine />
@@ -99,15 +120,14 @@ function ConnectWithSite (props: Props) {
           <ConfirmTextRow>
             <ConfirmIcon />
             <ConfirmTextColumn>
-              <ConfirmText>{locale.connectWithSiteDescription1}</ConfirmText>
-              <ConfirmText>{locale.connectWithSiteDescription2}</ConfirmText>
+              <ConfirmText>{getLocale('braveWalletConnectWithSiteDescription')}</ConfirmText>
             </ConfirmTextColumn>
           </ConfirmTextRow>
         )}
       </MiddleWrapper>
       <ConnectBottomNav
-        primaryText={isReady ? locale.addAccountConnect : locale.connectWithSiteNext}
-        secondaryText={isReady ? locale.back : locale.backupButtonCancel}
+        primaryText={isReady ? getLocale('braveWalletAddAccountConnect') : getLocale('braveWalletConnectWithSiteNext')}
+        secondaryText={isReady ? getLocale('braveWalletBack') : getLocale('braveWalletBackupButtonCancel')}
         primaryAction={primaryAction}
         secondaryAction={secondaryAction}
         disabled={selectedAccounts.length === 0}

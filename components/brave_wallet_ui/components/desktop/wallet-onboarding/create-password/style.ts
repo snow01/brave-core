@@ -1,5 +1,6 @@
 import styled from 'styled-components'
-import LockIcon from '../../../../assets/svg-icons/graphic-lock-icon.svg'
+import SecureIcon from '../../../../assets/svg-icons/onboarding/secure-your-crypto.svg'
+import SecureIconDark from '../../../../assets/svg-icons/onboarding/secure-your-crypto-dark.svg'
 
 export const StyledWrapper = styled.div`
   display: flex;
@@ -18,6 +19,7 @@ export const Title = styled.span`
   color: ${(p) => p.theme.color.text01};
   letter-spacing: 0.02em;
   margin-bottom: 10px;
+  text-align: center;
 `
 
 export const Description = styled.span`
@@ -46,9 +48,14 @@ export const IconBackground = styled.div`
 `
 
 export const PageIcon = styled.div`
-  width: 103px;
-  height: 88px;
-  background: url(${LockIcon});
+  width: 176px;
+  height: 160px;
+  background: url(${SecureIcon});
+  background-repeat: no-repeat;
+  background-size: 100%;
+  @media (prefers-color-scheme: dark) {
+    background: url(${SecureIconDark});
+  }
 `
 
 export const InputColumn = styled.div`

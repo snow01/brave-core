@@ -5,6 +5,7 @@
 
 #include "brave/components/brave_wallet/browser/asset_ratio_controller.h"
 
+#include <algorithm>
 #include <utility>
 
 #include "base/strings/stringprintf.h"
@@ -78,6 +79,15 @@ std::string TimeFrameKeyToString(
   return timeframe_key;
 }
 
+std::vector<std::string> VectorToLowerCase(const std::vector<std::string>& v) {
+  std::vector<std::string> v_lower(v.size());
+  std::transform(v.begin(), v.end(), v_lower.begin(),
+                 [](const std::string& from) -> std::string {
+                   return base::ToLowerASCII(from);
+                 });
+  return v_lower;
+}
+
 }  // namespace
 
 namespace brave_wallet {
@@ -139,12 +149,14 @@ void AssetRatioController::GetPrice(
     const std::vector<std::string>& to_assets,
     brave_wallet::mojom::AssetPriceTimeframe timeframe,
     GetPriceCallback callback) {
+  std::vector<std::string> from_assets_lower = VectorToLowerCase(from_assets);
+  std::vector<std::string> to_assets_lower = VectorToLowerCase(to_assets);
   auto internal_callback = base::BindOnce(
       &AssetRatioController::OnGetPrice, weak_ptr_factory_.GetWeakPtr(),
-      from_assets, to_assets, std::move(callback));
-  api_request_helper_.Request("GET",
-                              GetPriceURL(from_assets, to_assets, timeframe),
-                              "", "", true, std::move(internal_callback));
+      from_assets_lower, to_assets_lower, std::move(callback));
+  api_request_helper_.Request(
+      "GET", GetPriceURL(from_assets_lower, to_assets_lower, timeframe), "", "",
+      true, std::move(internal_callback));
 }
 
 void AssetRatioController::OnGetPrice(
@@ -171,11 +183,12 @@ void AssetRatioController::GetPriceHistory(
     const std::string& asset,
     brave_wallet::mojom::AssetPriceTimeframe timeframe,
     GetPriceHistoryCallback callback) {
+  std::string asset_lower = base::ToLowerASCII(asset);
   auto internal_callback =
       base::BindOnce(&AssetRatioController::OnGetPriceHistory,
                      weak_ptr_factory_.GetWeakPtr(), std::move(callback));
-  api_request_helper_.Request("GET", GetPriceHistoryURL(asset, timeframe), "",
-                              "", true, std::move(internal_callback));
+  api_request_helper_.Request("GET", GetPriceHistoryURL(asset_lower, timeframe),
+                              "", "", true, std::move(internal_callback));
 }
 
 void AssetRatioController::OnGetPriceHistory(
@@ -194,6 +207,75 @@ void AssetRatioController::OnGetPriceHistory(
   }
 
   std::move(callback).Run(true, std::move(values));
+}
+
+// static
+GURL AssetRatioController::GetEstimatedTimeURL(const std::string& gas_price) {
+  std::string spec = base::StringPrintf(
+      "%sv2/etherscan/"
+      "passthrough?module=gastracker&action=gasestimate&gasprice=%s",
+      base_url_for_test_.is_empty() ? kAssetRatioBaseURL
+                                    : base_url_for_test_.spec().c_str(),
+      gas_price.c_str());
+  return GURL(spec);
+}
+
+// static
+GURL AssetRatioController::GetGasOracleURL() {
+  std::string spec = base::StringPrintf(
+      "%sv2/etherscan/passthrough?module=gastracker&action=gasoracle",
+      base_url_for_test_.is_empty() ? kAssetRatioBaseURL
+                                    : base_url_for_test_.spec().c_str());
+  return GURL(spec);
+}
+
+void AssetRatioController::GetEstimatedTime(const std::string& gas_price,
+                                            GetEstimatedTimeCallback callback) {
+  auto internal_callback =
+      base::BindOnce(&AssetRatioController::OnGetEstimatedTime,
+                     weak_ptr_factory_.GetWeakPtr(), std::move(callback));
+  api_request_helper_.Request("GET", GetEstimatedTimeURL(gas_price), "", "",
+                              true, std::move(internal_callback));
+}
+
+void AssetRatioController::OnGetEstimatedTime(
+    GetEstimatedTimeCallback callback,
+    const int status,
+    const std::string& body,
+    const base::flat_map<std::string, std::string>& headers) {
+  if (status < 200 || status > 299) {
+    std::move(callback).Run(false, "");
+    return;
+  }
+
+  const std::string seconds = ParseEstimatedTime(body);
+  if (seconds.empty()) {
+    std::move(callback).Run(false, "");
+    return;
+  }
+
+  std::move(callback).Run(true, seconds);
+}
+
+void AssetRatioController::GetGasOracle(GetGasOracleCallback callback) {
+  auto internal_callback =
+      base::BindOnce(&AssetRatioController::OnGetGasOracle,
+                     weak_ptr_factory_.GetWeakPtr(), std::move(callback));
+  api_request_helper_.Request("GET", GetGasOracleURL(), "", "", true,
+                              std::move(internal_callback));
+}
+
+void AssetRatioController::OnGetGasOracle(
+    GetGasOracleCallback callback,
+    const int status,
+    const std::string& body,
+    const base::flat_map<std::string, std::string>& headers) {
+  if (status < 200 || status > 299) {
+    std::move(callback).Run(nullptr);
+    return;
+  }
+
+  std::move(callback).Run(ParseGasOracle(body));
 }
 
 }  // namespace brave_wallet

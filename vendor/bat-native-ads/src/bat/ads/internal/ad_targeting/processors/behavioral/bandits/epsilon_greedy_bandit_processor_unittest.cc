@@ -5,6 +5,7 @@
 
 #include "bat/ads/internal/ad_targeting/processors/behavioral/bandits/epsilon_greedy_bandit_processor.h"
 
+#include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ad_targeting/data_types/behavioral/bandits/epsilon_greedy_bandit_arms.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/container_util.h"
@@ -13,6 +14,17 @@
 #include "bat/ads/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
+
+namespace {
+
+constexpr char kArmsWithEmptySegmentJson[] = R"(
+  {
+    "travel":{"pulls":0,"segment":"travel","value":1.0},
+    "":{"pulls":0,"segment":"","value":1.0}
+  }
+)";
+
+}  // namespace
 
 namespace ads {
 namespace ad_targeting {
@@ -184,6 +196,20 @@ TEST_F(BatAdsEpsilonGreedyBanditProcessorTest, ProcessChildSegment) {
   expected_arm.pulls = 1;
 
   EXPECT_EQ(expected_arm, arm);
+}
+
+TEST_F(BatAdsEpsilonGreedyBanditProcessorTest,
+       InitializeArmsFromResourceWithEmptySegments) {
+  // Arrange
+
+  // Act
+  const EpsilonGreedyBanditArmMap arms =
+      EpsilonGreedyBanditArms::FromJson(kArmsWithEmptySegmentJson);
+
+  // Assert
+  // Empty segments are skipped.
+  EXPECT_EQ(1U, arms.size());
+  EXPECT_EQ(1U, arms.count("travel"));
 }
 
 }  // namespace ad_targeting

@@ -19,10 +19,9 @@
 BraveVPNStatusLabel::BraveVPNStatusLabel(Browser* browser)
     : browser_(browser),
       service_(BraveVpnServiceFactory::GetForProfile(browser_->profile())) {
-  mojo::PendingRemote<brave_vpn::mojom::ServiceObserver> listener;
-  receiver_.Bind(listener.InitWithNewPipeAndPassReceiver());
-  service_->AddObserver(std::move(listener));
+  DCHECK(service_);
 
+  Observe(service_);
   SetAutoColorReadabilityEnabled(false);
   UpdateState();
 

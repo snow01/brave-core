@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import CloseIcon from '../../extension/assets/close.svg'
+import { WalletButton } from '../../shared/style'
 
 export const StyledWrapper = styled.div`
   display: flex;
@@ -26,6 +27,10 @@ export const Modal = styled.div`
   background-color: ${(p) => p.theme.color.background02};
   border-radius: 8px;
   box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.25);
+  @media screen and (max-width: 600px) {
+    min-width: 480px;
+    max-width: 480px;
+  }
 `
 
 export const Header = styled.div`
@@ -46,8 +51,8 @@ export const Title = styled.span`
   color: ${(p) => p.theme.color.text01};
 `
 
-export const CloseButton = styled.button`
-  display: flex;;
+export const CloseButton = styled(WalletButton)`
+  display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;

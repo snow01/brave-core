@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import { AlertCircleIcon } from 'brave-ui/components/icons'
+import { WalletButton } from '../../../shared/style'
 
 export const StyledWrapper = styled.div`
   display: flex;
@@ -28,13 +29,12 @@ export const Description = styled.span`
   line-height: 22px;
   font-weight: 300;
   color: ${(p) => p.theme.color.text02};
-  max-width: 380px;
-  height: 64px;
+  max-width: 450px;
   text-align: center;
   margin-bottom: 18px;
 `
 
-export const CopyButton = styled.button`
+export const CopyButton = styled(WalletButton)`
   display: flex;
   align-items: center;
   justify-content: center;

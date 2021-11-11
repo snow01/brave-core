@@ -7,11 +7,26 @@
 
 #include "base/feature_list.h"
 #include "brave/components/brave_vpn/features.h"
+#include "brave/components/brave_vpn/url_constants.h"
+#include "brave/components/skus/browser/skus_utils.h"
 
 namespace brave_vpn {
 
 bool IsBraveVPNEnabled() {
   return base::FeatureList::IsEnabled(brave_vpn::features::kBraveVPN);
+}
+
+std::string GetManageUrl() {
+  const std::string env = brave_rewards::GetEnvironment();
+  if (env == brave_rewards::kEnvProduction)
+    return brave_vpn::kManageUrlProd;
+  if (env == brave_rewards::kEnvStaging)
+    return brave_vpn::kManageUrlStaging;
+  if (env == brave_rewards::kEnvDevelopment)
+    return brave_vpn::kManageUrlDev;
+
+  NOTREACHED();
+  return brave_vpn::kManageUrlProd;
 }
 
 }  // namespace brave_vpn

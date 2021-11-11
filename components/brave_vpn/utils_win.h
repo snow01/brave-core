@@ -6,8 +6,9 @@
 #ifndef BRAVE_COMPONENTS_BRAVE_VPN_UTILS_WIN_H_
 #define BRAVE_COMPONENTS_BRAVE_VPN_UTILS_WIN_H_
 
-#include <windows.h>
 #include <string>
+
+#include "base/win/windows_types.h"
 
 namespace brave_vpn {
 
@@ -15,8 +16,10 @@ namespace internal {
 
 enum class CheckConnectionResult {
   CONNECTED,
-  NOT_CONNECTED,
-  UNKNOWN,
+  CONNECTING,
+  CONNECT_FAILED,
+  DISCONNECTING,
+  DISCONNECTED,
 };
 
 void PrintRasError(DWORD error);
@@ -29,6 +32,13 @@ bool CreateEntry(const std::wstring& entry_name,
 bool RemoveEntry(const std::wstring& entry_name);
 bool DisconnectEntry(const std::wstring& entry_name);
 bool ConnectEntry(const std::wstring& entry_name);
+// Don't cache returned HANDLE. It could be invalidated.
+HANDLE GetEventHandleForConnecting();
+void CloseEventHandleForConnecting();
+HANDLE GetEventHandleForConnectFailed();
+void CloseEventHandleForConnectFailed();
+HANDLE GetEventHandleForDisconnecting();
+void CloseEventHandleForDisconnecting();
 
 CheckConnectionResult CheckConnection(const std::wstring& entry_name);
 

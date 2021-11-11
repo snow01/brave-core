@@ -5,26 +5,20 @@
 
 #include <string>
 
-#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
-
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
 #include "brave/components/brave_wallet/browser/ethereum_permission_utils.h"
-#endif  // BUILDFLAG(BRAVE_WALLET_ENABLED)
-
 #include "../../../../components/permissions/permission_request_manager.cc"
 
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
 namespace permissions {
 
 bool PermissionRequestManager::ShouldGroupRequests(PermissionRequest* a,
                                                    PermissionRequest* b) {
   std::string origin_a;
   std::string origin_b;
-  if (a->GetRequestType() == RequestType::kBraveEthereum &&
-      b->GetRequestType() == RequestType::kBraveEthereum &&
-      brave_wallet::ParseRequestingOriginFromSubRequest(a->GetOrigin(),
+  if (a->request_type() == RequestType::kBraveEthereum &&
+      b->request_type() == RequestType::kBraveEthereum &&
+      brave_wallet::ParseRequestingOriginFromSubRequest(a->requesting_origin(),
                                                         &origin_a, nullptr) &&
-      brave_wallet::ParseRequestingOriginFromSubRequest(b->GetOrigin(),
+      brave_wallet::ParseRequestingOriginFromSubRequest(b->requesting_origin(),
                                                         &origin_b, nullptr) &&
       origin_a == origin_b) {
     return true;
@@ -77,4 +71,3 @@ void PermissionRequestManager::AcceptDenyCancel(
 }
 
 }  // namespace permissions
-#endif  // BUILDFLAG(BRAVE_WALLET_ENABLED)

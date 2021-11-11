@@ -39,6 +39,8 @@ class BraveWalletProviderDelegateImpl : public BraveWalletProviderDelegate {
       RequestEthereumPermissionsCallback callback) override;
 
   void GetAllowedAccounts(GetAllowedAccountsCallback callback) override;
+  static void SetCallbackForNewSetupNeededForTesting(
+      base::OnceCallback<void()>);
 
  private:
   void EnsureConnected();
@@ -47,6 +49,13 @@ class BraveWalletProviderDelegateImpl : public BraveWalletProviderDelegate {
       RequestEthereumPermissionsCallback callback,
       bool success,
       const std::vector<std::string>& allowed_accounts);
+  void ContinueRequestEthereumPermissionsKeyringInfo(
+      RequestEthereumPermissionsCallback callback,
+      const std::vector<std::string>& allowed_accounts,
+      brave_wallet::mojom::KeyringInfoPtr keyring_info);
+  void ContinueGetAllowedAccounts(
+      BraveWalletProviderDelegate::GetAllowedAccountsCallback callback,
+      const absl::optional<std::string>& selected_account);
 
   mojo::Remote<brave_wallet::mojom::KeyringController> keyring_controller_;
   content::WebContents* web_contents_;

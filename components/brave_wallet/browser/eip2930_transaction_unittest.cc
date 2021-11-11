@@ -209,4 +209,54 @@ TEST(Eip2930TransactionUnitTest, GetBaseFee) {
   EXPECT_EQ(tx3.GetBaseFee(), fee3);
 }
 
+TEST(Eip2930TransactionUnitTest, FromTxData) {
+  auto tx = Eip2930Transaction::FromTxData(
+      mojom::TxData::New("0x01", "0x3E8", "0x989680",
+                         "0x3535353535353535353535353535353535353535", "0x2A",
+                         std::vector<uint8_t>{1}),
+      1);
+  ASSERT_TRUE(tx);
+  EXPECT_EQ(tx->nonce(), uint256_t(1));
+  EXPECT_EQ(tx->gas_price(), uint256_t(1000));
+  EXPECT_EQ(tx->gas_limit(), uint256_t(10000000));
+  EXPECT_EQ(tx->to(),
+            EthAddress::FromHex("0x3535353535353535353535353535353535353535"));
+  EXPECT_EQ(tx->value(), uint256_t(42));
+  EXPECT_EQ(tx->data(), std::vector<uint8_t>{1});
+  EXPECT_EQ(tx->chain_id(), uint256_t(1));
+
+  // Empty nonce
+  tx = Eip2930Transaction::FromTxData(
+      mojom::TxData::New("", "0x3E8", "0x989680",
+                         "0x3535353535353535353535353535353535353535", "0x2A",
+                         std::vector<uint8_t>{1}),
+      0);
+  ASSERT_TRUE(tx);
+  EXPECT_FALSE(tx->nonce());
+
+  // Simplified just test cases since EthTransaction has detailed tests for a
+  // single missing value
+  EXPECT_FALSE(Eip2930Transaction::FromTxData(
+      mojom::TxData::New("0x1", "0x3E8", "",
+                         "0x3535353535353535353535353535353535353535", "0x2A",
+                         std::vector<uint8_t>{1}),
+      0));
+
+  // But missing data is allowed when strict is false
+  tx = Eip2930Transaction::FromTxData(
+      mojom::TxData::New("", "0x3E8", "",
+                         "0x3535353535353535353535353535353535353535", "",
+                         std::vector<uint8_t>{1}),
+      1, false);
+  ASSERT_TRUE(tx);
+  // Empty nonce should be nullopt
+  EXPECT_FALSE(tx->nonce());
+  // Unspecified value defaults to 0
+  EXPECT_EQ(tx->gas_limit(), uint256_t(0));
+  EXPECT_EQ(tx->value(), uint256_t(0));
+  // you can still get at other data that is specified
+  EXPECT_EQ(tx->gas_price(), uint256_t(1000));
+  EXPECT_EQ(tx->chain_id(), uint256_t(1));
+}
+
 }  // namespace brave_wallet

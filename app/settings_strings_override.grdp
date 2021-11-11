@@ -28,7 +28,7 @@
     </if>
   <if expr="is_linux and not chromeos and not lacros">
     </if>
-  <if expr="not is_linux or chromeos or lacros">
+  <if expr="not is_linux or chromeos or lacros or is_fuchsia">
     </if>
   <message name="IDS_SETTINGS_SHOW_BOOKMARKS_BAR" desc="Label for the checkbox which enables or disables showing the bookmarks bar in the toolbar.">
     Show bookmarks
@@ -50,18 +50,16 @@
       </if>
   </if>
 
-  <if expr="chromeos">
-    </if>
   <if expr="not chromeos">
-    </if>
+    <if expr="not is_macosx">
+      </if>
+  </if>
   <if expr="chromeos">
-    </if>
-  <if expr="not is_macosx">
     </if>
 
-  <message name="IDS_SETTINGS_PRIVACY_SANDBOX_PAGE_SETTING_EXPLANATION2" desc="Part 2 of the explanation of the setting to enable or disable the Privacy Sandbox.">
-    Advertisers can learn when thousands of users share a similar interest—like a crowd at a concert—and select ads for the crowd, rather than an individual profile.
-  </message>
+  <if expr="chromeos or lacros">
+    </if>
+
   <if expr="is_win and _google_chrome">
     </if>
 
@@ -74,7 +72,7 @@
     Block third-party cookies in Private
   </message>
   <message name="IDS_SETTINGS_COOKIES_BLOCK_THIRD_PARTY_INCOGNITO_BULLET_TWO" desc="Description for the first bullet of block third party cookies in Private radio toggle">
-    While in Private, sites can't use your cookies to see your browsing activity across different sites, for example, to personalize ads. Features on some sites may break.
+    While in Private, sites can't use your cookies to see your browsing activity across different sites, for example, to personalize ads. Features on some sites may not work.
   </message>
   <message name="IDS_SETTINGS_SITE_SETTINGS_COOKIES_BLOCK_THIRD_PARTY_INCOGNITO" desc="The sub-label for links to manage cookies when the current cookie setting is to block third party cookies in Private.">
     Third-party cookies are blocked in Private mode

@@ -1,156 +1,122 @@
 import { AccountAssetOptionType, AssetOptionType } from '../constants/types'
 import {
-  ETHIconUrl,
-  BATIconUrl
+  ETHIconUrl
 } from '../assets/asset-icons'
-import {
-  AaveIconURL,
-  BusdIconURL,
-  CompIconURL,
-  CrvIconURL,
-  DaiIconURL,
-  GusdIconURL,
-  LinkIconURL,
-  MkrIconURL,
-  MusdcIconURL,
-  PaxIconURL,
-  PdaiIconURL,
-  SnxIconURL,
-  UmaIconURL,
-  UniIconURL,
-  UsdcIconURL,
-  UsdsIconURL,
-  UsdtIconURL,
-  WbtcIconURL,
-  YfiIconURL
-} from '../assets/wyre-asset-icons'
 
 export const WyreAssetOptions: AssetOptionType[] = [
   {
     id: '1',
     name: 'Basic Attention Token',
     symbol: 'BAT',
-    icon: BATIconUrl
+    logo: 'chrome://erc-token-images/bat.png'
   },
   {
     id: '2',
     name: 'Ethereum',
     symbol: 'ETH',
-    icon: ETHIconUrl
+    logo: ETHIconUrl
   },
   {
     id: '3',
     name: 'USD Coin',
     symbol: 'USDC',
-    icon: UsdcIconURL
+    logo: 'chrome://erc-token-images/usdc.png'
   },
   {
     id: '4',
     name: 'DAI',
     symbol: 'DAI',
-    icon: DaiIconURL
+    logo: 'chrome://erc-token-images/dai.png'
   },
   {
     id: '5',
     name: 'AAVE',
     symbol: 'AAVE',
-    icon: AaveIconURL
+    logo: 'chrome://erc-token-images/AAVE.png'
   },
   {
     id: '6',
     name: 'Binance USD',
     symbol: 'BUSD',
-    icon: BusdIconURL
+    logo: 'chrome://erc-token-images/busd.png'
   },
   {
     id: '7',
     name: 'Compound',
     symbol: 'COMP',
-    icon: CompIconURL
+    logo: 'chrome://erc-token-images/comp.png'
   },
   {
     id: '8',
     name: 'Curve',
     symbol: 'CRV',
-    icon: CrvIconURL
+    logo: 'chrome://erc-token-images/curve.png'
   },
   {
     id: '9',
     name: 'Gemini Dollar',
     symbol: 'GUSD',
-    icon: GusdIconURL
+    logo: 'chrome://erc-token-images/gusd.png'
   },
   {
     id: '10',
     name: 'Chainlink',
     symbol: 'LINK',
-    icon: LinkIconURL
+    logo: 'chrome://erc-token-images/chainlink.png'
   },
   {
     id: '11',
     name: 'Maker',
     symbol: 'MKR',
-    icon: MkrIconURL
+    logo: 'chrome://erc-token-images/mkr.png'
   },
   {
     id: '12',
-    name: 'Paxos Standard',
-    symbol: 'PAX',
-    icon: PaxIconURL
+    name: 'Synthetix',
+    symbol: 'SNX',
+    logo: 'chrome://erc-token-images/synthetix.png'
   },
   {
     id: '13',
-    name: 'Synthetix',
-    symbol: 'SNX',
-    icon: SnxIconURL
+    name: 'UMA',
+    symbol: 'UMA',
+    logo: 'chrome://erc-token-images/UMA.png'
   },
   {
     id: '14',
-    name: 'UMA',
-    symbol: 'UMA',
-    icon: UmaIconURL
+    name: 'Uniswap',
+    symbol: 'UNI',
+    logo: 'chrome://erc-token-images/uni.png'
   },
   {
     id: '15',
-    name: 'Uniswap',
-    symbol: 'UNI',
-    icon: UniIconURL
+    name: 'Stably Dollar',
+    symbol: 'USDS',
+    logo: 'chrome://erc-token-images/usds.png'
   },
   {
     id: '16',
-    name: 'Stably Dollar',
-    symbol: 'USDS',
-    icon: UsdsIconURL
+    name: 'Tether',
+    symbol: 'USDT',
+    logo: 'chrome://erc-token-images/usdt.png'
   },
   {
     id: '17',
-    name: 'Tether',
-    symbol: 'USDT',
-    icon: UsdtIconURL
+    name: 'Wrapped Bitcoin',
+    symbol: 'WBTC',
+    logo: 'chrome://erc-token-images/wbtc.png'
   },
   {
     id: '18',
-    name: 'Wrapped Bitcoin',
-    symbol: 'WBTC',
-    icon: WbtcIconURL
+    name: 'Yearn.Fianance',
+    symbol: 'YFI',
+    logo: 'chrome://erc-token-images/yfi.png'
   },
   {
     id: '19',
-    name: 'Yearn.Fianance',
-    symbol: 'YFI',
-    icon: YfiIconURL
-  },
-  {
-    id: '20',
     name: 'Palm DAI',
     symbol: 'PDAI',
-    icon: PdaiIconURL
-  },
-  {
-    id: '21',
-    name: 'Matic USDC',
-    symbol: 'MUSDC',
-    icon: MusdcIconURL
+    logo: 'chrome://erc-token-images/pdai.png'
   }
 ]
 
@@ -160,10 +126,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '1',
       name: 'Basic Attention Token',
       symbol: 'BAT',
-      icon: BATIconUrl,
+      logo: 'chrome://erc-token-images/bat.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -173,10 +141,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '2',
       name: 'Ethereum',
       symbol: 'ETH',
-      icon: ETHIconUrl,
+      logo: ETHIconUrl,
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -186,10 +156,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '3',
       name: 'USD Coin',
       symbol: 'USDC',
-      icon: UsdcIconURL,
+      logo: 'chrome://erc-token-images/usdc.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -199,10 +171,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '4',
       name: 'DAI',
       symbol: 'DAI',
-      icon: DaiIconURL,
+      logo: 'chrome://erc-token-images/dai.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -212,10 +186,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '5',
       name: 'AAVE',
       symbol: 'AAVE',
-      icon: AaveIconURL,
+      logo: 'chrome://erc-token-images/AAVE.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -225,10 +201,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '6',
       name: 'Binance USD',
       symbol: 'BUSD',
-      icon: BusdIconURL,
+      logo: 'chrome://erc-token-images/busd.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -238,10 +216,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '7',
       name: 'Compound',
       symbol: 'COMP',
-      icon: CompIconURL,
+      logo: 'chrome://erc-token-images/comp.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -251,10 +231,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '8',
       name: 'Curve',
       symbol: 'CRV',
-      icon: CrvIconURL,
+      logo: 'chrome://erc-token-images/curve.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -264,10 +246,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '9',
       name: 'Gemini Dollar',
       symbol: 'GUSD',
-      icon: GusdIconURL,
+      logo: 'chrome://erc-token-images/gusd.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -277,10 +261,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '10',
       name: 'Chainlink',
       symbol: 'LINK',
-      icon: LinkIconURL,
+      logo: 'chrome://erc-token-images/chainlink.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -290,10 +276,12 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
       contractAddress: '11',
       name: 'Maker',
       symbol: 'MKR',
-      icon: MkrIconURL,
+      logo: 'chrome://erc-token-images/mkr.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -301,12 +289,14 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
   {
     asset: {
       contractAddress: '12',
-      name: 'Paxos Standard',
-      symbol: 'PAX',
-      icon: PaxIconURL,
+      name: 'Synthetix',
+      symbol: 'SNX',
+      logo: 'chrome://erc-token-images/synthetix.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -314,12 +304,14 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
   {
     asset: {
       contractAddress: '13',
-      name: 'Synthetix',
-      symbol: 'SNX',
-      icon: SnxIconURL,
+      name: 'UMA',
+      symbol: 'UMA',
+      logo: 'chrome://erc-token-images/UMA.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -327,12 +319,14 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
   {
     asset: {
       contractAddress: '14',
-      name: 'UMA',
-      symbol: 'UMA',
-      icon: UmaIconURL,
+      name: 'Uniswap',
+      symbol: 'UNI',
+      logo: 'chrome://erc-token-images/uni.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -340,12 +334,14 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
   {
     asset: {
       contractAddress: '15',
-      name: 'Uniswap',
-      symbol: 'UNI',
-      icon: UniIconURL,
+      name: 'Stably Dollar',
+      symbol: 'USDS',
+      logo: 'chrome://erc-token-images/usds.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -353,12 +349,14 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
   {
     asset: {
       contractAddress: '16',
-      name: 'Stably Dollar',
-      symbol: 'USDS',
-      icon: UsdsIconURL,
+      name: 'Tether',
+      symbol: 'USDT',
+      logo: 'chrome://erc-token-images/usdt.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -366,12 +364,14 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
   {
     asset: {
       contractAddress: '17',
-      name: 'Tether',
-      symbol: 'USDT',
-      icon: UsdtIconURL,
+      name: 'Wrapped Bitcoin',
+      symbol: 'WBTC',
+      logo: 'chrome://erc-token-images/wbtc.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -379,12 +379,14 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
   {
     asset: {
       contractAddress: '18',
-      name: 'Wrapped Bitcoin',
-      symbol: 'WBTC',
-      icon: WbtcIconURL,
+      name: 'Yearn.Fianance',
+      symbol: 'YFI',
+      logo: 'chrome://erc-token-images/yfi.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'
@@ -392,38 +394,14 @@ export const WyreAccountAssetOptions: AccountAssetOptionType[] = [
   {
     asset: {
       contractAddress: '19',
-      name: 'Yearn.Fianance',
-      symbol: 'YFI',
-      icon: YfiIconURL,
-      isErc20: true,
-      isErc721: false,
-      decimals: 8
-    },
-    assetBalance: '0',
-    fiatBalance: '0'
-  },
-  {
-    asset: {
-      contractAddress: '20',
       name: 'Palm DAI',
       symbol: 'PDAI',
-      icon: PdaiIconURL,
+      logo: 'chrome://erc-token-images/pdai.png',
       isErc20: true,
       isErc721: false,
-      decimals: 8
-    },
-    assetBalance: '0',
-    fiatBalance: '0'
-  },
-  {
-    asset: {
-      contractAddress: '21',
-      name: 'Matic USDC',
-      symbol: 'MUSDC',
-      icon: MusdcIconURL,
-      isErc20: true,
-      isErc721: false,
-      decimals: 8
+      decimals: 8,
+      visible: true,
+      tokenId: ''
     },
     assetBalance: '0',
     fiatBalance: '0'

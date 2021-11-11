@@ -10,10 +10,14 @@ import WelcomePanel from './welcome-panel'
 import Panel from './panel'
 import PanelHeader from './panel-header'
 import SignPanel from './sign-panel'
-import AllowAddNetworkPanel from './allow-add-network-panel'
+import AllowAddChangeNetworkPanel from './allow-add-change-network-panel'
 import ConfirmTransactionPanel from './confirm-transaction-panel'
 import PanelTab from './panel-tab'
+import ConnectHardwareWalletPanel from './connect-hardware-wallet-panel'
 import TransactionDetailBox from './transaction-box'
+import EditGas from './edit-gas'
+import SitePermissions from './site-permissions-panel'
+import ConnectedAccountItem from './connected-account-item'
 import { NavButton } from './buttons'
 
 export {
@@ -30,8 +34,12 @@ export {
   PanelHeader,
   WelcomePanel,
   SignPanel,
-  AllowAddNetworkPanel,
+  AllowAddChangeNetworkPanel,
   ConfirmTransactionPanel,
   PanelTab,
-  TransactionDetailBox
+  TransactionDetailBox,
+  ConnectHardwareWalletPanel,
+  EditGas,
+  SitePermissions,
+  ConnectedAccountItem
 }

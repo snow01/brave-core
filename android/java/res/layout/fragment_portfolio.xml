@@ -21,6 +21,7 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    android:id="@+id/balance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -28,7 +29,7 @@
                     android:paddingEnd="16dp"
                     android:paddingTop="16dp"
                     android:layout_marginBottom="8dp"
-                    android:text="$12,453.17"
+                    android:text="@string/brave_wallet_portfolio_balance_updating"
                     android:textColor="@color/wallet_text_color"
                     android:textStyle="bold"
                     android:textSize="32sp" />
@@ -58,20 +59,18 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    android:id="@+id/trend_percentage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="1.3%"
                     android:layout_marginEnd="8dp"
                     android:drawablePadding="4dp"
-                    android:textColor="@color/wallet_positive_trend_color"
                     android:textSize="14sp"
-                    app:drawableStartCompat="@drawable/ic_up_icon" />
+                    tools:ignore="HardcodedText" />
 
                 <TextView
+                    android:id="@+id/trend_timeframe"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/today"
-                    android:textColor="@color/wallet_secondary_layout_text_color"
                     android:textSize="14sp" />
 
             </LinearLayout>
@@ -91,6 +90,7 @@
 
                 <RadioGroup
                     tools:ignore="UselessParent"
+                    android:id="@+id/portfolio_duration_radio_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
@@ -105,12 +105,16 @@
                         android:layout_height="wrap_content"
                         android:background="@drawable/wallet_radio_button_selector"
                         android:gravity="center"
-                        android:layout_margin="4dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"
+                        android:paddingStart="2dp"
+                        android:paddingEnd="2dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
                         android:textColor="@color/crypto_wallet_radiobutton_color_selector"
                         android:button="@null"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        app:drawableStartCompat="@drawable/ic_live_dot"
                         android:drawablePadding="4dp"
                         android:text="@string/live" />
 
@@ -132,6 +136,7 @@
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:checked="true"
+                        app:drawableStartCompat="@drawable/ic_live_dot"
                         android:text="@string/day_1" />
 
                     <RadioButton
@@ -247,11 +252,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/edit_visible_assets"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left"
+                android:layout_gravity="start"
                 android:layout_marginStart="25dp"
                 android:layout_marginBottom="8dp"
                 android:background="@drawable/crypto_wallet_blue_button"

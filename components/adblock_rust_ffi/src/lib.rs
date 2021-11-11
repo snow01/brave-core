@@ -1,4 +1,5 @@
 use adblock::engine::Engine;
+use adblock::blocker::Redirection;
 use adblock::resources::{Resource, ResourceType, MimeType};
 use core::ptr;
 use libc::size_t;
@@ -6,6 +7,7 @@ use std::ffi::CStr;
 use std::ffi::CString;
 use std::os::raw::c_char;
 use std::string::String;
+use adblock::lists::ParseOptions;
 
 /// An external callback that receives a hostname and two out-parameters for start and end
 /// position. The callback should fill the start and end positions with the start and end indices
@@ -52,18 +54,25 @@ pub unsafe extern "C" fn engine_create_from_buffer(
         eprintln!("Failed to parse filter list with invalid UTF-8 content");
         ""
     });
-    engine_create_from_str(rules)
+    engine_create_from_str(rules, false)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn engine_create(rules: *const c_char) -> *mut Engine {
     let rules = CStr::from_ptr(rules).to_str().unwrap_or("");
-    engine_create_from_str(rules)
+    engine_create_from_str(rules, false)
 }
 
-fn engine_create_from_str(rules: &str) -> *mut Engine {
+
+#[no_mangle]
+pub unsafe extern "C" fn engine_create_with_redirect_urls(rules: *const c_char, include_redirect_urls: bool) -> *mut Engine {
+    let rules = CStr::from_ptr(rules).to_str().unwrap_or("");
+    engine_create_from_str(rules, include_redirect_urls)
+}
+
+fn engine_create_from_str(rules: &str, include_redirect_urls: bool) -> *mut Engine {
     let mut filter_set = adblock::lists::FilterSet::new(false);
-    filter_set.add_filter_list(&rules, adblock::lists::FilterFormat::Standard);
+    filter_set.add_filter_list(&rules, ParseOptions {include_redirect_urls, ..Default::default()});
     let engine = Engine::from_filter_set(filter_set, true);
     Box::into_raw(Box::new(engine))
 }
@@ -107,7 +116,12 @@ pub unsafe extern "C" fn engine_match(
     *did_match_exception |= blocker_result.exception.is_some();
     *did_match_important |= blocker_result.important;
     *redirect = match blocker_result.redirect {
-        Some(x) => match CString::new(x) {
+        Some(Redirection::Resource(x)) => match CString::new(x) {
+            Ok(y) => y.into_raw(),
+            _ => ptr::null_mut(),
+        },
+        // Handle the redirect resource being of type URL
+        Some(Redirection::Url(x)) => match CString::new(x) {
             Ok(y) => y.into_raw(),
             _ => ptr::null_mut(),
         },

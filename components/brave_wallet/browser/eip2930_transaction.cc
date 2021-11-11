@@ -11,6 +11,7 @@
 #include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
 #include "brave/components/brave_wallet/browser/eth_address.h"
 #include "brave/components/brave_wallet/browser/rlp_encode.h"
+#include "brave/components/brave_wallet/common/hex_utils.h"
 
 namespace brave_wallet {
 
@@ -44,7 +45,7 @@ bool Eip2930Transaction::AccessListItem::operator!=(
 }
 
 Eip2930Transaction::Eip2930Transaction(const Eip2930Transaction&) = default;
-Eip2930Transaction::Eip2930Transaction(uint256_t nonce,
+Eip2930Transaction::Eip2930Transaction(absl::optional<uint256_t> nonce,
                                        uint256_t gas_price,
                                        uint256_t gas_limit,
                                        const EthAddress& to,
@@ -55,7 +56,7 @@ Eip2930Transaction::Eip2930Transaction(uint256_t nonce,
       chain_id_(chain_id) {
   type_ = 1;
 }
-Eip2930Transaction::Eip2930Transaction() {
+Eip2930Transaction::Eip2930Transaction() : chain_id_(0) {
   type_ = 1;
 }
 Eip2930Transaction::~Eip2930Transaction() = default;
@@ -69,9 +70,10 @@ bool Eip2930Transaction::operator==(const Eip2930Transaction& tx) const {
 // static
 absl::optional<Eip2930Transaction> Eip2930Transaction::FromTxData(
     const mojom::TxDataPtr& tx_data,
-    uint256_t chain_id) {
+    uint256_t chain_id,
+    bool strict) {
   absl::optional<EthTransaction> legacy_tx =
-      EthTransaction::FromTxData(tx_data);
+      EthTransaction::FromTxData(tx_data, strict);
   if (!legacy_tx)
     return absl::nullopt;
   return Eip2930Transaction(legacy_tx->nonce(), legacy_tx->gas_price(),
@@ -149,8 +151,9 @@ Eip2930Transaction::ValueToAccessList(const base::Value& value) {
   return access_list;
 }
 
-std::vector<uint8_t> Eip2930Transaction::GetMessageToSign(
-    uint256_t chain_id) const {
+std::vector<uint8_t> Eip2930Transaction::GetMessageToSign(uint256_t chain_id,
+                                                          bool hash) const {
+  DCHECK(nonce_);
   std::vector<uint8_t> result;
   result.push_back(type_);
 
@@ -158,7 +161,7 @@ std::vector<uint8_t> Eip2930Transaction::GetMessageToSign(
   // deprecated
   base::ListValue list;
   list.Append(RLPUint256ToBlobValue(chain_id_));
-  list.Append(RLPUint256ToBlobValue(nonce_));
+  list.Append(RLPUint256ToBlobValue(nonce_.value()));
   list.Append(RLPUint256ToBlobValue(gas_price_));
   list.Append(RLPUint256ToBlobValue(gas_limit_));
   list.Append(base::Value(to_.bytes()));
@@ -168,17 +171,18 @@ std::vector<uint8_t> Eip2930Transaction::GetMessageToSign(
 
   const std::string rlp_msg = RLPEncode(std::move(list));
   result.insert(result.end(), rlp_msg.begin(), rlp_msg.end());
-  return KeccakHash(result);
+  return hash ? KeccakHash(result) : result;
 }
 
 std::string Eip2930Transaction::GetSignedTransaction() const {
   DCHECK(IsSigned());
+  DCHECK(nonce_);
 
   // TODO(darkdh): Migrate to std::vector<base::Value>, base::ListValue is
   // deprecated
   base::ListValue list;
   list.Append(RLPUint256ToBlobValue(chain_id_));
-  list.Append(RLPUint256ToBlobValue(nonce_));
+  list.Append(RLPUint256ToBlobValue(nonce_.value()));
   list.Append(RLPUint256ToBlobValue(gas_price_));
   list.Append(RLPUint256ToBlobValue(gas_limit_));
   list.Append(base::Value(to_.bytes()));

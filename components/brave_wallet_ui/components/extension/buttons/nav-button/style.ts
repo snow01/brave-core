@@ -3,16 +3,17 @@ import CloseIcon from '../../assets/close.svg'
 import KeyIcon from '../../../../assets/svg-icons/key-icon.svg'
 import CheckIcon from '../../assets/filled-checkmark.svg'
 import { PanelButtonTypes } from './index'
+import { WalletButton } from '../../../shared/style'
 interface StyleProps {
   buttonType: PanelButtonTypes
   disabled?: boolean
 }
 
-export const StyledButton = styled.button<StyleProps>`
+export const StyledButton = styled(WalletButton) <StyleProps>`
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: ${(p) => p.disabled ? 'default' : 'pointer'};
   border-radius: 40px;
   padding: 10px 22px;
   outline: none;

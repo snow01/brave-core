@@ -1,5 +1,7 @@
 import styled from 'styled-components'
-import LockIcon from '../../../assets/svg-icons/graphic-lock-icon.svg'
+import SecureIcon from '../../../assets/svg-icons/onboarding/secure-your-crypto.svg'
+import SecureIconDark from '../../../assets/svg-icons/onboarding/secure-your-crypto-dark.svg'
+import { WalletButton } from '../../shared/style'
 
 export const StyledWrapper = styled.div`
   display: flex;
@@ -20,22 +22,16 @@ export const Title = styled.span`
   margin-bottom: 10px;
 `
 
-export const IconBackground = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  width: 162px;
-  height: 162px;
-  border-radius: 100%;
-  background-color: ${(p) => p.theme.color.background01};
-  margin-bottom: 24px;
-`
-
 export const PageIcon = styled.div`
-  width: 103px;
-  height: 88px;
-  background: url(${LockIcon});
+  width: 144px;
+  height: 130px;
+  background: url(${SecureIcon});
+  background-repeat: no-repeat;
+  background-size: 100%;
+  margin-bottom: 10px;
+  @media (prefers-color-scheme: dark) {
+    background: url(${SecureIconDark});
+  }
 `
 
 export const InputColumn = styled.div`
@@ -47,7 +43,7 @@ export const InputColumn = styled.div`
   margin-bottom: 28px;
 `
 
-export const RestoreButton = styled.button`
+export const RestoreButton = styled(WalletButton)`
   display: flex;
   align-items: center;
   justify-content: center;

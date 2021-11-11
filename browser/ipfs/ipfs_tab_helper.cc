@@ -131,6 +131,7 @@ void IPFSTabHelper::IPFSLinkResolved(const GURL& ipfs) {
     content::OpenURLParams params(GetIPFSResolvedURL(), content::Referrer(),
                                   WindowOpenDisposition::CURRENT_TAB,
                                   ui::PAGE_TRANSITION_LINK, false);
+    params.should_replace_current_entry = true;
     web_contents()->OpenURL(params);
     return;
   }
@@ -284,6 +285,6 @@ void IPFSTabHelper::DidFinishNavigation(content::NavigationHandle* handle) {
   MaybeShowDNSLinkButton(handle->GetResponseHeaders());
 }
 
-WEB_CONTENTS_USER_DATA_KEY_IMPL(IPFSTabHelper)
+WEB_CONTENTS_USER_DATA_KEY_IMPL(IPFSTabHelper);
 
 }  // namespace ipfs

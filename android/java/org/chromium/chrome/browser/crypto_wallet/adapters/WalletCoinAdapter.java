@@ -5,8 +5,11 @@
 
 package org.chromium.chrome.browser.crypto_wallet.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +30,9 @@ import org.chromium.chrome.browser.crypto_wallet.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class WalletCoinAdapter extends RecyclerView.Adapter<WalletCoinAdapter.ViewHolder> {
     public enum AdapterType {
@@ -34,7 +40,8 @@ public class WalletCoinAdapter extends RecyclerView.Adapter<WalletCoinAdapter.Vi
         EDIT_VISIBLE_ASSETS_LIST,
         ACCOUNTS_LIST,
         BUY_ASSETS_LIST,
-        SEND_ASSETS_LIST;
+        SEND_ASSETS_LIST,
+        SWAP_ASSETS_LIST;
     }
 
     private Context context;
@@ -44,9 +51,13 @@ public class WalletCoinAdapter extends RecyclerView.Adapter<WalletCoinAdapter.Vi
     private OnWalletListItemClick onWalletListItemClick;
     private int walletListItemType;
     private AdapterType mType;
+    private ExecutorService mExecutor;
+    private Handler mHandler;
 
     public WalletCoinAdapter(AdapterType type) {
         mType = type;
+        mExecutor = Executors.newSingleThreadExecutor();
+        mHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
@@ -61,9 +72,14 @@ public class WalletCoinAdapter extends RecyclerView.Adapter<WalletCoinAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull WalletCoinAdapter.ViewHolder holder, int position) {
         WalletListItemModel walletListItemModel = walletListItemModelList.get(position);
-        holder.iconImg.setImageResource(walletListItemModel.getIcon());
+        // When ViewHolder is re-used, it has the obeservers which are fired when
+        // we modifying checkbox. This may cause unwanted modifying of the model
+        holder.resetObservers();
+
         holder.titleText.setText(walletListItemModel.getTitle());
-        holder.subTitleText.setText(walletListItemModel.getSubTitle());
+        holder.subTitleText.setText(mType == AdapterType.ACCOUNTS_LIST
+                        ? Utils.stripAccountAddress(walletListItemModel.getSubTitle())
+                        : walletListItemModel.getSubTitle());
         if (walletListItemModel.getText1() != null) {
             holder.text1Text.setVisibility(View.VISIBLE);
             holder.text1Text.setText(walletListItemModel.getText1());
@@ -78,11 +94,12 @@ public class WalletCoinAdapter extends RecyclerView.Adapter<WalletCoinAdapter.Vi
             if (walletListItemType == Utils.TRANSACTION_ITEM) {
                 onWalletListItemClick.onTransactionClick();
             } else if (walletListItemType == Utils.ASSET_ITEM) {
-                if (mType == AdapterType.BUY_ASSETS_LIST || mType == AdapterType.SEND_ASSETS_LIST) {
+                if (mType == AdapterType.BUY_ASSETS_LIST || mType == AdapterType.SEND_ASSETS_LIST
+                        || mType == AdapterType.SWAP_ASSETS_LIST) {
                     for (int i = 0; i < walletListItemModelListCopy.size(); i++) {
                         WalletListItemModel item = walletListItemModelListCopy.get(i);
-                        if (item.getTitle().contains(holder.titleText.getText())
-                                || item.getSubTitle().contains(holder.subTitleText.getText())) {
+                        if (item.getTitle().equals(holder.titleText.getText())
+                                || item.getSubTitle().equals(holder.subTitleText.getText())) {
                             mCheckedPositions.add((Integer) i);
                             break;
                         }
@@ -95,11 +112,13 @@ public class WalletCoinAdapter extends RecyclerView.Adapter<WalletCoinAdapter.Vi
                 onWalletListItemClick.onAccountClick(walletListItemModel);
             }
         });
+
         if (mType == AdapterType.EDIT_VISIBLE_ASSETS_LIST || mType == AdapterType.BUY_ASSETS_LIST
-                || mType == AdapterType.SEND_ASSETS_LIST) {
+                || mType == AdapterType.SEND_ASSETS_LIST || mType == AdapterType.SWAP_ASSETS_LIST) {
             holder.text1Text.setVisibility(View.GONE);
             holder.text2Text.setVisibility(View.GONE);
             if (mType == AdapterType.EDIT_VISIBLE_ASSETS_LIST) {
+                holder.assetCheck.setChecked(walletListItemModel.getIsUserSelected());
                 holder.assetCheck.setVisibility(View.VISIBLE);
                 holder.assetCheck.setOnCheckedChangeListener(
                         new CompoundButton.OnCheckedChangeListener() {
@@ -108,8 +127,8 @@ public class WalletCoinAdapter extends RecyclerView.Adapter<WalletCoinAdapter.Vi
                                     CompoundButton buttonView, boolean isChecked) {
                                 for (int i = 0; i < walletListItemModelListCopy.size(); i++) {
                                     WalletListItemModel item = walletListItemModelListCopy.get(i);
-                                    if (item.getTitle().contains(holder.titleText.getText())
-                                            || item.getSubTitle().contains(
+                                    if (item.getTitle().equals(holder.titleText.getText())
+                                            || item.getSubTitle().equals(
                                                     holder.subTitleText.getText())) {
                                         if (isChecked) {
                                             mCheckedPositions.add((Integer) i);
@@ -119,9 +138,19 @@ public class WalletCoinAdapter extends RecyclerView.Adapter<WalletCoinAdapter.Vi
                                         break;
                                     }
                                 }
+                                onWalletListItemClick.onAssetCheckedChanged(
+                                        walletListItemModel, isChecked);
                             }
                         });
             }
+        }
+
+        if (mType != AdapterType.ACCOUNTS_LIST) {
+            Utils.setBitmapResource(mExecutor, mHandler, context, walletListItemModel.getIconPath(),
+                    walletListItemModel.getIcon(), holder.iconImg, null);
+        } else if (mType == AdapterType.ACCOUNTS_LIST) {
+            Utils.setBlockiesBitmapResource(
+                    mExecutor, mHandler, holder.iconImg, walletListItemModel.getSubTitle(), true);
         }
     }
 
@@ -133,7 +162,7 @@ public class WalletCoinAdapter extends RecyclerView.Adapter<WalletCoinAdapter.Vi
     public void setWalletListItemModelList(List<WalletListItemModel> walletListItemModelList) {
         this.walletListItemModelList = walletListItemModelList;
         if (mType == AdapterType.EDIT_VISIBLE_ASSETS_LIST || mType == AdapterType.BUY_ASSETS_LIST
-                || mType == AdapterType.SEND_ASSETS_LIST) {
+                || mType == AdapterType.SEND_ASSETS_LIST || mType == AdapterType.SWAP_ASSETS_LIST) {
             walletListItemModelListCopy.addAll(walletListItemModelList);
             mCheckedPositions.clear();
         }
@@ -177,17 +206,23 @@ public class WalletCoinAdapter extends RecyclerView.Adapter<WalletCoinAdapter.Vi
             this.text2Text = itemView.findViewById(R.id.text2);
             this.assetCheck = itemView.findViewById(R.id.assetCheck);
         }
+
+        public void resetObservers() {
+            itemView.setOnClickListener(null);
+            assetCheck.setOnCheckedChangeListener(null);
+        }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void filter(String text) {
         walletListItemModelList.clear();
         if (text.isEmpty()) {
             walletListItemModelList.addAll(walletListItemModelListCopy);
         } else {
-            text = text.toLowerCase();
+            text = text.toLowerCase(Locale.getDefault());
             for (WalletListItemModel item : walletListItemModelListCopy) {
-                if (item.getTitle().toLowerCase().contains(text)
-                        || item.getSubTitle().toLowerCase().contains(text)) {
+                if (item.getTitle().toLowerCase(Locale.getDefault()).contains(text)
+                        || item.getSubTitle().toLowerCase(Locale.getDefault()).contains(text)) {
                     walletListItemModelList.add(item);
                 }
             }

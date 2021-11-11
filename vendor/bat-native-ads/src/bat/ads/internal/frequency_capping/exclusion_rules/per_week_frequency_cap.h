@@ -8,34 +8,33 @@
 
 #include <string>
 
-#include "bat/ads/internal/ad_events/ad_event_info.h"
+#include "bat/ads/internal/ad_events/ad_event_info_aliases.h"
 #include "bat/ads/internal/bundle/creative_ad_info.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/exclusion_rule.h"
 
 namespace ads {
 
-class PerWeekFrequencyCap : public ExclusionRule<CreativeAdInfo> {
+class PerWeekFrequencyCap final : public ExclusionRule<CreativeAdInfo> {
  public:
   explicit PerWeekFrequencyCap(const AdEventList& ad_events);
-
   ~PerWeekFrequencyCap() override;
 
   PerWeekFrequencyCap(const PerWeekFrequencyCap&) = delete;
   PerWeekFrequencyCap& operator=(const PerWeekFrequencyCap&) = delete;
 
-  bool ShouldExclude(const CreativeAdInfo& ad) override;
+  std::string GetUuid(const CreativeAdInfo& creative_ad) const override;
 
-  std::string get_last_message() const override;
+  bool ShouldExclude(const CreativeAdInfo& creative_ad) override;
+
+  std::string GetLastMessage() const override;
 
  private:
   AdEventList ad_events_;
 
   std::string last_message_;
 
-  bool DoesRespectCap(const AdEventList& ad_events, const CreativeAdInfo& ad);
-
-  AdEventList FilterAdEvents(const AdEventList& ad_events,
-                             const CreativeAdInfo& ad) const;
+  bool DoesRespectCap(const AdEventList& ad_events,
+                      const CreativeAdInfo& creative_ad);
 };
 
 }  // namespace ads

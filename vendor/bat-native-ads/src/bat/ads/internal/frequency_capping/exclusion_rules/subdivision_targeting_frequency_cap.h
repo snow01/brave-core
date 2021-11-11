@@ -8,7 +8,6 @@
 
 #include <string>
 
-#include "bat/ads/ad_info.h"
 #include "bat/ads/internal/bundle/creative_ad_info.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/exclusion_rule.h"
 
@@ -20,11 +19,11 @@ class SubdivisionTargeting;
 }  // namespace geographic
 }  // namespace ad_targeting
 
-class SubdivisionTargetingFrequencyCap : public ExclusionRule<CreativeAdInfo> {
+class SubdivisionTargetingFrequencyCap final
+    : public ExclusionRule<CreativeAdInfo> {
  public:
   SubdivisionTargetingFrequencyCap(
       ad_targeting::geographic::SubdivisionTargeting* subdivision_targeting);
-
   ~SubdivisionTargetingFrequencyCap() override;
 
   SubdivisionTargetingFrequencyCap(const SubdivisionTargetingFrequencyCap&) =
@@ -32,9 +31,11 @@ class SubdivisionTargetingFrequencyCap : public ExclusionRule<CreativeAdInfo> {
   SubdivisionTargetingFrequencyCap& operator=(
       const SubdivisionTargetingFrequencyCap&) = delete;
 
-  bool ShouldExclude(const CreativeAdInfo& ad) override;
+  std::string GetUuid(const CreativeAdInfo& creative_ad) const override;
 
-  std::string get_last_message() const override;
+  bool ShouldExclude(const CreativeAdInfo& creative_ad) override;
+
+  std::string GetLastMessage() const override;
 
  private:
   ad_targeting::geographic::SubdivisionTargeting*
@@ -42,7 +43,7 @@ class SubdivisionTargetingFrequencyCap : public ExclusionRule<CreativeAdInfo> {
 
   std::string last_message_;
 
-  bool DoesRespectCap(const CreativeAdInfo& ad);
+  bool DoesRespectCap(const CreativeAdInfo& creative_ad);
 };
 
 }  // namespace ads

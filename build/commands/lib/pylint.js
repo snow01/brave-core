@@ -21,7 +21,7 @@ const deleteFile = (path) => {
 }
 
 const getDepotToolsPath = () => {
-  const depotToolsPath = path.resolve(__dirname, '../../../vendor/depot_tools')
+  const depotToolsPath = config.depotToolsDir
   if (!fs.existsSync(depotToolsPath)) {
     console.warn('Depot Tools path [' + depotToolsPath + '] doesn\'t exist')
     return ''
@@ -48,7 +48,7 @@ const ensureDepotToolsInPath = (options) => {
 
 const getDefaultOptions = () => {
   let options = Object.assign({}, config.defaultOptions)
-  options.cwd = path.resolve(__dirname, '../../..')
+  options.cwd = config.braveCoreDir
   ensureDepotToolsInPath(options)
   return options
 }

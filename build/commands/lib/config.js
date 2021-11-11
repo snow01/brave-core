@@ -5,13 +5,19 @@ const fs = require('fs')
 const os = require('os')
 const assert = require('assert')
 const { spawnSync } = require('child_process')
-const rootDir = require('./root')
 
 let npmCommand = 'npm'
 if (process.platform === 'win32') {
   npmCommand += '.cmd'
 }
 let NpmConfig = null
+
+let dirName = __dirname
+// Use fs.realpathSync to normalize the path(__dirname could be c:\.. or C:\..).
+if (process.platform === 'win32') {
+  dirName = fs.realpathSync.native(dirName)
+}
+const rootDir = path.resolve(dirName, '..', '..', '..', '..', '..')
 
 const run = (cmd, args = []) => {
   const prog = spawnSync(cmd, args)
@@ -24,10 +30,11 @@ const run = (cmd, args = []) => {
 }
 
 // this is a huge hack because the npm config doesn't get passed through from brave-browser .npmrc/package.json
-var packageConfig = function (key) {
-  let packages = { config: {} }
-  if (fs.existsSync(path.join(rootDir, 'package.json'))) {
-    packages = require(path.relative(__dirname, path.join(rootDir, 'package.json')))
+var packageConfig = function(key, sourceDir = rootDir){
+  let packages = { config: {}}
+  const configAbsolutePath = path.join(sourceDir, 'package.json')
+  if (fs.existsSync(configAbsolutePath)) {
+    packages = require(path.relative(__dirname, configAbsolutePath))
   }
 
   // packages.config should include version string.
@@ -41,13 +48,17 @@ var packageConfig = function (key) {
   return obj
 }
 
-const getNPMConfig = (key) => {
+var packageConfigBraveCore = function(key) {
+  return packageConfig(key, path.join(rootDir, 'src', 'brave'))
+}
+
+const getNPMConfig = (key, fallbackToBraveCoreOnly) => {
   if (!NpmConfig) {
     const list = run(npmCommand, ['config', 'list', '--json', '--userconfig=' + path.join(rootDir, '.npmrc')])
     NpmConfig = JSON.parse(list.stdout.toString())
   }
 
-  return NpmConfig[key.join('-').replace(/_/g, '-')] || packageConfig(key)
+  return NpmConfig[key.join('-').replace(/_/g, '-')] || packageConfig(key) || packageConfigBraveCore(key)
 }
 
 const parseExtraInputs = (inputs, accumulator, callback) => {
@@ -82,8 +93,9 @@ const Config = function () {
   this.defaultGClientFile = path.join(this.rootDir, '.gclient')
   this.gClientFile = process.env.BRAVE_GCLIENT_FILE || this.defaultGClientFile
   this.gClientVerbose = getNPMConfig(['gclient_verbose']) || false
-  this.targetArch = getNPMConfig(['target_arch']) || 'x64'
+  this.targetArch = getNPMConfig(['target_arch']) || process.arch
   this.targetOS = getNPMConfig(['target_os'])
+  this.targetEnvironment = getNPMConfig(['target_environment'])
   this.gypTargetArch = 'x64'
   this.targetAndroidBase = 'classic'
   this.braveGoogleApiKey = getNPMConfig(['brave_google_api_key']) || 'AIzaSyAREPLACEWITHYOUROWNGOOGLEAPIKEY2Q'
@@ -206,7 +218,7 @@ Config.prototype.buildArgs = function () {
     is_asan: this.isAsan(),
     enable_full_stack_frames_for_profiling: this.isAsan(),
     v8_enable_verify_heap: this.isAsan(),
-    fieldtrial_testing_like_official_build: true,
+    disable_fieldtrial_testing_config: true,
     safe_browsing_mode: 1,
     brave_services_key: this.braveServicesKey,
     root_extra_deps: ["//brave"],
@@ -392,6 +404,9 @@ Config.prototype.buildArgs = function () {
     // Fixes WebRTC IP leak with default option
     args.enable_mdns = true
 
+    // We want it to be enabled for all configurations
+    args.disable_android_lint = false
+
     // These do not exist on android
     // TODO - recheck
     delete args.enable_nacl
@@ -408,10 +423,14 @@ Config.prototype.buildArgs = function () {
 
   if (this.targetOS === 'ios') {
     args.target_os = 'ios'
+    if (this.targetEnvironment) {
+      args.target_environment = this.targetEnvironment
+    }
     args.enable_dsyms = true
     args.enable_stripping = !this.isDebug()
     args.use_xcode_clang = false
     args.use_clang_coverage = false
+    args.use_lld = false
     // Component builds are not supported for iOS:
     // https://chromium.googlesource.com/chromium/src/+/master/docs/component_build.md
     args.is_component_build = false
@@ -430,9 +449,14 @@ Config.prototype.buildArgs = function () {
 
     args.ios_provider_target = "//brave/ios/browser/providers:brave_providers"
 
+    args.ios_locales_pack_extra_source_patterns = [
+      "%root_gen_dir%/components/brave_components_strings_",
+    ]
+    args.ios_locales_pack_extra_deps = [
+      "//brave/components/resources:strings",
+    ]
+
     delete args.safebrowsing_api_endpoint
-    delete args.updater_prod_endpoint
-    delete args.updater_dev_endpoint
     delete args.safe_browsing_mode
     delete args.proprietary_codecs
     delete args.ffmpeg_branding
@@ -445,7 +469,6 @@ Config.prototype.buildArgs = function () {
     delete args.brave_google_api_key
     delete args.brave_stats_api_key
     delete args.brave_stats_updater_url
-    delete args.brave_infura_project_id
     delete args.binance_client_id
     delete args.ftx_client_id
     delete args.ftx_client_secret
@@ -584,6 +607,10 @@ Config.prototype.update = function (options) {
 
   if (options.target_os) {
     this.targetOS = options.target_os
+  }
+
+  if (options.target_environment) {
+    this.targetEnvironment = options.target_environment
   }
 
   if (options.is_asan) {
@@ -817,6 +844,10 @@ Config.prototype.update = function (options) {
       opts.push(value)
     })
   }
+
+  if (options.target) {
+    this.buildTarget = options.target
+  }
 }
 
 Config.prototype.getCachePath = function () {
@@ -896,6 +927,9 @@ Object.defineProperty(Config.prototype, 'outputDir', {
     }
     if (this.targetOS) {
       buildConfigDir = this.targetOS + "_" + buildConfigDir
+    }
+    if (this.targetEnvironment) {
+      buildConfigDir = buildConfigDir  + "_" + this.targetEnvironment
     }
 
     return path.join(baseDir, buildConfigDir)

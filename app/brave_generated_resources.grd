@@ -337,6 +337,73 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       <message name="IDS_SETTINGS_BRAVE_OTHER_SEARCH_ENGINES_DESC" desc="The description for the settings switch controlling the addition of custom search engines">
         Automatically indexes websites that follow the OpenSearch spec.
       </message>
+      <!-- Settings / Rewards -->
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_TITLE" desc="The text label for the Rewards settings page">
+        Brave Rewards
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_DISABLED_LABEL" desc="The text label for the Rewards disabled state">
+        Brave Rewards are disabled
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_DISABLED_SUB_LABEL" desc="The text sublabel for the Rewards disabled state">
+        Click here to learn more
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_AUTO_DETECTED_ITEM" desc="The menu item for auto-detected settings">
+        Auto-detected
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_DEFAULT_ITEM" desc="The menu item for default settings">
+        Default
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_DISABLED_ITEM" desc="The menu item for disabled settings">
+        Disabled
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_PRIVATE_ADS_TITLE" desc="The text label for the Rewards Private Ads section">
+        Brave Private Ads
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_PRIVATE_ADS_EARN_TOKENS_LABEL" desc="The text label for the settings switch controlling earning tokens for viewing private ads">
+        Earn tokens by viewing Brave Ads. Ads presented are based on your interests, as inferred from your browsing behavior. No personal data or browsing history ever leaves your browser.
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_MAX_ADS_TO_DISPLAY_LABEL" desc="The text label for the setting controlling the maximum number of ads to display">
+        Maximum number of ads to display
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_STATE_LEVEL_AD_TARGETING_LABEL" desc="The text label for the setting controlling subdivision-level ad targeting">
+        State-level ad targeting
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_STATE_LEVEL_AD_TARGETING_DESC_LABEL" desc="The text label for the description of subdivision-level ad targeting">
+        This allows Brave to show you ads meant specifically for your state. <ph name="BEGIN_LINK">&lt;a target="_blank" href="$1"&gt;</ph>Learn more<ph name="END_LINK">&lt;/a&gt;</ph>
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_TITLE" desc="The text label for the Rewards Auto-Contribute section">
+        Auto-Contribute
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_MONTHLY_LIMIT_LABEL" desc="The text label for the setting controlling the monthly auto-contribution limit">
+        Monthly auto-contribution limit
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_MIN_VISIT_TIME_LABEL" desc="The text label for the setting controlling the minimum page time before logging a visit">
+        Minimum page time before logging a visit
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_MIN_VISITS_LABEL" desc="The text label for the setting controlling the minimum page visits for publisher relevancy">
+        Minimum visits for publisher relevancy
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_SHOW_NON_VERIFIED_SITES_LABEL" desc="The text label for the setting controlling showing non-verified sites in the auto-contribution list">
+        Show non-verified sites in list
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_ALLOW_VIDEO_CONTRIBUTIONS_LABEL" desc="The text label for the setting controlling allowing contributions for videos">
+        Allow contributions to videos
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_AUTO_CONTRIBUTE_DESC_LABEL" desc="The text label for the description of auto-contribute">
+        By turning on Auto-Contribute, you agree to the <ph name="BEGIN_LINK_TOS">&lt;a target="_blank" href="$1"&gt;</ph>Terms of Service<ph name="END_LINK_TOS">&lt;/a&gt;</ph> and <ph name="BEGIN_LINK_PP">&lt;a target="_blank" href="$2"&gt;</ph>Privacy Policy<ph name="END_LINK_PP">&lt;/a&gt;</ph>.
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_TIP_BUTTONS_TITLE" desc="The text label for the Rewards Tip Buttons section">
+        Tip buttons
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_INLINE_TIP_REDDIT_LABEL" desc="The text label for the setting switch controlling showing inline tip buttons on Reddit">
+        Reddit
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_INLINE_TIP_TWITTER_LABEL" desc="The text label for the setting switch controlling showing inline tip buttons on Twitter">
+        Twitter
+      </message>
+      <message name="IDS_SETTINGS_BRAVE_REWARDS_INLINE_TIP_GITHUB_LABEL" desc="The text label for the setting switch controlling showing inline tip buttons on Github">
+        Github
+      </message>
       <!-- New Tab Page -->
       <message name="IDS_SETTINGS_NEW_TAB" desc="The text label for the New Tab settings page">
        New Tab Page
@@ -388,6 +455,9 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
         Open Private Window with Tor
       </message>
       <message name="IDS_LOCATION_BAR_OPEN_IN_TOR" desc="Button in location bar to open onion available site in tor window.">
+        Tor
+      </message>
+      <message name="IDS_LOCATION_BAR_OPEN_IN_TOR_TOOLTIP_TEXT" desc="The tooltip text of tor button in location bar.">
         Open in Tor
       </message>
       <message name="IDS_LOCATION_BAR_OPEN_USING_IPFS" desc="Button in location bar to open ipfs available site.">
@@ -398,6 +468,9 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       </message>
       <message name="IDS_LOCATION_BAR_ONION_AVAILABLE" desc="Button in location bar to indicate onion available site to open a new tab in tor window.">
         Onion Available
+      </message>
+      <message name="IDS_LOCATION_BAR_ONION_AVAILABLE_TOOLTIP_TEXT" desc="The tooltip text for onion available button.">
+        Open using .onion address
       </message>
       <message name="IDS_CONTENT_CONTEXT_IMPORT_IPFS" desc="The name of the IPFS context menu item for renderer">
         Import to IPFS
@@ -728,6 +801,13 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       <message name="IDS_BRAVE_SYNC_DELETE_DEVICE_CONFIRMATION" desc="Confirmation message prompt to make sure the user is ok to delete other device from the chain">
         Are you sure you want to remove the selected device from the sync chain?
       </message>
+      <message name="IDS_BRAVE_SYNC_FINAL_SECURITY_WARNING_TEXT" desc="Confirmation message prompt to make sure the user aware his data will be shared with other devices in chain">
+Warning: this will share your Brave data, including potentially your passwords, with the device that generated these code words.
+
+Please double check that these code words were generated by a device that you own.
+
+Are you sure you want to do this?
+      </message>
       <!-- Sync Infobar -->
       <message name="IDS_BRAVE_SYNC_V2_MIGRATE_INFOBAR_MESSAGE" desc="Message text shown to users who used a previous version of Brave Sync and need to perform setup again for the new version.">
         Brave Sync has been upgraded and requires setup
@@ -786,26 +866,29 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       <message name="IDS_BRAVE_WALLET_WEB3_PROVIDER_NONE" desc="Select control value for which web3 provider to use">
         None
       </message>
-      <message name="IDS_BRAVE_WALLET_WEB3_PROVIDER_CRYPTO_WALLETS" desc="Select control value for which web3 provider to use">
-        Crypto Wallets
-      </message>
       <message name="IDS_BRAVE_WALLET_WEB3_PROVIDER_CRYPTO_WALLETS_DEPRECATED" desc="Select control value for which web3 provider to use">
-        Deprecated Crypto Wallets extension
+        Crypto Wallets (Deprecated)
       </message>
-      <message name="IDS_BRAVE_WALLET_WEB3_PROVIDER_METAMASK" desc="Select control value for which web3 provider to use">
-        MetaMask
+      <message name="IDS_BRAVE_WALLET_WEB3_PROVIDER_BRAVE_PREFER_EXTENSIONS" desc="Select control value for which web3 provider to use">
+        Brave Wallet (Prefer extensions)
       </message>
-      <message name="IDS_SETTINGS_BRAVE_WEB3_PROVIDER_DESC" desc="The description for Brave web3 provider select control in settings">
-        Ethereum provider for using Dapps
+      <message name="IDS_SETTINGS_DEFAULT_WALLET_DESC" desc="The default cryptocurrency wallet">
+        Default cryptocurrency wallet
       </message>
-      <message name="IDS_SETTINGS_LOAD_CRYPTO_WALLETS_ON_STARTUP" desc="The description for always loading the Crypto Wallets extension on startup">
-        Load Crypto Wallets on startup
+      <message name="IDS_SETTINGS_DEFAULT_BASE_CURRENCY_DESC" desc="The default base currency to use for the wallet prices">
+        Default base currency
       </message>
-      <message name="IDS_SETTINGS_LOAD_CRYPTO_WALLETS_ON_STARTUP_DEPRECATED" desc="The description for always loading the Crypto Wallets extension on startup">
-        Load deprecated Crypto Wallets extension on startup
+      <message name="IDS_SETTINGS_DEFAULT_BASE_CRYPTOCURRENCY_DESC" desc="The default base cryptocurrency to use for the wallet prices">
+        Default base cryptocurrency
       </message>
       <message name="IDS_SETTINGS_SHOW_BRAVE_WALLET_ICON_ON_TOOLBAR" desc="The description for showing the Brave wallet panel icon on the toolbar">
         Show Brave Wallet icon on toolbar
+      </message>
+      <message name="IDS_SETTINGS_AUTO_LOCK_MINUTES" desc="The title for the amount of minutes it takes for the Brave Wallet to automatically lock">
+        Automatically lock Brave Wallet
+      </message>
+      <message name="IDS_SETTINGS_AUTO_LOCK_MINUTES_DESC" desc="The description for the amount of minutes it takes for the Brave Wallet to automatically lock">
+        The number of minutes to wait until the Brave Wallet is automatically locked
       </message>
       <message name="IDS_SETTINGS_GOOGLE_LOGIN_FOR_EXTENSIONS" desc="Label for a switch control which allows Google login for extension">
         Allow Google login for extensions
@@ -891,6 +974,15 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       <message name="IDS_SETTINGS_IPNS_KEYS_EXPORT_ERROR" desc="The error text if ipns keys export failed">
         '<ph name="KEY_NAME">$1<ex>MyCustomKey</ex></ph>' key export failed
       </message>
+      <message name="IDS_SETTINGS_WALLET_RESET" desc="Reset wallet settings item text">
+        Reset Wallet
+      </message>
+      <message name="IDS_SETTINGS_WALLET_RESET_CONFIRMATION" desc="Reset wallet settings confirmation message text">
+        Are you sure you want to reset your wallet? If your wallet is not backed up, resetting will cause you to lose all account data (including any associated funds). Type "<ph name="CONFIRMATION_PHRASE">$1<ex>Yes</ex></ph>" to confirm.
+      </message>
+      <message name="IDS_SETTINGS_WALLET_RESET_CONFIRMATION_PHRASE" desc="The phrase users should type to reset wallet">
+        Yes
+      </message>
       <message name="IDS_SETTINGS_IPNS_KEYS_IMPORT_BUTTON_TITLE" desc="The title of the button to import ipns keys">
         Import
       </message>
@@ -938,6 +1030,9 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       </message>
       <message name="IDS_SETTINGS_IPFS_ERROR_INVALID_ADDRESS" desc="The error message used when user input an invalid gateway address">
         Invalid gateway address
+      </message>
+      <message name="IDS_SETTINGS_IPFS_ERROR_INVALID_ADDRESS_ORIGIN_ISOLATION" desc="The error message used when user input an invalid gateway address without origin isolation">
+        Only a valid IPFS gateway with Origin isolation enabled can be used in Brave
       </message>
       <message name="IDS_SETTINGS_IPFS_AUTO_FALLBACK_TO_GATEWAY_LABEL" desc="The text label for IPFS public gateway fallback switch">
         IPFS public gateway fallback
@@ -1160,12 +1255,34 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
         <message name="IDS_BRAVE_DEFAULT_BROWSER_DIALOG_CANCEL_BUTTON_LABEL" desc="The text for default browser dialog cancel button">
           Not now
         </message>
+        <!-- Web Discovery dialog -->
+        <message name="IDS_WEB_DISCOVERY_DIALOG_HEADER_TEXT" desc="The text for web discovery dialog header">
+          Want to make Brave Search even better?
+        </message>
+        <message name="IDS_WEB_DISCOVERY_DIALOG_CONTENTS_TEXT" desc="The text for web discovery dialog contents">
+          Opt in to the Web Discovery Project to anonymously contribute some search &amp; browsing data, and improve Brave Search results for all. Privacy-preserving. And zero effort. <ph name="LEARN_MORE_TEXT">$1<ex>Learn more</ex></ph>
+        </message>
+        <message name="IDS_WEB_DISCOVERY_DIALOG_CONTENTS_TEXT_LEARN_MORE_PART" desc="The text learn more link for web discovery dialog contents. This text should be same with above Learn more text in CONTENTS_TEXT">
+          Learn more
+        </message>
+        <message name="IDS_WEB_DISCOVERY_DIALOG_DONT_ASK_AGAIN_TEXT" desc="The text for disabling web discovery dialog checkbox">
+          Don't ask again
+        </message>
+        <message name="IDS_WEB_DISCOVERY_DIALOG_OK_BUTTON_TEXT" desc="The text for ok button">
+          Turn on
+        </message>
+        <message name="IDS_WEB_DISCOVERY_DIALOG_CANCEL_BUTTON_TEXT" desc="The text for cancel button">
+          No thanks
+        </message>
         <!-- Brave crash report permission ask dialog -->
         <message name="IDS_CRASH_REPORT_PERMISSION_ASK_DIALOG_OK_BUTTON_LABEL" desc="The text for ok button">
           Allow
         </message>
         <message name="IDS_CRASH_REPORT_PERMISSION_ASK_DIALOG_CANCEL_BUTTON_LABEL" desc="The text for cancel button">
           Block
+        </message>
+        <message name="IDS_CRASH_REPORT_PERMISSION_ASK_DIALOG_DONT_ASK_TEXT" desc="The text for disabling dialog checkbox">
+          Don't ask again
         </message>
         <message name="IDS_CRASH_REPORT_PERMISSION_ASK_DIALOG_CONTENT_TEXT" desc="The contents for crash report ask dialog">
           Send crash reports automatically so Brave can prevent this issue from happening again?
@@ -1190,6 +1307,14 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       </message>
       <message name="IDS_BRAVE_ADS_AD_NOTIFICATION_ACCESSIBLE_NAME" desc="Text to be spoken when an ad notification is shown">
         Brave Ad Notification
+      </message>
+
+      <!-- Brave Search -->
+      <message name="IDS_SETTINGS_WEB_DISCOVERY_LABEL" desc="Description that shows settings for toggle Web Discovery">
+        Web Discovery Project
+      </message>
+      <message name="IDS_SETTINGS_WEB_DISCOVERY_SUBLABEL" desc="Description that shows under main toggle setting for Web Discovery">
+        Contribute some anonymous search &amp; browsing data to refine Brave Search.
       </message>
 
       <!-- Brave Tooltips -->
@@ -1292,6 +1417,7 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       <message name="IDS_BRAVE_P3A_ENABLE_SETTING_SUBITEM" desc="Description that shows under main toggle setting for P3A">
         This completely anonymised info helps Brave estimate the overall usage of certain features and make them better for you.
       </message>
+
       <!-- Web3 detection -->
       <message name="IDS_BRAVE_CRYPTO_WALLETS_LAZY_LOAD_TEXT" desc="Text that shows on the info bar when a Dapp is detected">
         Would you like to start Crypto Wallets for Ethereum support?
@@ -1362,6 +1488,9 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
         </message>
         <message name="IDS_BRAVE_VPN_TOOLBAR_BUTTON_TEXT" desc="Text for vpn button in toolbar.">
           VPN
+        </message>
+        <message name="IDS_BRAVE_VPN_TOGGLE_MENU_ITEM_TEXT" desc="Text for vpn toggle button in app menu.">
+          Toggle VPN
         </message>
         <message name="IDS_BRAVE_VPN_MENU" desc="The Brave VPN item (app menu)">
           Brave VPN
@@ -1443,6 +1572,90 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       </message>
       <message name="IDS_FIRSTRUN_DLG_COMPLETE_INSTALLATION_LABEL_BRAVE" desc="Label at top of Dialog noting what's going to happen">
         To ensure the best privacy online, consider setting Brave as the default browser on your computer. With Brave as default, any web link you click will open with Brave's privacy protections.
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_ITEM" desc="The label for opening wallet networks list">
+        Networks
+      </message>
+      <message name="IDS_SETTINGS_WALLET_ADD_NETWORK_TITLE" desc="The title for the wallet network dialog">
+        Add new network
+      </message>
+      <message name="IDS_SETTINGS_WALLET_ADD_NETWORK_INVALID_ADDRESS_ERROR" desc="The error message in the wallet network dialog for invalid addresses">
+        Invalid address
+      </message>
+      <message name="IDS_SETTINGS_WALLET_ADD_NETWORK" desc="The title of button to add a new network">
+        Submit
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORK_LIST_TITLE" desc="The title of the list with wallet networks">
+        Wallet networks
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CHAIN_ID_TITLE" desc="The title of the chain id input for the wallet network dialog">
+        The id of new chain
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CHAIN_ID_PLACEHOLDER" desc="The placeholder of the chain id input for the wallet network dialog">
+        A 0x-prefixed hexadecimal string
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CHAIN_NAME_TITLE" desc="The title of the chain name input for the wallet network dialog">
+        The name of new chain
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CHAIN_NAME_PLACEHOLDER" desc="The placeholder of the chain name input for the wallet network dialog">
+        Enter chain name
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_NAME_TITLE" desc="The title of the currency name input for the wallet network dialog">
+        Chain's currency name
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_NAME_PLACEHOLDER" desc="The placehodler of the currency name input for the wallet network dialog">
+        Enter currency name
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_SYMBOL_TITLE" desc="The title of the currency symbol input for the wallet network dialog">
+        Chain's currency symbol
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_SYMBOL_PLACEHOLDER" desc="The placeholder of the currency symbol input for the wallet network dialog">
+        Enter currency symbol
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_DECIMALS_TITLE" desc="The title of the currency decimals input for the wallet network dialog">
+        Chain's currency decimals
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CURRENCY_DECIMALS_PLACEHOLDER" desc="The placeholder of the currency decimals input for the wallet network dialog">
+        Enter currency decimals
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_RPC_TITLE" desc="The title of the rpc urls for the wallet network dialog">
+        RPC URLs
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_URL_PLACEHOLDER" desc="The placeholder of the urls for the wallet network dialog">
+        Enter URL
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_ICONS_TITLE" desc="The title of the icons urls for the wallet network dialog">
+        Icon URLs
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_BLOCKS_TITLE" desc="The title of the block urls for the wallet network dialog">
+        Block explorer URLs
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_MANDATORY_ERROR" desc="The error text of the wallet network dialog about empty mandatory fields">
+        This field cannot be blank.
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CHAID_ID_ERROR" desc="The error text of the wallet network dialog for invalid chain id fields">
+        Invalid format, the chain id is a 0x-prefixed hexadecimal string
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_EXISTS" desc="The error text of the wallet network dialog for existing network">
+        This network is already added.
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_SUMBISSION_FAILED" desc="The error text of the wallet network dialog for failed submission">
+        Internal Error, unable to add network.
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_NATIVE_CURRENCY_ERROR" desc="The error text of the wallet network dialog for empty currencies">
+         Please fill in all infromation about native currency
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_ITEM_DESC" desc="The description of networks item on wallet settings page">
+        Wallet networks customization
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_ERROR" desc="The text of error message on wallet networks page">
+        Unable to add network
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_CONFIRMATION" desc="The text of confirmation to delete wallet network">
+        Do you really want to delete <ph name="KEY_NAME">$1<ex>NetworkName</ex></ph>?
+      </message>
+      <message name="IDS_SETTINGS_WALLET_NETWORKS_REPLACE" desc="The message for the wallet networks page to replace existing network">
+        Do you want to update the existing network?
       </message>
     </messages>
   </release>

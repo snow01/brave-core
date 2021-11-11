@@ -5,9 +5,6 @@
 
 #include "ios/chrome/browser/browser_state/browser_state_keyed_service_factories.h"
 
-#include "brave/ios/browser/brave_wallet/asset_ratio_controller_factory.h"
-#include "brave/ios/browser/brave_wallet/eth_json_rpc_controller_factory.h"
-#include "brave/ios/browser/brave_wallet/keyring_controller_factory.h"
 #include "ios/chrome/browser/autofill/personal_data_manager_factory.h"
 #include "ios/chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "ios/chrome/browser/favicon/favicon_service_factory.h"
@@ -34,9 +31,6 @@
 
 void EnsureBrowserStateKeyedServiceFactoriesBuilt() {
   autofill::PersonalDataManagerFactory::GetInstance();
-  brave_wallet::KeyringControllerFactory::GetInstance();
-  brave_wallet::AssetRatioControllerFactory::GetInstance();
-  brave_wallet::EthJsonRpcControllerFactory::GetInstance();
   ConsentAuditorFactory::GetInstance();
   ios::AccountConsistencyServiceFactory::GetInstance();
   ios::BookmarkModelFactory::GetInstance();

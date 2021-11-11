@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "base/observer_list.h"
 #include "base/time/time.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_types.h"
 #include "brave/components/brave_wallet/browser/eth_address.h"
@@ -40,7 +41,6 @@ class EthTxStateManager : public mojom::EthJsonRpcControllerObserver {
     std::string id;
     mojom::TransactionStatus status = mojom::TransactionStatus::Unapproved;
     EthAddress from;
-    uint256_t last_gas_price = 0;
     base::Time created_time;
     base::Time submitted_time;
     base::Time confirmed_time;
@@ -49,9 +49,8 @@ class EthTxStateManager : public mojom::EthJsonRpcControllerObserver {
     std::unique_ptr<EthTransaction> tx;
   };
 
-  explicit EthTxStateManager(
-      PrefService* prefs,
-      mojo::PendingRemote<mojom::EthJsonRpcController> rpc_controller);
+  explicit EthTxStateManager(PrefService* prefs,
+                             EthJsonRpcController* rpc_controller);
   ~EthTxStateManager() override;
   EthTxStateManager(const EthTxStateManager&) = delete;
   EthTxStateManager operator=(const EthTxStateManager&) = delete;
@@ -74,26 +73,28 @@ class EthTxStateManager : public mojom::EthJsonRpcControllerObserver {
   void ChainChangedEvent(const std::string& chain_id) override;
   void OnAddEthereumChainRequestCompleted(const std::string& chain_id,
                                           const std::string& error) override;
+  void OnIsEip1559Changed(const std::string& chain_id,
+                          bool is_eip1559) override {}
 
-  void SetChainCallbackForTesting(base::OnceClosure callback) {
-    chain_callback_for_testing_ = std::move(callback);
-  }
+  class Observer : public base::CheckedObserver {
+   public:
+    virtual void OnTransactionStatusChanged(mojom::TransactionInfoPtr tx_info) {
+    }
+    virtual void OnNewUnapprovedTx(mojom::TransactionInfoPtr tx_info) {}
+  };
+  void AddObserver(Observer* observer);
+  void RemoveObserver(Observer* observer);
 
  private:
-  std::string GetNetworkId() const;
   // only support REJECTED and CONFIRMED
   void RetireTxByStatus(mojom::TransactionStatus status, size_t max_num);
 
-  void OnConnectionError();
-  void OnGetNetworkUrl(const std::string& url);
-  void OnGetChainId(const std::string& chain_id);
-
+  base::ObserverList<Observer> observers_;
   PrefService* prefs_;
-  mojo::Remote<mojom::EthJsonRpcController> rpc_controller_;
+  EthJsonRpcController* rpc_controller_;
   mojo::Receiver<mojom::EthJsonRpcControllerObserver> observer_receiver_{this};
   std::string chain_id_;
   std::string network_url_;
-  base::OnceClosure chain_callback_for_testing_;
   base::WeakPtrFactory<EthTxStateManager> weak_factory_;
 };
 

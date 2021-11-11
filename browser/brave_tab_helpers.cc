@@ -11,10 +11,10 @@
 #include "brave/browser/brave_rewards/rewards_tab_helper.h"
 #include "brave/browser/brave_shields/brave_shields_web_contents_observer.h"
 #include "brave/browser/brave_stats/brave_stats_tab_helper.h"
+#include "brave/browser/brave_wallet/brave_wallet_tab_helper.h"
 #include "brave/browser/ephemeral_storage/ephemeral_storage_tab_helper.h"
 #include "brave/browser/ui/bookmark/brave_bookmark_tab_helper.h"
 #include "brave/components/brave_perf_predictor/browser/perf_predictor_tab_helper.h"
-#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/brave_wayback_machine/buildflags.h"
 #include "brave/components/greaselion/browser/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
@@ -22,6 +22,7 @@
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/web_contents.h"
+#include "extensions/buildflags/buildflags.h"
 #include "net/base/features.h"
 #include "third_party/widevine/cdm/buildflags.h"
 
@@ -56,8 +57,8 @@
 #include "brave/browser/ipfs/ipfs_tab_helper.h"
 #endif
 
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
-#include "brave/browser/brave_wallet/brave_wallet_tab_helper.h"
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+#include "brave/browser/web_discovery/web_discovery_tab_helper.h"
 #endif
 
 namespace brave {
@@ -92,6 +93,10 @@ void AttachTabHelpers(content::WebContents* web_contents) {
 
   brave_ads::AdsTabHelper::CreateForWebContents(web_contents);
 
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+  WebDiscoveryTabHelper::MaybeCreateForWebContents(web_contents);
+#endif
+
 #if BUILDFLAG(ENABLE_SPEEDREADER)
   speedreader::SpeedreaderTabHelper::CreateForWebContents(web_contents);
 #endif
@@ -113,9 +118,7 @@ void AttachTabHelpers(content::WebContents* web_contents) {
         web_contents);
   }
 
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
   brave_wallet::BraveWalletTabHelper::CreateForWebContents(web_contents);
-#endif
 }
 
 }  // namespace brave

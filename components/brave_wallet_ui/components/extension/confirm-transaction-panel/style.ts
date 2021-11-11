@@ -1,10 +1,13 @@
 import styled from 'styled-components'
 import { ArrowRightIcon } from 'brave-ui/components/icons'
+import { AssetIconProps, AssetIconFactory, WalletButton } from '../../shared/style'
 
 interface StyleProps {
   orb: string
   isDetails: boolean
   isApprove: boolean
+  needsMargin: boolean
+  hasError: boolean
 }
 
 export const StyledWrapper = styled.div`
@@ -166,6 +169,7 @@ export const SectionRow = styled.div`
   justify-content: space-between;
   flex-direction: row;
   width: 100%;
+  height: inherit;
 `
 
 export const SectionRightColumn = styled.div`
@@ -175,7 +179,15 @@ export const SectionRightColumn = styled.div`
   flex-direction: column;
 `
 
-export const EditButton = styled.button`
+export const TopColumn = styled.div`
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+`
+
+export const EditButton = styled(WalletButton)`
   font-family: Poppins;
   font-style: normal;
   font-weight: 600;
@@ -191,12 +203,12 @@ export const EditButton = styled.button`
   padding: 0px;
 `
 
-export const TransactionText = styled.span`
+export const TransactionText = styled.span<Partial<StyleProps>>`
   font-family: Poppins;
   font-size: 12px;
   line-height: 18px;
   letter-spacing: 0.01em;
-  color: ${(p) => p.theme.color.text03};
+  color: ${(p) => p.hasError ? p.theme.color.errorText : p.theme.color.text03};
 `
 
 export const GrandTotalText = styled.span`
@@ -244,3 +256,48 @@ export const FavIcon = styled.img`
   background-color: ${(p) => p.theme.palette.grey200};
   margin-bottom: 7px;
 `
+
+export const QueueStepRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+`
+
+export const QueueStepText = styled.span`
+  font-family: Poppins;
+  font-size: 13px;
+  color: ${(p) => p.theme.color.text02};
+  font-weight: 600;
+  margin-right: 9px;
+`
+
+export const QueueStepButton = styled(WalletButton) <Partial<StyleProps>>`
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 13px;
+  color: ${(p) => p.theme.color.interactive05};
+  background: none;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  margin: 0px;
+  padding: 0px;
+  margin-bottom: ${(p) => p.needsMargin ? '12px' : '0px'};
+`
+
+export const ErrorText = styled.span`
+  font-family: Poppins;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0.01em;
+  color: ${(p) => p.theme.color.errorText};
+  margin-bottom: 6px;
+  text-align: center;
+`
+
+export const AssetIcon = AssetIconFactory<AssetIconProps>({
+  width: '40px',
+  height: 'auto'
+})

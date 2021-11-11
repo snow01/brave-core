@@ -5,6 +5,7 @@
 
 package org.chromium.chrome.browser.ui.appmenu;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Rect;
@@ -18,11 +19,11 @@ import org.chromium.ui.base.DeviceFormFactor;
 class BraveAppMenu extends AppMenu {
     private static final String BRAVE_IS_MENU_FROM_BOTTOM = "brave_is_menu_from_bottom";
 
-    BraveAppMenu(Menu menu, int itemRowHeight, AppMenuHandlerImpl handler, Resources res,
-            boolean iconBeforeItem) {
-        super(menu, itemRowHeight, handler, res, iconBeforeItem);
+    BraveAppMenu(int itemRowHeight, AppMenuHandlerImpl handler, Resources res) {
+        super(itemRowHeight, handler, res);
     }
 
+    @SuppressLint("VisibleForTests")
     public static int[] getPopupPosition(int[] tempLocation, boolean isByPermanentButton,
             int negativeSoftwareVerticalOffset, int negativeVerticalOffsetNotTopAnchored,
             int screenRotation, Rect appRect, Rect padding, View anchorView, int popupWidth,

@@ -5,8 +5,11 @@
 
 #include "brave/browser/sync/brave_sync_service_impl_delegate.h"
 
+#include <algorithm>
 #include <utility>
 
+#include "base/callback_helpers.h"
+#include "base/metrics/histogram_functions.h"
 #include "base/task/post_task.h"
 #include "base/threading/thread_task_runner_handle.h"
 #include "brave/components/sync/driver/brave_sync_service_impl.h"
@@ -36,6 +39,8 @@ BraveSyncServiceImplDelegate::~BraveSyncServiceImplDelegate() {}
 void BraveSyncServiceImplDelegate::OnDeviceInfoChange() {
   DCHECK(sync_service_impl_);
 
+  RecordP3ASyncStatus();
+
   const syncer::DeviceInfo* local_device_info =
       local_device_info_provider_->GetLocalDeviceInfo();
 
@@ -61,7 +66,7 @@ void BraveSyncServiceImplDelegate::OnDeviceInfoChange() {
 }
 
 void BraveSyncServiceImplDelegate::OnSelfDeviceInfoDeleted() {
-  sync_service_impl_->OnSelfDeviceInfoDeleted(base::DoNothing::Once());
+  sync_service_impl_->OnSelfDeviceInfoDeleted(base::DoNothing());
 }
 
 void BraveSyncServiceImplDelegate::SuspendDeviceObserverForOwnReset() {
@@ -72,6 +77,18 @@ void BraveSyncServiceImplDelegate::ResumeDeviceObserver() {
   if (!device_info_observer_.IsObserving()) {
     device_info_observer_.Observe(device_info_tracker_);
   }
+}
+
+void BraveSyncServiceImplDelegate::RecordP3ASyncStatus() {
+  int num_devices = device_info_tracker_->GetAllDeviceInfo().size();
+
+  // 0 - sync is disabled
+  // 1 - one device in chain
+  // 2 - two devices in chain
+  // 3 - three or more devices in chain
+  int p3a_value = std::min(num_devices, 3);
+
+  base::UmaHistogramExactLinear("Brave.Sync.Status.2", p3a_value, 3);
 }
 
 }  // namespace syncer

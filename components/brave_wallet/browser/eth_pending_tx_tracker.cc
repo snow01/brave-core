@@ -26,10 +26,10 @@ EthPendingTxTracker::EthPendingTxTracker(EthTxStateManager* tx_state_manager,
       weak_factory_(this) {}
 EthPendingTxTracker::~EthPendingTxTracker() = default;
 
-void EthPendingTxTracker::UpdatePendingTransactions() {
+bool EthPendingTxTracker::UpdatePendingTransactions(size_t* num_pending) {
   base::Lock* nonce_lock = nonce_tracker_->GetLock();
   if (!nonce_lock->Try())
-    return;
+    return false;
 
   auto pending_transactions = tx_state_manager_->GetTransactionsByStatus(
       mojom::TransactionStatus::Submitted, absl::nullopt);
@@ -46,6 +46,8 @@ void EthPendingTxTracker::UpdatePendingTransactions() {
   }
 
   nonce_lock->Release();
+  *num_pending = pending_transactions.size();
+  return true;
 }
 
 void EthPendingTxTracker::ResubmitPendingTransactions() {
@@ -114,7 +116,7 @@ bool EthPendingTxTracker::IsNonceTaken(const EthTxStateManager::TxMeta& meta) {
 
 bool EthPendingTxTracker::ShouldTxDropped(
     const EthTxStateManager::TxMeta& meta) {
-  const std::string hex_address = meta.from.ToHex();
+  const std::string hex_address = meta.from.ToChecksumAddress();
   if (network_nonce_map_.find(hex_address) == network_nonce_map_.end()) {
     rpc_controller_->GetTransactionCount(
         hex_address,

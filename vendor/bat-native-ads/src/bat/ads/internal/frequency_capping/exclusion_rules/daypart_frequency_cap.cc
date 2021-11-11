@@ -33,11 +33,16 @@ DaypartFrequencyCap::DaypartFrequencyCap() = default;
 
 DaypartFrequencyCap::~DaypartFrequencyCap() = default;
 
-bool DaypartFrequencyCap::ShouldExclude(const CreativeAdInfo& ad) {
-  if (!DoesRespectCap(ad)) {
+std::string DaypartFrequencyCap::GetUuid(
+    const CreativeAdInfo& creative_ad) const {
+  return creative_ad.creative_set_id;
+}
+
+bool DaypartFrequencyCap::ShouldExclude(const CreativeAdInfo& creative_ad) {
+  if (!DoesRespectCap(creative_ad)) {
     last_message_ = base::StringPrintf(
         "creativeSetId %s excluded as not within a scheduled time slot",
-        ad.creative_set_id.c_str());
+        creative_ad.creative_set_id.c_str());
 
     return true;
   }
@@ -45,12 +50,13 @@ bool DaypartFrequencyCap::ShouldExclude(const CreativeAdInfo& ad) {
   return false;
 }
 
-std::string DaypartFrequencyCap::get_last_message() const {
+std::string DaypartFrequencyCap::GetLastMessage() const {
   return last_message_;
 }
 
-bool DaypartFrequencyCap::DoesRespectCap(const CreativeAdInfo& ad) const {
-  if (ad.dayparts.empty()) {
+bool DaypartFrequencyCap::DoesRespectCap(
+    const CreativeAdInfo& creative_ad) const {
+  if (creative_ad.dayparts.empty()) {
     // Always respect cap if there are no dayparts specified
     return true;
   }
@@ -61,7 +67,7 @@ bool DaypartFrequencyCap::DoesRespectCap(const CreativeAdInfo& ad) const {
 
   const std::string local_day_of_week = GetLocalWeekDay(now);
 
-  for (const CreativeDaypartInfo& daypart : ad.dayparts) {
+  for (const CreativeDaypartInfo& daypart : creative_ad.dayparts) {
     if (!DoesMatchDayOfWeek(daypart, local_day_of_week)) {
       continue;
     }

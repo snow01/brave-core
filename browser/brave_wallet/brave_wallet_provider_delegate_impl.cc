@@ -12,8 +12,10 @@
 #include "base/bind.h"
 #include "brave/browser/brave_wallet/brave_wallet_tab_helper.h"
 #include "brave/browser/brave_wallet/keyring_controller_factory.h"
+#include "brave/browser/ui/brave_pages.h"
 #include "brave/components/brave_wallet/browser/keyring_controller.h"
 #include "brave/components/permissions/contexts/brave_ethereum_permission_context.h"
+#include "chrome/browser/ui/browser_finder.h"
 #include "components/content_settings/core/common/content_settings.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/web_contents.h"
@@ -47,6 +49,8 @@ void OnGetAllowedAccounts(
   std::move(callback).Run(success, allowed_accounts);
 }
 
+base::OnceCallback<void()> g_NewSetupNeededForTestingCallback;
+
 }  // namespace
 
 BraveWalletProviderDelegateImpl::BraveWalletProviderDelegateImpl(
@@ -57,6 +61,12 @@ BraveWalletProviderDelegateImpl::BraveWalletProviderDelegateImpl(
       weak_ptr_factory_(this) {}
 
 BraveWalletProviderDelegateImpl::~BraveWalletProviderDelegateImpl() = default;
+
+// static
+void BraveWalletProviderDelegateImpl::SetCallbackForNewSetupNeededForTesting(
+    base::OnceCallback<void()> callback) {
+  g_NewSetupNeededForTestingCallback = std::move(callback);
+}
 
 void BraveWalletProviderDelegateImpl::EnsureConnected() {
   if (!keyring_controller_) {
@@ -113,37 +123,72 @@ void BraveWalletProviderDelegateImpl::ContinueRequestEthereumPermissions(
 
   // Request accounts if no accounts are connected.
   keyring_controller_->GetDefaultKeyringInfo(base::BindOnce(
-      [](const content::GlobalRenderFrameHostId& host_id,
-         RequestEthereumPermissionsCallback callback,
-         brave_wallet::mojom::KeyringInfoPtr keyring_info) {
-        std::vector<std::string> addresses;
-        for (const auto& account_info : keyring_info->account_infos) {
-          addresses.push_back(account_info->address);
-        }
-        permissions::BraveEthereumPermissionContext::RequestPermissions(
-            content::RenderFrameHost::FromID(host_id), addresses,
-            base::BindOnce(&OnRequestEthereumPermissions, addresses,
-                           std::move(callback)));
-      },
-      host_id_, std::move(callback)));
+      &BraveWalletProviderDelegateImpl::
+          ContinueRequestEthereumPermissionsKeyringInfo,
+      weak_ptr_factory_.GetWeakPtr(), std::move(callback), allowed_accounts));
+}
+
+void BraveWalletProviderDelegateImpl::
+    ContinueRequestEthereumPermissionsKeyringInfo(
+        RequestEthereumPermissionsCallback callback,
+        const std::vector<std::string>& allowed_accounts,
+        brave_wallet::mojom::KeyringInfoPtr keyring_info) {
+  if (!keyring_info->is_default_keyring_created) {
+    Browser* browser = chrome::FindBrowserWithWebContents(web_contents_);
+    if (browser) {
+      brave::ShowBraveWalletOnboarding(browser);
+    } else if (g_NewSetupNeededForTestingCallback) {
+      std::move(g_NewSetupNeededForTestingCallback).Run();
+    }
+    std::move(callback).Run(false, std::vector<std::string>());
+    return;
+  }
+
+  std::vector<std::string> addresses;
+  for (const auto& account_info : keyring_info->account_infos) {
+    addresses.push_back(account_info->address);
+  }
+  permissions::BraveEthereumPermissionContext::RequestPermissions(
+      content::RenderFrameHost::FromID(host_id_), addresses,
+      base::BindOnce(&OnRequestEthereumPermissions, addresses,
+                     std::move(callback)));
 }
 
 void BraveWalletProviderDelegateImpl::GetAllowedAccounts(
     GetAllowedAccountsCallback callback) {
   EnsureConnected();
+  keyring_controller_->GetSelectedAccount(base::BindOnce(
+      &BraveWalletProviderDelegateImpl::ContinueGetAllowedAccounts,
+      weak_ptr_factory_.GetWeakPtr(), std::move(callback)));
+}
+
+void BraveWalletProviderDelegateImpl::ContinueGetAllowedAccounts(
+    BraveWalletProviderDelegate::GetAllowedAccountsCallback callback,
+    const absl::optional<std::string>& selected_account) {
   keyring_controller_->GetDefaultKeyringInfo(base::BindOnce(
       [](const content::GlobalRenderFrameHostId& host_id,
          GetAllowedAccountsCallback callback,
+         const absl::optional<std::string>& selected_account,
          brave_wallet::mojom::KeyringInfoPtr keyring_info) {
         std::vector<std::string> addresses;
-        for (const auto& account_info : keyring_info->account_infos) {
-          addresses.push_back(account_info->address);
+        if (!keyring_info->is_locked) {
+          for (const auto& account_info : keyring_info->account_infos) {
+            // If one of the selected accounts is an allowed account, then make
+            // the selected account the first item that is returned.
+            if (selected_account &&
+                base::CompareCaseInsensitiveASCII(account_info->address,
+                                                  *selected_account) == 0) {
+              addresses.insert(addresses.begin(), account_info->address);
+            } else {
+              addresses.push_back(account_info->address);
+            }
+          }
         }
         permissions::BraveEthereumPermissionContext::GetAllowedAccounts(
             content::RenderFrameHost::FromID(host_id), addresses,
             base::BindOnce(&OnGetAllowedAccounts, std::move(callback)));
       },
-      host_id_, std::move(callback)));
+      host_id_, std::move(callback), selected_account));
 }
 
 }  // namespace brave_wallet

@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "base/strings/string_number_conversions.h"
+#include "base/test/bind.h"
 #include "base/time/time.h"
 #include "base/values.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
@@ -29,6 +30,51 @@
 
 namespace brave_wallet {
 
+class TestEthTxStateManagerObserver : public EthTxStateManager::Observer {
+ public:
+  TestEthTxStateManagerObserver() = default;
+
+  void OnNewUnapprovedTx(mojom::TransactionInfoPtr tx) override {
+    new_unapproved_tx_fired_ = true;
+    tx_status_ = tx->tx_status;
+    tx_id_ = tx->id;
+  }
+
+  void OnTransactionStatusChanged(mojom::TransactionInfoPtr tx) override {
+    tx_status_changed_fired_ = true;
+    tx_status_ = tx->tx_status;
+    tx_id_ = tx->id;
+  }
+
+  void ExpectMatch(const std::string& expected_tx_id,
+                   mojom::TransactionStatus expected_status) {
+    base::RunLoop().RunUntilIdle();
+    EXPECT_EQ(expected_tx_id, tx_id_);
+    EXPECT_EQ(expected_status, tx_status_);
+  }
+
+  void Reset() {
+    new_unapproved_tx_fired_ = false;
+    tx_status_changed_fired_ = false;
+  }
+
+  bool NewUnapprovedTxFired() const {
+    base::RunLoop().RunUntilIdle();
+    return new_unapproved_tx_fired_;
+  }
+
+  bool TxStatusChangedFired() const {
+    base::RunLoop().RunUntilIdle();
+    return tx_status_changed_fired_;
+  }
+
+ private:
+  std::string tx_id_;
+  mojom::TransactionStatus tx_status_;
+  bool new_unapproved_tx_fired_ = false;
+  bool tx_status_changed_fired_ = false;
+};
+
 class EthTxStateManagerUnitTest : public testing::Test {
  public:
   EthTxStateManagerUnitTest()
@@ -48,6 +94,14 @@ class EthTxStateManagerUnitTest : public testing::Test {
     profile_ = builder.Build();
     rpc_controller_.reset(
         new EthJsonRpcController(shared_url_loader_factory_, GetPrefs()));
+  }
+
+  void SetNetwork(const std::string& chain_id) {
+    base::RunLoop run_loop;
+    rpc_controller_->SetNetwork(
+        chain_id,
+        base::BindLambdaForTesting([&](bool success) { run_loop.Quit(); }));
+    run_loop.Run();
   }
 
   PrefService* GetPrefs() { return profile_->GetPrefs(); }
@@ -75,7 +129,6 @@ TEST_F(EthTxStateManagerUnitTest, TxMetaAndValue) {
   meta.id = EthTxStateManager::GenerateMetaID();
   meta.status = mojom::TransactionStatus::Submitted;
   meta.from = EthAddress::FromHex("0x2f015c60e0be116b1f0cd534704db9c92118fb6a");
-  meta.last_gas_price = 0x1234;
   meta.created_time = base::Time::Now();
   meta.submitted_time = base::Time::Now();
   meta.confirmed_time = base::Time::Now();
@@ -97,12 +150,14 @@ TEST_F(EthTxStateManagerUnitTest, TxMetaAndValue) {
       "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238";
 
   base::Value meta_value = EthTxStateManager::TxMetaToValue(meta);
+  const std::string* from = meta_value.FindStringKey("from");
+  ASSERT_TRUE(from);
+  EXPECT_EQ(*from, "0x2F015C60E0be116B1f0CD534704Db9c92118FB6A");
   auto meta_from_value = EthTxStateManager::ValueToTxMeta(meta_value);
   ASSERT_NE(meta_from_value, nullptr);
   EXPECT_EQ(meta_from_value->id, meta.id);
   EXPECT_EQ(meta_from_value->status, meta.status);
   EXPECT_EQ(meta_from_value->from, meta.from);
-  EXPECT_EQ(meta_from_value->last_gas_price, meta.last_gas_price);
   EXPECT_EQ(meta_from_value->created_time, meta.created_time);
   EXPECT_EQ(meta_from_value->submitted_time, meta.submitted_time);
   EXPECT_EQ(meta_from_value->confirmed_time, meta.confirmed_time);
@@ -144,7 +199,15 @@ TEST_F(EthTxStateManagerUnitTest, TxMetaAndValue) {
               mojom::TxData::New("0x09", "0x4a817c800", "0x5208",
                                  "0x3535353535353535353535353535353535353535",
                                  "0x0de0b6b3a7640000", std::vector<uint8_t>()),
-              "0x3", "0x1E", "0x32")));
+              "0x3", "0x1E", "0x32",
+              mojom::GasEstimation1559::New(
+                  "0x3b9aca00" /* Hex of 1 * 1e9 */,
+                  "0xaf16b1600" /* Hex of 47 * 1e9 */,
+                  "0x77359400" /* Hex of 2 * 1e9 */,
+                  "0xb2d05e000" /* Hex of 48 * 1e9 */,
+                  "0xb2d05e00" /* Hex of 3 * 1e9 */,
+                  "0xb68a0aa00" /* Hex of 49 * 1e9 */,
+                  "0xad8075b7a" /* Hex of 46574033786 */))));
   EthTxStateManager::TxMeta meta2(std::move(tx2));
   base::Value value2 = EthTxStateManager::TxMetaToValue(meta2);
   auto meta_from_value2 = EthTxStateManager::ValueToTxMeta(value2);
@@ -157,9 +220,7 @@ TEST_F(EthTxStateManagerUnitTest, TxMetaAndValue) {
 
 TEST_F(EthTxStateManagerUnitTest, TxOperations) {
   GetPrefs()->ClearPref(kBraveWalletTransactions);
-  EthTxStateManager tx_state_manager(GetPrefs(), rpc_controller_->MakeRemote());
-  // Wait for network info
-  base::RunLoop().RunUntilIdle();
+  EthTxStateManager tx_state_manager(GetPrefs(), rpc_controller_.get());
 
   EthTxStateManager::TxMeta meta;
   meta.id = "001";
@@ -223,6 +284,9 @@ TEST_F(EthTxStateManagerUnitTest, TxOperations) {
     ASSERT_NE(meta_fetched2, nullptr);
     EXPECT_EQ(meta_fetched2->id, "002");
     EXPECT_EQ(meta_fetched2->tx_hash, "0xabff");
+
+    auto meta_fetched3 = tx_state_manager.GetTx("");
+    EXPECT_EQ(meta_fetched3, nullptr);
   }
 
   // Delete
@@ -240,9 +304,7 @@ TEST_F(EthTxStateManagerUnitTest, TxOperations) {
 
 TEST_F(EthTxStateManagerUnitTest, GetTransactionsByStatus) {
   GetPrefs()->ClearPref(kBraveWalletTransactions);
-  EthTxStateManager tx_state_manager(GetPrefs(), rpc_controller_->MakeRemote());
-  // Wait for network info
-  base::RunLoop().RunUntilIdle();
+  EthTxStateManager tx_state_manager(GetPrefs(), rpc_controller_.get());
 
   auto addr1 =
       EthAddress::FromHex("0x3535353535353535353535353535353535353535");
@@ -320,21 +382,19 @@ TEST_F(EthTxStateManagerUnitTest, GetTransactionsByStatus) {
 
 TEST_F(EthTxStateManagerUnitTest, SwitchNetwork) {
   GetPrefs()->ClearPref(kBraveWalletTransactions);
-  EthTxStateManager tx_state_manager(GetPrefs(), rpc_controller_->MakeRemote());
-  // Wait for network info
-  base::RunLoop().RunUntilIdle();
+  EthTxStateManager tx_state_manager(GetPrefs(), rpc_controller_.get());
 
   EthTxStateManager::TxMeta meta;
   meta.id = "001";
   tx_state_manager.AddOrUpdateTx(meta);
 
-  rpc_controller_->SetNetwork("0x3");
+  SetNetwork("0x3");
   // Wait for network info
   base::RunLoop().RunUntilIdle();
   EXPECT_EQ(tx_state_manager.GetTx("001"), nullptr);
   tx_state_manager.AddOrUpdateTx(meta);
 
-  rpc_controller_->SetNetwork(brave_wallet::mojom::kLocalhostChainId);
+  SetNetwork(brave_wallet::mojom::kLocalhostChainId);
   // Wait for network info
   base::RunLoop().RunUntilIdle();
   EXPECT_EQ(tx_state_manager.GetTx("001"), nullptr);
@@ -351,7 +411,9 @@ TEST_F(EthTxStateManagerUnitTest, SwitchNetwork) {
   ASSERT_TRUE(ropsten_dict);
   EXPECT_EQ(ropsten_dict->DictSize(), 1u);
   EXPECT_TRUE(ropsten_dict->FindKey("001"));
-  const auto* localhost_dict = dict->FindKey("http://localhost:8545/");
+  auto localhost_url_spec =
+      brave_wallet::GetNetworkURL(GetPrefs(), mojom::kLocalhostChainId).spec();
+  const auto* localhost_dict = dict->FindKey(localhost_url_spec);
   ASSERT_TRUE(localhost_dict);
   EXPECT_EQ(localhost_dict->DictSize(), 1u);
   EXPECT_TRUE(localhost_dict->FindKey("001"));
@@ -359,9 +421,7 @@ TEST_F(EthTxStateManagerUnitTest, SwitchNetwork) {
 
 TEST_F(EthTxStateManagerUnitTest, RetireOldTxMeta) {
   GetPrefs()->ClearPref(kBraveWalletTransactions);
-  EthTxStateManager tx_state_manager(GetPrefs(), rpc_controller_->MakeRemote());
-  // Wait for network info
-  base::RunLoop().RunUntilIdle();
+  EthTxStateManager tx_state_manager(GetPrefs(), rpc_controller_.get());
 
   for (size_t i = 0; i < 20; ++i) {
     EthTxStateManager::TxMeta meta;
@@ -412,23 +472,36 @@ TEST_F(EthTxStateManagerUnitTest, TxMetaToTransactionInfo) {
                              "0x3535353535353535353535353535353535353535",
                              "0x0de0b6b3a7640000", std::vector<uint8_t>())));
   EthTxStateManager::TxMeta meta(std::move(tx));
+  meta.from = EthAddress::FromHex("0x2f015c60e0be116b1f0cd534704db9c92118fb6a");
+  base::Time::Exploded x{1981, 3, 0, 1, 2};
+  EXPECT_TRUE(base::Time::FromUTCExploded(x, &meta.confirmed_time));
+  meta.submitted_time = meta.confirmed_time - base::TimeDelta::FromSeconds(3);
+  meta.created_time = meta.confirmed_time - base::TimeDelta::FromMinutes(1);
+
   mojom::TransactionInfoPtr ti =
       EthTxStateManager::TxMetaToTransactionInfo(meta);
-  ASSERT_EQ(ti->id, meta.id);
-  ASSERT_EQ(ti->from_address, meta.from.ToHex());
-  ASSERT_EQ(ti->tx_hash, meta.tx_hash);
-  ASSERT_EQ(ti->tx_status, meta.status);
-  ASSERT_EQ(ti->tx_data->base_data->nonce, Uint256ValueToHex(meta.tx->nonce()));
-  ASSERT_EQ(ti->tx_data->base_data->gas_price,
+  EXPECT_EQ(ti->id, meta.id);
+  EXPECT_EQ(ti->from_address, meta.from.ToChecksumAddress());
+  EXPECT_EQ(ti->tx_hash, meta.tx_hash);
+  EXPECT_EQ(ti->tx_status, meta.status);
+  EXPECT_EQ(ti->tx_data->base_data->nonce,
+            Uint256ValueToHex(meta.tx->nonce().value()));
+  EXPECT_EQ(ti->tx_data->base_data->gas_price,
             Uint256ValueToHex(meta.tx->gas_price()));
-  ASSERT_EQ(ti->tx_data->base_data->gas_limit,
+  EXPECT_EQ(ti->tx_data->base_data->gas_limit,
             Uint256ValueToHex(meta.tx->gas_limit()));
-  ASSERT_EQ(ti->tx_data->base_data->to, meta.tx->to().ToHex());
-  ASSERT_EQ(ti->tx_data->base_data->value, Uint256ValueToHex(meta.tx->value()));
-  ASSERT_EQ(ti->tx_data->base_data->data, meta.tx->data());
-  ASSERT_EQ(ti->tx_data->chain_id, "");
-  ASSERT_EQ(ti->tx_data->max_priority_fee_per_gas, "");
-  ASSERT_EQ(ti->tx_data->max_fee_per_gas, "");
+  EXPECT_EQ(ti->tx_data->base_data->to, meta.tx->to().ToHex());
+  EXPECT_EQ(ti->tx_data->base_data->value, Uint256ValueToHex(meta.tx->value()));
+  EXPECT_EQ(ti->tx_data->base_data->data, meta.tx->data());
+  EXPECT_EQ(ti->tx_data->chain_id, "");
+  EXPECT_EQ(ti->tx_data->max_priority_fee_per_gas, "");
+  EXPECT_EQ(ti->tx_data->max_fee_per_gas, "");
+  EXPECT_FALSE(ti->tx_data->gas_estimation);
+  EXPECT_EQ(meta.created_time.ToJavaTime(), ti->created_time.InMilliseconds());
+  EXPECT_EQ(meta.submitted_time.ToJavaTime(),
+            ti->submitted_time.InMilliseconds());
+  EXPECT_EQ(meta.confirmed_time.ToJavaTime(),
+            ti->confirmed_time.InMilliseconds());
 
   // type 1
   std::unique_ptr<Eip2930Transaction> tx1 =
@@ -445,26 +518,29 @@ TEST_F(EthTxStateManagerUnitTest, TxMetaToTransactionInfo) {
   item_a.storage_keys.push_back(storage_key_0);
   access_list->push_back(item_a);
   EthTxStateManager::TxMeta meta1(std::move(tx1));
+  meta1.from =
+      EthAddress::FromHex("0x2f015c60e0be116b1f0cd534704db9c92118fb6a");
   mojom::TransactionInfoPtr ti1 =
       EthTxStateManager::TxMetaToTransactionInfo(meta1);
-  ASSERT_EQ(ti1->id, meta1.id);
-  ASSERT_EQ(ti1->from_address, meta1.from.ToHex());
-  ASSERT_EQ(ti1->tx_hash, meta1.tx_hash);
-  ASSERT_EQ(ti1->tx_status, meta1.status);
-  ASSERT_EQ(ti1->tx_data->base_data->nonce,
-            Uint256ValueToHex(meta1.tx->nonce()));
-  ASSERT_EQ(ti1->tx_data->base_data->gas_price,
+  EXPECT_EQ(ti1->id, meta1.id);
+  EXPECT_EQ(ti1->from_address, meta1.from.ToChecksumAddress());
+  EXPECT_EQ(ti1->tx_hash, meta1.tx_hash);
+  EXPECT_EQ(ti1->tx_status, meta1.status);
+  EXPECT_EQ(ti1->tx_data->base_data->nonce,
+            Uint256ValueToHex(meta1.tx->nonce().value()));
+  EXPECT_EQ(ti1->tx_data->base_data->gas_price,
             Uint256ValueToHex(meta1.tx->gas_price()));
-  ASSERT_EQ(ti1->tx_data->base_data->gas_limit,
+  EXPECT_EQ(ti1->tx_data->base_data->gas_limit,
             Uint256ValueToHex(meta1.tx->gas_limit()));
-  ASSERT_EQ(ti1->tx_data->base_data->to, meta1.tx->to().ToHex());
-  ASSERT_EQ(ti1->tx_data->base_data->value,
+  EXPECT_EQ(ti1->tx_data->base_data->to, meta1.tx->to().ToHex());
+  EXPECT_EQ(ti1->tx_data->base_data->value,
             Uint256ValueToHex(meta1.tx->value()));
-  ASSERT_EQ(ti1->tx_data->base_data->data, meta1.tx->data());
+  EXPECT_EQ(ti1->tx_data->base_data->data, meta1.tx->data());
   auto* tx2930 = reinterpret_cast<Eip2930Transaction*>(meta1.tx.get());
-  ASSERT_EQ(ti1->tx_data->chain_id, Uint256ValueToHex(tx2930->chain_id()));
-  ASSERT_EQ(ti1->tx_data->max_priority_fee_per_gas, "");
-  ASSERT_EQ(ti1->tx_data->max_fee_per_gas, "");
+  EXPECT_EQ(ti1->tx_data->chain_id, Uint256ValueToHex(tx2930->chain_id()));
+  EXPECT_EQ(ti1->tx_data->max_priority_fee_per_gas, "");
+  EXPECT_EQ(ti1->tx_data->max_fee_per_gas, "");
+  EXPECT_FALSE(ti1->tx_data->gas_estimation);
 
   // type2
   std::unique_ptr<Eip1559Transaction> tx2 =
@@ -473,30 +549,80 @@ TEST_F(EthTxStateManagerUnitTest, TxMetaToTransactionInfo) {
               mojom::TxData::New("0x09", "0x4a817c800", "0x5208",
                                  "0x3535353535353535353535353535353535353535",
                                  "0x0de0b6b3a7640000", std::vector<uint8_t>()),
-              "0x3", "0x1E", "0x32")));
+              "0x3", "0x1E", "0x32",
+              mojom::GasEstimation1559::New(
+                  "0x3b9aca00" /* Hex of 1 * 1e9 */,
+                  "0xaf16b1600" /* Hex of 47 * 1e9 */,
+                  "0x77359400" /* Hex of 2 * 1e9 */,
+                  "0xb2d05e000" /* Hex of 48 * 1e9 */,
+                  "0xb2d05e00" /* Hex of 3 * 1e9 */,
+                  "0xb68a0aa00" /* Hex of 49 * 1e9 */,
+                  "0xad8075b7a" /* Hex of 46574033786 */))));
   EthTxStateManager::TxMeta meta2(std::move(tx2));
+  meta2.from =
+      EthAddress::FromHex("0x2f015c60e0be116b1f0cd534704db9c92118fb6a");
   mojom::TransactionInfoPtr ti2 =
       EthTxStateManager::TxMetaToTransactionInfo(meta2);
-  ASSERT_EQ(ti2->id, meta2.id);
-  ASSERT_EQ(ti2->from_address, meta2.from.ToHex());
-  ASSERT_EQ(ti2->tx_hash, meta2.tx_hash);
-  ASSERT_EQ(ti2->tx_status, meta2.status);
-  ASSERT_EQ(ti2->tx_data->base_data->nonce,
-            Uint256ValueToHex(meta2.tx->nonce()));
-  ASSERT_EQ(ti2->tx_data->base_data->gas_price,
+  EXPECT_EQ(ti2->id, meta2.id);
+  EXPECT_EQ(ti2->from_address, meta2.from.ToChecksumAddress());
+  EXPECT_EQ(ti2->tx_hash, meta2.tx_hash);
+  EXPECT_EQ(ti2->tx_status, meta2.status);
+  EXPECT_EQ(ti2->tx_data->base_data->nonce,
+            Uint256ValueToHex(meta2.tx->nonce().value()));
+  EXPECT_EQ(ti2->tx_data->base_data->gas_price,
             Uint256ValueToHex(meta2.tx->gas_price()));
-  ASSERT_EQ(ti2->tx_data->base_data->gas_limit,
+  EXPECT_EQ(ti2->tx_data->base_data->gas_limit,
             Uint256ValueToHex(meta2.tx->gas_limit()));
-  ASSERT_EQ(ti2->tx_data->base_data->to, meta2.tx->to().ToHex());
-  ASSERT_EQ(ti2->tx_data->base_data->value,
+  EXPECT_EQ(ti2->tx_data->base_data->to, meta2.tx->to().ToHex());
+  EXPECT_EQ(ti2->tx_data->base_data->value,
             Uint256ValueToHex(meta2.tx->value()));
-  ASSERT_EQ(ti2->tx_data->base_data->data, meta2.tx->data());
+  EXPECT_EQ(ti2->tx_data->base_data->data, meta2.tx->data());
   auto* tx1559 = reinterpret_cast<Eip1559Transaction*>(meta2.tx.get());
-  ASSERT_EQ(ti2->tx_data->chain_id, Uint256ValueToHex(tx1559->chain_id()));
-  ASSERT_EQ(ti2->tx_data->max_priority_fee_per_gas,
+  EXPECT_EQ(ti2->tx_data->chain_id, Uint256ValueToHex(tx1559->chain_id()));
+  EXPECT_EQ(ti2->tx_data->max_priority_fee_per_gas,
             Uint256ValueToHex(tx1559->max_priority_fee_per_gas()));
-  ASSERT_EQ(ti2->tx_data->max_fee_per_gas,
+  EXPECT_EQ(ti2->tx_data->max_fee_per_gas,
             Uint256ValueToHex(tx1559->max_fee_per_gas()));
+  ASSERT_TRUE(ti2->tx_data->gas_estimation);
+  EXPECT_EQ(ti2->tx_data->gas_estimation->slow_max_priority_fee_per_gas,
+            Uint256ValueToHex(
+                tx1559->gas_estimation().slow_max_priority_fee_per_gas));
+  EXPECT_EQ(
+      ti2->tx_data->gas_estimation->avg_max_priority_fee_per_gas,
+      Uint256ValueToHex(tx1559->gas_estimation().avg_max_priority_fee_per_gas));
+  EXPECT_EQ(ti2->tx_data->gas_estimation->fast_max_priority_fee_per_gas,
+            Uint256ValueToHex(
+                tx1559->gas_estimation().fast_max_priority_fee_per_gas));
+  EXPECT_EQ(ti2->tx_data->gas_estimation->slow_max_fee_per_gas,
+            Uint256ValueToHex(tx1559->gas_estimation().slow_max_fee_per_gas));
+  EXPECT_EQ(ti2->tx_data->gas_estimation->avg_max_fee_per_gas,
+            Uint256ValueToHex(tx1559->gas_estimation().avg_max_fee_per_gas));
+  EXPECT_EQ(ti2->tx_data->gas_estimation->fast_max_fee_per_gas,
+            Uint256ValueToHex(tx1559->gas_estimation().fast_max_fee_per_gas));
+  EXPECT_EQ(ti2->tx_data->gas_estimation->base_fee_per_gas,
+            Uint256ValueToHex(tx1559->gas_estimation().base_fee_per_gas));
+}
+
+TEST_F(EthTxStateManagerUnitTest, Observer) {
+  TestEthTxStateManagerObserver observer;
+  EthTxStateManager tx_state_manager(GetPrefs(), rpc_controller_.get());
+  tx_state_manager.AddObserver(&observer);
+
+  EthTxStateManager::TxMeta meta;
+  meta.id = "001";
+  // Add
+  tx_state_manager.AddOrUpdateTx(meta);
+  observer.ExpectMatch("001", mojom::TransactionStatus::Unapproved);
+  EXPECT_TRUE(observer.NewUnapprovedTxFired());
+  EXPECT_FALSE(observer.TxStatusChangedFired());
+  observer.Reset();
+  // Modify
+  meta.status = mojom::TransactionStatus::Approved;
+  tx_state_manager.AddOrUpdateTx(meta);
+  observer.ExpectMatch("001", mojom::TransactionStatus::Approved);
+  EXPECT_FALSE(observer.NewUnapprovedTxFired());
+  EXPECT_TRUE(observer.TxStatusChangedFired());
+  observer.Reset();
 }
 
 }  // namespace brave_wallet

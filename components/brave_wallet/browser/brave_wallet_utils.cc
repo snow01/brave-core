@@ -16,17 +16,18 @@
 #include "base/logging.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_split.h"
-#include "base/strings/string_util.h"
 #include "base/strings/stringprintf.h"
 #include "base/time/time.h"
 #include "base/values.h"
 #include "brave/components/brave_wallet/browser/pref_names.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "brave/components/brave_wallet/common/features.h"
+#include "brave/components/brave_wallet/common/hex_utils.h"
 #include "brave/components/brave_wallet/common/value_conversion_utils.h"
 #include "brave/third_party/ethash/src/include/ethash/keccak.h"
 #include "brave/vendor/bip39wally-core-native/include/wally_bip39.h"
 #include "components/prefs/pref_service.h"
+#include "components/prefs/scoped_user_pref_update.h"
 #include "crypto/random.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/boringssl/src/include/openssl/evp.h"
@@ -39,6 +40,7 @@
 namespace brave_wallet {
 
 namespace {
+
 std::string GenerateMnemonicInternal(uint8_t* entropy, size_t size) {
   char* words = nullptr;
   std::string result;
@@ -49,6 +51,15 @@ std::string GenerateMnemonicInternal(uint8_t* entropy, size_t size) {
   result = words;
   wally_free_string(words);
   return result;
+}
+
+bool IsValidEntropySize(size_t entropy_size) {
+  // entropy size should be 128, 160, 192, 224, 256 bits
+  if (entropy_size < 16 || entropy_size > 32 || entropy_size % 4 != 0) {
+    LOG(ERROR) << __func__ << ": Entropy should be 16, 20, 24, 28, 32 bytes";
+    return false;
+  }
+  return true;
 }
 
 std::string GetInfuraProjectID() {
@@ -66,6 +77,8 @@ bool GetUseStagingInfuraEndpoint() {
   return env->HasVar("BRAVE_INFURA_STAGING");
 }
 
+const char kGanacheLocalhostURL[] = "http://localhost:7545/";
+
 // Precompiled networks available in native wallet.
 const brave_wallet::mojom::EthereumChain kKnownNetworks[] = {
     {brave_wallet::mojom::kMainnetChainId,
@@ -75,7 +88,8 @@ const brave_wallet::mojom::EthereumChain kKnownNetworks[] = {
      {},
      "ETH",
      "Ethereum",
-     18},
+     18,
+     true},
     {brave_wallet::mojom::kRinkebyChainId,
      "Rinkeby Test Network",
      {"https://rinkeby.etherscan.io"},
@@ -83,7 +97,8 @@ const brave_wallet::mojom::EthereumChain kKnownNetworks[] = {
      {},
      "ETH",
      "Ethereum",
-     18},
+     18,
+     true},
     {brave_wallet::mojom::kRopstenChainId,
      "Ropsten Test Network",
      {"https://ropsten.etherscan.io"},
@@ -91,7 +106,8 @@ const brave_wallet::mojom::EthereumChain kKnownNetworks[] = {
      {},
      "ETH",
      "Ethereum",
-     18},
+     18,
+     true},
     {brave_wallet::mojom::kGoerliChainId,
      "Goerli Test Network",
      {"https://goerli.etherscan.io"},
@@ -99,7 +115,8 @@ const brave_wallet::mojom::EthereumChain kKnownNetworks[] = {
      {},
      "ETH",
      "Ethereum",
-     18},
+     18,
+     true},
     {brave_wallet::mojom::kKovanChainId,
      "Kovan Test Network",
      {"https://kovan.etherscan.io"},
@@ -107,15 +124,17 @@ const brave_wallet::mojom::EthereumChain kKnownNetworks[] = {
      {},
      "ETH",
      "Ethereum",
-     18},
+     18,
+     true},
     {brave_wallet::mojom::kLocalhostChainId,
      "Localhost",
-     {"http://localhost:8545/"},
+     {kGanacheLocalhostURL},
      {},
-     {"http://localhost:8545/"},
+     {kGanacheLocalhostURL},
      "ETH",
      "Ethereum",
-     18}};
+     18,
+     false}};
 
 const base::flat_map<std::string, std::string> kInfuraSubdomains = {
     {brave_wallet::mojom::kMainnetChainId, "mainnet"},
@@ -123,6 +142,23 @@ const base::flat_map<std::string, std::string> kInfuraSubdomains = {
     {brave_wallet::mojom::kRopstenChainId, "ropsten"},
     {brave_wallet::mojom::kGoerliChainId, "goerli"},
     {brave_wallet::mojom::kKovanChainId, "kovan"}};
+
+const base::flat_map<std::string, std::string>
+    kUnstoppableDomainsProxyReaderContractAddressMap = {
+        {brave_wallet::mojom::kMainnetChainId,
+         "0xa6E7cEf2EDDEA66352Fd68E5915b60BDbb7309f5"},
+        {brave_wallet::mojom::kRinkebyChainId,
+         "0x3A2e74CF832cbA3d77E72708d55370119E4323a6"}};
+
+const base::flat_map<std::string, std::string> kEnsRegistryContractAddressMap =
+    {{brave_wallet::mojom::kMainnetChainId,
+      "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"},
+     {brave_wallet::mojom::kRopstenChainId,
+      "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"},
+     {brave_wallet::mojom::kRinkebyChainId,
+      "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"},
+     {brave_wallet::mojom::kGoerliChainId,
+      "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"}};
 
 std::string GetInfuraURLForKnownChainId(const std::string& chain_id) {
   auto subdomain = brave_wallet::GetInfuraSubdomainForKnownChainId(chain_id);
@@ -150,11 +186,15 @@ GURL GetCustomChainURL(PrefService* prefs, const std::string& chain_id) {
 
 }  // namespace
 
-mojom::EthereumChainPtr GetKnownChain(const std::string& chain_id) {
+mojom::EthereumChainPtr GetKnownChain(PrefService* prefs,
+                                      const std::string& chain_id) {
   for (const auto& network : kKnownNetworks) {
     if (network.chain_id != chain_id)
       continue;
+
     auto result = network.Clone();
+    if (chain_id == brave_wallet::mojom::kLocalhostChainId)
+      result->is_eip1559 = prefs->GetBoolean(kSupportEip1559OnLocalhostChain);
     if (result->rpc_urls.empty())
       result->rpc_urls.push_back(GetInfuraURLForKnownChainId(chain_id));
     return result;
@@ -187,23 +227,11 @@ bool IsNativeWalletEnabled() {
       brave_wallet::features::kNativeBraveWalletFeature);
 }
 
-const std::vector<brave_wallet::mojom::EthereumChain> GetAllKnownNetworks() {
+const std::vector<brave_wallet::mojom::EthereumChain>
+GetAllKnownNetworksForTesting() {
   std::vector<brave_wallet::mojom::EthereumChain> result;
   result.assign(kKnownNetworks, std::end(kKnownNetworks));
   return result;
-}
-
-std::string ToHex(const std::string& data) {
-  if (data.empty()) {
-    return "0x0";
-  }
-  return "0x" + base::ToLowerASCII(base::HexEncode(data.data(), data.size()));
-}
-
-std::string ToHex(const std::vector<uint8_t>& data) {
-  if (data.empty())
-    return "0x0";
-  return "0x" + base::ToLowerASCII(base::HexEncode(data));
 }
 
 std::string KeccakHash(const std::string& input, bool to_hex) {
@@ -221,81 +249,6 @@ std::vector<uint8_t> KeccakHash(const std::vector<uint8_t>& input) {
 std::string GetFunctionHash(const std::string& input) {
   std::string result = KeccakHash(input);
   return result.substr(0, std::min(static_cast<size_t>(10), result.length()));
-}
-
-// Pads a hex encoded parameter to 32-bytes
-// i.e. 64 hex characters.
-bool PadHexEncodedParameter(const std::string& hex_input, std::string* out) {
-  if (!out) {
-    return false;
-  }
-  if (!IsValidHexString(hex_input)) {
-    return false;
-  }
-  if (hex_input.length() >= 64 + 2) {
-    *out = hex_input;
-    return true;
-  }
-  std::string hex_substr = hex_input.substr(2);
-  size_t padding_len = 64 - hex_substr.length();
-  std::string padding(padding_len, '0');
-
-  *out = "0x" + padding + hex_substr;
-  return true;
-}
-
-// Determines if the passed in hex string is valid
-bool IsValidHexString(const std::string& hex_input) {
-  if (hex_input.length() < 3) {
-    return false;
-  }
-  if (!base::StartsWith(hex_input, "0x")) {
-    return false;
-  }
-  for (const auto& c : hex_input.substr(2)) {
-    if (!base::IsHexDigit(c)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-// Takes 2 inputs prefixed by 0x and combines them into an output with a single
-// 0x. For example 0x1 and 0x2 would return 0x12
-bool ConcatHexStrings(const std::string& hex_input1,
-                      const std::string& hex_input2,
-                      std::string* out) {
-  if (!out) {
-    return false;
-  }
-  if (!IsValidHexString(hex_input1) || !IsValidHexString(hex_input2)) {
-    return false;
-  }
-  *out = hex_input1 + hex_input2.substr(2);
-  return true;
-}
-
-bool ConcatHexStrings(const std::vector<std::string>& hex_inputs,
-                      std::string* out) {
-  if (!out) {
-    return false;
-  }
-  if (hex_inputs.empty()) {
-    return false;
-  }
-  if (!IsValidHexString(hex_inputs[0])) {
-    return false;
-  }
-
-  *out = hex_inputs[0];
-  for (size_t i = 1; i < hex_inputs.size(); i++) {
-    if (!IsValidHexString(hex_inputs[i])) {
-      return false;
-    }
-    *out += hex_inputs[i].substr(2);
-  }
-
-  return true;
 }
 
 // Takes a hex string as input and converts it to a uint256_t
@@ -332,11 +285,8 @@ std::string Uint256ValueToHex(uint256_t input) {
 }
 
 std::string GenerateMnemonic(size_t entropy_size) {
-  // entropy size should be 128, 160, 192, 224, 256 bits
-  if (entropy_size < 16 || entropy_size > 32 || entropy_size % 4 != 0) {
-    LOG(ERROR) << __func__ << ": Entropy should be 16, 20, 24, 28, 32 bytes";
+  if (!IsValidEntropySize(entropy_size))
     return "";
-  }
 
   std::vector<uint8_t> entropy(entropy_size);
   crypto::RandBytes(&entropy[0], entropy.size());
@@ -352,10 +302,9 @@ std::string GenerateMnemonicForTest(const std::vector<uint8_t>& entropy) {
 std::unique_ptr<std::vector<uint8_t>> MnemonicToSeed(
     const std::string& mnemonic,
     const std::string& passphrase) {
-  if (!IsValidMnemonic(mnemonic)) {
-    LOG(ERROR) << __func__ << ": Invalid mnemonic: " << mnemonic;
+  if (!IsValidMnemonic(mnemonic))
     return nullptr;
-  }
+
   std::unique_ptr<std::vector<uint8_t>> seed =
       std::make_unique<std::vector<uint8_t>>(64);
   const std::string salt = "mnemonic" + passphrase;
@@ -366,8 +315,54 @@ std::unique_ptr<std::vector<uint8_t>> MnemonicToSeed(
   return rv == 1 ? std::move(seed) : nullptr;
 }
 
+std::unique_ptr<std::vector<uint8_t>> MnemonicToEntropy(
+    const std::string& mnemonic) {
+  if (!IsValidMnemonic(mnemonic))
+    return nullptr;
+
+  const std::vector<std::string> words = SplitString(
+      mnemonic, " ", base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
+  // size in bytes
+  size_t entropy_size = 0;
+  switch (words.size()) {
+    case 12:
+      entropy_size = 16;
+      break;
+    case 15:
+      entropy_size = 20;
+      break;
+    case 18:
+      entropy_size = 24;
+      break;
+    case 21:
+      entropy_size = 28;
+      break;
+    case 24:
+      entropy_size = 32;
+      break;
+    default:
+      NOTREACHED();
+  }
+  DCHECK(IsValidEntropySize(entropy_size)) << entropy_size;
+
+  std::unique_ptr<std::vector<uint8_t>> entropy =
+      std::make_unique<std::vector<uint8_t>>(entropy_size);
+
+  size_t written;
+  if (bip39_mnemonic_to_bytes(nullptr, mnemonic.c_str(), entropy->data(),
+                              entropy->size(), &written) != WALLY_OK) {
+    LOG(ERROR) << "bip39_mnemonic_to_bytes failed";
+    return nullptr;
+  }
+  return entropy;
+}
+
 bool IsValidMnemonic(const std::string& mnemonic) {
-  return bip39_mnemonic_validate(nullptr, mnemonic.c_str()) == WALLY_OK;
+  if (bip39_mnemonic_validate(nullptr, mnemonic.c_str()) != WALLY_OK) {
+    LOG(ERROR) << __func__ << ": Invalid mnemonic: " << mnemonic;
+    return false;
+  }
+  return true;
 }
 
 bool EncodeString(const std::string& input, std::string* output) {
@@ -634,14 +629,15 @@ absl::optional<TransactionReceipt> ValueToTransactionReceipt(
   return tx_receipt;
 }
 
-void GetAllKnownChains(std::vector<mojom::EthereumChainPtr>* chains) {
+void GetAllKnownChains(PrefService* prefs,
+                       std::vector<mojom::EthereumChainPtr>* chains) {
   for (const auto& network : kKnownNetworks) {
-    chains->push_back(GetKnownChain(network.chain_id));
+    chains->push_back(GetKnownChain(prefs, network.chain_id));
   }
 }
 
 GURL GetNetworkURL(PrefService* prefs, const std::string& chain_id) {
-  mojom::EthereumChainPtr known_network = GetKnownChain(chain_id);
+  mojom::EthereumChainPtr known_network = GetKnownChain(prefs, chain_id);
   if (!known_network)
     return GetCustomChainURL(prefs, chain_id);
 
@@ -653,8 +649,131 @@ GURL GetNetworkURL(PrefService* prefs, const std::string& chain_id) {
 
 void GetAllChains(PrefService* prefs,
                   std::vector<mojom::EthereumChainPtr>* result) {
-  GetAllKnownChains(result);
+  GetAllKnownChains(prefs, result);
   GetAllCustomChains(prefs, result);
+}
+
+std::vector<std::string> GetAllKnownNetworkIds() {
+  std::vector<std::string> network_ids;
+  for (const auto& network : kKnownNetworks) {
+    std::string network_id = GetKnownNetworkId(network.chain_id);
+    if (!network_id.empty())
+      network_ids.push_back(network_id);
+  }
+  return network_ids;
+}
+
+std::string GetKnownNetworkId(const std::string& chain_id) {
+  auto subdomain = GetInfuraSubdomainForKnownChainId(chain_id);
+  if (!subdomain.empty())
+    return subdomain;
+
+  // Separate check for localhost in known networks as it is predefined but
+  // does not have infura subdomain.
+  if (chain_id == mojom::kLocalhostChainId) {
+    for (const auto& network : kKnownNetworks) {
+      if (network.chain_id == chain_id) {
+        return GURL(network.rpc_urls.front()).spec();
+      }
+    }
+  }
+
+  return "";
+}
+
+std::string GetNetworkId(PrefService* prefs, const std::string& chain_id) {
+  DCHECK(prefs);
+
+  std::string id = GetKnownNetworkId(chain_id);
+  if (!id.empty())
+    return id;
+
+  std::vector<mojom::EthereumChainPtr> custom_chains;
+  GetAllCustomChains(prefs, &custom_chains);
+  for (const auto& network : custom_chains) {
+    if (network->chain_id != chain_id)
+      continue;
+    id = chain_id;
+    break;
+  }
+
+  return id;
+}
+
+mojom::DefaultWallet GetDefaultWallet(PrefService* prefs) {
+  return static_cast<brave_wallet::mojom::DefaultWallet>(
+      prefs->GetInteger(kDefaultWallet2));
+}
+
+void SetDefaultWallet(PrefService* prefs, mojom::DefaultWallet default_wallet) {
+  // We should not be using this value anymore
+  DCHECK(default_wallet != mojom::DefaultWallet::AskDeprecated);
+  prefs->SetInteger(kDefaultWallet2, static_cast<int>(default_wallet));
+}
+
+void SetDefaultBaseCurrency(PrefService* prefs, const std::string& currency) {
+  prefs->SetString(kDefaultBaseCurrency, currency);
+}
+
+std::string GetDefaultBaseCurrency(PrefService* prefs) {
+  return prefs->GetString(kDefaultBaseCurrency);
+}
+
+void SetDefaultBaseCryptocurrency(PrefService* prefs,
+                                  const std::string& cryptocurrency) {
+  prefs->SetString(kDefaultBaseCryptocurrency, cryptocurrency);
+}
+
+std::string GetDefaultBaseCryptocurrency(PrefService* prefs) {
+  return prefs->GetString(kDefaultBaseCryptocurrency);
+}
+
+std::string GetUnstoppableDomainsProxyReaderContractAddress(
+    const std::string& chain_id) {
+  if (kUnstoppableDomainsProxyReaderContractAddressMap.contains(chain_id))
+    return kUnstoppableDomainsProxyReaderContractAddressMap.at(chain_id);
+  return "";
+}
+
+std::string GetEnsRegistryContractAddress(const std::string& chain_id) {
+  if (kEnsRegistryContractAddressMap.contains(chain_id))
+    return kEnsRegistryContractAddressMap.at(chain_id);
+  return "";
+}
+
+void AddCustomNetwork(PrefService* prefs, mojom::EthereumChainPtr chain) {
+  DCHECK(prefs);
+
+  absl::optional<base::Value> value = brave_wallet::EthereumChainToValue(chain);
+  if (!value)
+    return;
+
+  {  // Update needs to be done before GetNetworkId below.
+    ListPrefUpdate update(prefs, kBraveWalletCustomNetworks);
+    base::ListValue* list = update.Get();
+    list->Append(std::move(value.value()));
+  }
+
+  const std::string network_id = GetNetworkId(prefs, chain->chain_id);
+  DCHECK(!network_id.empty());  // Not possible for a custom network.
+
+  DictionaryPrefUpdate update(prefs, kBraveWalletUserAssets);
+  base::DictionaryValue* user_assets_pref = update.Get();
+  base::Value* asset_list = user_assets_pref->SetKey(
+      network_id, base::Value(base::Value::Type::LIST));
+
+  base::Value native_asset(base::Value::Type::DICTIONARY);
+  native_asset.SetStringKey("contract_address", "");
+  native_asset.SetStringKey("name", chain->symbol_name);
+  native_asset.SetStringKey("symbol", chain->symbol);
+  native_asset.SetBoolKey("is_erc20", false);
+  native_asset.SetBoolKey("is_erc721", false);
+  native_asset.SetIntKey("decimals", chain->decimals);
+  native_asset.SetBoolKey("visible", true);
+  native_asset.SetStringKey(
+      "logo", chain->icon_urls.empty() ? "" : chain->icon_urls[0]);
+
+  asset_list->Append(std::move(native_asset));
 }
 
 }  // namespace brave_wallet

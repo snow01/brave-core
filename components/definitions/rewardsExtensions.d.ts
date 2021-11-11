@@ -70,6 +70,7 @@ declare namespace RewardsExtension {
   export interface Promotion {
     promotionId: string
     amount: number
+    createdAt: number
     expiresAt: number
     status: PromotionStatus
     type: PromotionTypes
@@ -194,5 +195,6 @@ declare namespace RewardsExtension {
     userName: string
     accountUrl: string
     loginUrl: string
+    activityUrl: string
   }
 }

@@ -1,8 +1,7 @@
 import("//brave/browser/ethereum_remote_client/buildflags/buildflags.gni")
-import("//brave/browser/translate/buildflags/buildflags.gni")
 import("//brave/build/config.gni")
+import("//brave/components/brave_today/buildflags/buildflags.gni")
 import("//brave/components/brave_vpn/buildflags/buildflags.gni")
-import("//brave/components/brave_wallet/common/buildflags/buildflags.gni")
 import("//brave/components/brave_wayback_machine/buildflags/buildflags.gni")
 import("//brave/components/decentralized_dns/buildflags/buildflags.gni")
 import("//brave/components/ftx/browser/buildflags/buildflags.gni")
@@ -10,6 +9,7 @@ import("//brave/components/ipfs/buildflags/buildflags.gni")
 import("//brave/components/sidebar/buildflags/buildflags.gni")
 import("//brave/components/speedreader/buildflags.gni")
 import("//brave/components/tor/buildflags/buildflags.gni")
+import("//brave/components/translate/core/common/buildflags.gni")
 import("//build/config/features.gni")
 import("//chrome/common/features.gni")
 import("//components/gcm_driver/config.gni")
@@ -115,6 +115,8 @@ source_set("ui") {
       "webui/settings/brave_privacy_handler.h",
       "webui/settings/brave_sync_handler.cc",
       "webui/settings/brave_sync_handler.h",
+      "webui/settings/brave_wallet_handler.cc",
+      "webui/settings/brave_wallet_handler.h",
       "webui/settings/default_brave_shields_handler.cc",
       "webui/settings/default_brave_shields_handler.h",
     ]
@@ -131,7 +133,7 @@ source_set("ui") {
         "webui/settings/brave_relaunch_handler_mac.mm",
       ]
     }
-  }
+  }  # !is_android
 
   if (toolkit_views) {
     sources += [
@@ -163,6 +165,8 @@ source_set("ui") {
       "views/toolbar/bookmark_button.h",
       "views/toolbar/brave_app_menu.cc",
       "views/toolbar/brave_app_menu.h",
+      "views/web_discovery_dialog_view.cc",
+      "views/web_discovery_dialog_view.h",
     ]
 
     if (use_aura) {
@@ -234,7 +238,6 @@ source_set("ui") {
     "//brave/app/theme:brave_unscaled_resources",
     "//brave/app/vector_icons:vector_icons",
     "//brave/browser:sparkle_buildflags",
-    "//brave/browser/brave_ads",
     "//brave/browser/devtools",
     "//brave/browser/gcm_driver",
     "//brave/browser/profiles",
@@ -242,7 +245,6 @@ source_set("ui") {
 
     # //chrome/browser/ui depends on //brave/browser/ui, add this target here
     # to pull in dependencies needed for the overwrite codes in chromium_src.
-    "//brave/browser/brave_ads",
     "//brave/browser/ui/brave_ads",
     "//brave/browser/ui/brave_tooltips",
     "//brave/chromium_src/chrome/browser/ui",
@@ -256,9 +258,9 @@ source_set("ui") {
     "//brave/components/brave_rewards/resources:internals_generated_resources",
     "//brave/components/brave_rewards/resources:page_generated_resources",
     "//brave/components/brave_rewards/resources:tip_generated_resources",
+    "//brave/components/brave_search/common",
     "//brave/components/brave_shields/browser",
     "//brave/components/brave_vpn/buildflags",
-    "//brave/components/brave_wallet/common/buildflags",
     "//brave/components/brave_wayback_machine:buildflags",
     "//brave/components/cosmetic_filters/resources/data:generated_resources",
     "//brave/components/crypto_dot_com/browser/buildflags:buildflags",
@@ -292,6 +294,7 @@ source_set("ui") {
     "//content/public/common",
     "//services/network/public/cpp",
     "//skia",
+    "//third_party/abseil-cpp:absl",
     "//ui/accessibility",
     "//ui/base",
     "//ui/gfx",
@@ -300,7 +303,10 @@ source_set("ui") {
   ]
 
   if (toolkit_views) {
-    deps += [ "//brave/browser/ui/views/brave_ads" ]
+    deps += [
+      "//brave/browser/ui/views/brave_ads",
+      "//brave/browser/ui/views/brave_tooltips",
+    ]
   }
 
   # This is no longer compiled into Chromium on Android, but we still
@@ -388,12 +394,19 @@ source_set("ui") {
       "//brave/components/brave_new_tab_ui:generated_resources",
       "//brave/components/brave_sync",
       "//brave/components/brave_sync:sync_service_impl_helper",
+      "//brave/components/brave_today/buildflags",
       "//brave/components/brave_welcome_ui:generated_resources",
       "//brave/components/version_info",
       "//chrome/app:chromium_strings",
       "//components/sync_device_info",
       "//third_party/blink/public/common",
     ]
+    if (enable_brave_news) {
+      deps += [
+        "//brave/components/brave_today/browser",
+        "//brave/components/brave_today/common",
+      ]
+    }
   }
 
   if (enable_extensions && toolkit_views) {
@@ -435,6 +448,7 @@ source_set("ui") {
       ]
 
       deps += [
+        "//brave/browser/ethereum_remote_client/buildflags",
         "//brave/components/ipfs/buildflags",
         "//third_party/widevine/cdm:buildflags",
       ]
@@ -468,6 +482,7 @@ source_set("ui") {
       "//brave/components/brave_extension:generated_resources",
       "//brave/components/brave_extension:static_resources",
       "//brave/components/resources:static_resources",
+      "//brave/components/resources:strings_grit",
       "//chrome/browser/extensions",
       "//components/sessions",
       "//extensions/browser",
@@ -495,10 +510,10 @@ source_set("ui") {
 
     if (toolkit_views) {
       sources += [
-        "views/brave_vpn_panel_host.cc",
-        "views/brave_vpn_panel_host.h",
         "views/toolbar/brave_vpn_button.cc",
         "views/toolbar/brave_vpn_button.h",
+        "views/toolbar/brave_vpn_panel_controller.cc",
+        "views/toolbar/brave_vpn_panel_controller.h",
         "views/toolbar/brave_vpn_status_label.cc",
         "views/toolbar/brave_vpn_status_label.h",
         "views/toolbar/brave_vpn_toggle_button.cc",
@@ -524,7 +539,7 @@ source_set("ui") {
     deps += [ "//brave/components/tor/resources:internals_generated_resources" ]
   }
 
-  if (brave_wallet_enabled && !is_android && !is_ios) {
+  if (!is_android && !is_ios) {
     sources += [
       "views/permission_bubble/ethereum_permission_prompt_impl.cc",
       "views/permission_bubble/ethereum_permission_prompt_impl.h",
@@ -532,8 +547,14 @@ source_set("ui") {
       "views/toolbar/wallet_button.h",
       "wallet_bubble_manager_delegate_impl.cc",
       "wallet_bubble_manager_delegate_impl.h",
+      "webui/brave_untrusted_web_ui_controller_factory.cc",
+      "webui/brave_untrusted_web_ui_controller_factory.h",
       "webui/brave_wallet/page_handler/wallet_page_handler.cc",
       "webui/brave_wallet/page_handler/wallet_page_handler.h",
+      "webui/brave_wallet/trezor/trezor_ui.cc",
+      "webui/brave_wallet/trezor/trezor_ui.h",
+      "webui/brave_wallet/wallet_common_ui.cc",
+      "webui/brave_wallet/wallet_common_ui.h",
       "webui/brave_wallet/wallet_page_ui.cc",
       "webui/brave_wallet/wallet_page_ui.h",
       "webui/brave_wallet/wallet_panel_ui.cc",
@@ -549,6 +570,7 @@ source_set("ui") {
       "//brave/components/brave_wallet_ui:resources",
       "//brave/components/brave_wallet_ui/page:brave_wallet_page_generated",
       "//brave/components/brave_wallet_ui/panel:brave_wallet_panel_generated",
+      "//brave/components/brave_wallet_ui/trezor:trezor_bridge_generated",
       "//brave/components/resources:strings_grit",
       "//components/permissions",
     ]

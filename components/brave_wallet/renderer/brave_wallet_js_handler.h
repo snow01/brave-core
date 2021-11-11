@@ -24,7 +24,9 @@ namespace brave_wallet {
 
 class BraveWalletJSHandler : public mojom::EventsListener {
  public:
-  explicit BraveWalletJSHandler(content::RenderFrame* render_frame);
+  explicit BraveWalletJSHandler(content::RenderFrame* render_frame,
+                                bool brave_use_native_wallet,
+                                bool allow_overwrite_window_ethereum);
   ~BraveWalletJSHandler() override;
 
   void AddJavaScriptObjectToFrame(v8::Local<v8::Context> context);
@@ -32,14 +34,17 @@ class BraveWalletJSHandler : public mojom::EventsListener {
   void ConnectEvent();
   void OnGetChainId(const std::string& chain_id);
   void DisconnectEvent(const std::string& message);
-  void AccountsChangedEvent(const std::string& accounts);
-
+  void AccountsChangedEvent(const std::vector<std::string>& accounts) override;
   void ChainChangedEvent(const std::string& chain_id) override;
 
  private:
   void BindFunctionsToObject(v8::Isolate* isolate,
                              v8::Local<v8::Context> context,
                              v8::Local<v8::Object> javascript_object);
+  void UpdateAndBindJSProperties();
+  void UpdateAndBindJSProperties(v8::Isolate* isolate,
+                                 v8::Local<v8::Context> context,
+                                 v8::Local<v8::Object> ethereum_obj);
 
   // Adds a function to the provided object.
   template <typename Sig>
@@ -57,26 +62,100 @@ class BraveWalletJSHandler : public mojom::EventsListener {
   // Functions to be called from JS
   v8::Local<v8::Promise> Request(v8::Isolate* isolate,
                                  v8::Local<v8::Value> input);
+  v8::Local<v8::Promise> RequestBaseValue(
+      v8::Isolate* isolate,
+      std::unique_ptr<base::Value> input_value,
+      bool force_json_response);
   v8::Local<v8::Value> IsConnected();
   v8::Local<v8::Promise> Enable();
+  v8::Local<v8::Promise> Send(gin::Arguments* args);
   void SendAsync(gin::Arguments* args);
+  bool CommonRequestOrSendAsync(
+      std::unique_ptr<base::Value> input_value,
+      v8::Global<v8::Context> global_context,
+      std::unique_ptr<v8::Global<v8::Function>> callback,
+      v8::Global<v8::Promise::Resolver> promise_resolver,
+      v8::Isolate* isolate,
+      bool force_json_response);
 
-  void OnRequest(v8::Global<v8::Promise::Resolver> promise_resolver,
-                 v8::Isolate* isolate,
-                 v8::Global<v8::Context> context_old,
-                 const int http_code,
-                 const std::string& response,
-                 const base::flat_map<std::string, std::string>& headers);
-  void OnSendAsync(std::unique_ptr<v8::Global<v8::Function>> callback,
+  void OnCommonRequestOrSendAsync(
+      base::Value id,
+      v8::Global<v8::Context> global_context,
+      std::unique_ptr<v8::Global<v8::Function>> callback,
+      v8::Global<v8::Promise::Resolver> promise_resolver,
+      v8::Isolate* isolate,
+      bool force_json_response,
+      const int http_code,
+      const std::string& response,
+      const base::flat_map<std::string, std::string>& headers);
+  void OnSendAsync(base::Value id,
+                   v8::Global<v8::Context> global_context,
+                   std::unique_ptr<v8::Global<v8::Function>> callback,
                    const int http_code,
                    const std::string& response,
                    const base::flat_map<std::string, std::string>& headers);
+  void OnEthereumPermissionRequested(
+      base::Value id,
+      v8::Global<v8::Context> global_context,
+      std::unique_ptr<v8::Global<v8::Function>> callback,
+      v8::Global<v8::Promise::Resolver> promise_resolver,
+      v8::Isolate* isolate,
+      bool force_json_response,
+      bool success,
+      const std::vector<std::string>& accounts);
+  void OnGetAllowedAccounts(base::Value id,
+                            v8::Global<v8::Context> global_context,
+                            std::unique_ptr<v8::Global<v8::Function>> callback,
+                            v8::Global<v8::Promise::Resolver> promise_resolver,
+                            v8::Isolate* isolate,
+                            bool force_json_response,
+                            bool success,
+                            const std::vector<std::string>& accounts);
+  void OnAddOrSwitchEthereumChain(
+      base::Value id,
+      v8::Global<v8::Context> global_context,
+      std::unique_ptr<v8::Global<v8::Function>> callback,
+      v8::Global<v8::Promise::Resolver> promise_resolver,
+      v8::Isolate* isolate,
+      bool force_json_response,
+      int provider_error,
+      const std::string& error_message);
+  void OnAddAndApproveTransaction(
+      base::Value id,
+      v8::Global<v8::Context> global_context,
+      std::unique_ptr<v8::Global<v8::Function>> callback,
+      v8::Global<v8::Promise::Resolver> resolver,
+      v8::Isolate* isolate,
+      bool force_json_response,
+      bool success,
+      const std::string& tx_meta_id,
+      const std::string& error_message);
+  void OnSignMessage(base::Value id,
+                     v8::Global<v8::Context> global_context,
+                     std::unique_ptr<v8::Global<v8::Function>> global_callback,
+                     v8::Global<v8::Promise::Resolver> promise_resolver,
+                     v8::Isolate* isolate,
+                     bool force_json_response,
+                     const std::string& signature,
+                     int error,
+                     const std::string& error_message);
+  void SendResponse(base::Value id,
+                    v8::Global<v8::Context> global_context,
+                    std::unique_ptr<v8::Global<v8::Function>> callback,
+                    v8::Global<v8::Promise::Resolver> promise_resolver,
+                    v8::Isolate* isolate,
+                    bool force_json_response,
+                    std::unique_ptr<base::Value> formed_response,
+                    bool success);
 
   content::RenderFrame* render_frame_;
+  bool brave_use_native_wallet_;
+  bool allow_overwrite_window_ethereum_;
   mojo::Remote<mojom::BraveWalletProvider> brave_wallet_provider_;
   mojo::Receiver<mojom::EventsListener> receiver_{this};
   bool is_connected_;
   std::string chain_id_;
+  std::string first_allowed_account_;
   base::WeakPtrFactory<BraveWalletJSHandler> weak_ptr_factory_{this};
 };
 

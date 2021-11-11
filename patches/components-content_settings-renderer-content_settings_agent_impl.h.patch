@@ -1,8 +1,8 @@
 diff --git a/components/content_settings/renderer/content_settings_agent_impl.h b/components/content_settings/renderer/content_settings_agent_impl.h
-index b018a8b9149ac4732c06eb95620c283fb60e58cd..0b9a1b3b1522d08cbd6954d1ad331696ec26cbc1 100644
+index e618979c959c3d0f6c78bbcdc14cd184c976bb34..96f0575b2c9239b082258750bd07bd80307aa76f 100644
 --- a/components/content_settings/renderer/content_settings_agent_impl.h
 +++ b/components/content_settings/renderer/content_settings_agent_impl.h
-@@ -118,6 +118,7 @@ class ContentSettingsAgentImpl
+@@ -123,6 +123,7 @@ class ContentSettingsAgentImpl
      content_settings_manager_ = std::move(manager);
    }
  

@@ -11,6 +11,8 @@
 #include "base/check.h"
 #include "base/strings/string_split.h"
 #include "bat/ads/internal/catalog/catalog.h"
+#include "bat/ads/internal/catalog/catalog_campaign_info.h"
+#include "bat/ads/internal/catalog/catalog_creative_set_info_aliases.h"
 #include "bat/ads/internal/client/client.h"
 #include "bat/ads/internal/client/preferences/filtered_category_info.h"
 
@@ -55,6 +57,7 @@ SegmentList GetSegments(const Catalog& catalog) {
     for (const auto& catalog_creative_set : catalog_creative_sets) {
       CatalogSegmentList catalog_segments = catalog_creative_set.segments;
       for (const auto& catalog_segment : catalog_segments) {
+        DCHECK(!catalog_segment.name.empty());
         segments.push_back(catalog_segment.name);
       }
     }
@@ -78,7 +81,11 @@ SegmentList GetParentSegments(const SegmentList& segments) {
   SegmentList parent_segments;
 
   for (const auto& segment : segments) {
+    DCHECK(!segment.empty());
+
     const std::string parent_segment = GetParentSegment(segment);
+    DCHECK(!parent_segment.empty());
+
     parent_segments.push_back(parent_segment);
   }
 
@@ -111,14 +118,14 @@ bool ShouldFilterSegment(const std::string& segment) {
   DCHECK(!segment.empty());
 
   const FilteredCategoryList filtered_segments =
-      Client::Get()->get_filtered_categories();
+      Client::Get()->GetFilteredCategories();
 
   if (filtered_segments.empty()) {
     return false;
   }
 
   const auto iter = std::find_if(
-      filtered_segments.begin(), filtered_segments.end(),
+      filtered_segments.cbegin(), filtered_segments.cend(),
       [&segment](const FilteredCategoryInfo& filtered_segment) {
         if (HasChildSegment(filtered_segment.name)) {
           // Filter against parent-child, i.e. "technology & computing-linux"

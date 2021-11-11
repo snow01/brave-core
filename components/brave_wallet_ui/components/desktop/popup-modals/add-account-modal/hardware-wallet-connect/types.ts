@@ -1,9 +1,7 @@
-import locale from '../../../../../constants/locale'
-
-export enum HardwareWallet {
-  Ledger = 'Ledger',
-  Trezor = 'Trezor'
-}
+import {
+  LEDGER_HARDWARE_VENDOR,
+  TREZOR_HARDWARE_VENDOR
+} from '../../../../../constants/types'
 
 export enum LedgerDerivationPaths {
   LedgerLive = 'ledger-live',
@@ -15,30 +13,44 @@ export enum TrezorDerivationPaths {
 }
 
 export const HardwareWalletDerivationPathLocaleMapping = {
-  [LedgerDerivationPaths.LedgerLive]: locale.ledgerLiveDerivationPath,
-  [LedgerDerivationPaths.Legacy]: locale.ledgerLegacyDerivationPath,
+  [LedgerDerivationPaths.LedgerLive]: 'Ledger Live',
+  [LedgerDerivationPaths.Legacy]: 'Legacy (MEW/MyCrypto)',
   [TrezorDerivationPaths.Default]: 'Default'
 }
 
 export const HardwareWalletDerivationPathsMapping = {
-  [HardwareWallet.Ledger]: LedgerDerivationPaths,
-  [HardwareWallet.Trezor]: TrezorDerivationPaths
+  [LEDGER_HARDWARE_VENDOR]: LedgerDerivationPaths,
+  [TREZOR_HARDWARE_VENDOR]: TrezorDerivationPaths
 }
 
 export interface HardwareWalletConnectOpts {
-  hardware: HardwareWallet
-
+  hardware: string
   // TODO: add currency and network as enums
   // currency: string
   // network: string
 
   startIndex: number
   stopIndex: number
+  scheme: string
 }
 
+// Keep in sync with components/brave_wallet/common/brave_wallet.mojom until
+// we auto generate this type file from mojo.
 export interface HardwareWalletAccount {
   address: string
   derivationPath: string
-  balance: string
-  ticker: string
+  name: string
+  hardwareVendor: string
+  deviceId: string
+}
+
+export interface ErrorMessage {
+  error: string
+  userHint: string
+}
+
+export interface TrezorBridgeAccountsPayload {
+  success: boolean,
+  accounts: HardwareWalletAccount[],
+  error?: string
 }

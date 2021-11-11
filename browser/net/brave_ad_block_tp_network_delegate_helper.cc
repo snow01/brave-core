@@ -12,6 +12,7 @@
 
 #include "base/base64url.h"
 #include "base/feature_list.h"
+#include "base/metrics/histogram_macros.h"
 #include "base/strings/string_util.h"
 #include "brave/browser/brave_browser_process.h"
 #include "brave/browser/brave_shields/brave_shields_web_contents_observer.h"
@@ -52,6 +53,15 @@ network::HostResolver* g_testing_host_resolver;
 void SetAdblockCnameHostResolverForTesting(
     network::HostResolver* host_resolver) {
   g_testing_host_resolver = host_resolver;
+}
+
+// These strings are duplicated in subresource_redirect_util.cc and
+// private_cdn_util.cc.
+std::array<std::string, 4> pcdn_domains{
+    "pcdn.brave.com", "pcdn.bravesoftware.com", "pcdn.brave.software"};
+
+void SetRedirectUrlAllowedDomainForTesting(std::string domain) {
+  pcdn_domains[0] = domain;
 }
 
 // Used to keep track of state between a primary adblock engine query and one
@@ -159,6 +169,14 @@ class AdblockCnameResolveHostClient : public network::mojom::ResolveHostClient {
   }
 };
 
+bool IsValidPrivateCDNDomain(GURL url) {
+  for (const base::StringPiece domain : pcdn_domains) {
+    if (url.DomainIs(domain))
+      return true;
+  }
+  return false;
+}
+
 // If `canonical_url` is specified, this will only check if the CNAME-uncloaked
 // response should be blocked. Otherwise, it will run the check for the
 // original request URL.
@@ -188,12 +206,33 @@ EngineFlags ShouldBlockRequestOnTaskRunner(
       url_to_check, ctx->resource_type, source_host,
       ctx->aggressive_blocking || force_aggressive,
       &previous_result.did_match_rule, &previous_result.did_match_exception,
-      &previous_result.did_match_important, &ctx->mock_data_url);
+      &previous_result.did_match_important, &ctx->adblock_replacement_url);
 
   if (previous_result.did_match_important ||
       (previous_result.did_match_rule &&
        !previous_result.did_match_exception)) {
     ctx->blocked_by = kAdBlocked;
+  }
+
+  // Check what type of adblock redirect to do, if any
+  const GURL adblock_replacement_gurl(ctx->adblock_replacement_url);
+  if (ctx->blocked_by == kAdBlocked && adblock_replacement_gurl.is_valid()) {
+    // Check if it's a valid redirect URL match
+    const auto should_redirect_url =
+        base::FeatureList::IsEnabled(net::features::kAdblockRedirectUrl) &&
+        adblock_replacement_gurl.SchemeIs(url::kHttpsScheme) &&
+        IsValidPrivateCDNDomain(adblock_replacement_gurl);
+    if (should_redirect_url) {
+      ctx->new_url_spec = ctx->adblock_replacement_url;
+      ctx->adblock_redirect_type = AdblockRedirectType::kRemote;  // UNUSED
+    } else if (adblock_replacement_gurl.SchemeIs(url::kDataScheme)) {
+      ctx->adblock_redirect_type = AdblockRedirectType::kLocal;
+    } else {
+      // To avoid breakage, if we can't do the adblock redirect, don't block
+      // the resource. Note that this is only reached if there was a
+      // Redirection::Resource or Redirection::Url set in lib.rs
+      ctx->blocked_by = kNotBlocked;
+    }
   }
 
   return previous_result;
@@ -246,7 +285,10 @@ void UseCnameResult(scoped_refptr<base::SequencedTaskRunner> task_runner,
 // If only particular types of network traffic are being proxied, or if no
 // proxy is configured, it should be safe to continue making unproxied DNS
 // queries. However, in SingleProxy mode all types of network traffic should go
-// through the proxy, so additional DNS queries should be avoided.
+// through the proxy, so additional DNS queries should be avoided. Also, in the
+// case of per-scheme proxy configurations, a fallback for any non-matching
+// request can be configured, in which case additional DNS queries should be
+// avoided as well.
 bool ProxySettingsAllowUncloaking(content::BrowserContext* browser_context) {
   DCHECK(browser_context);
 
@@ -258,7 +300,8 @@ bool ProxySettingsAllowUncloaking(content::BrowserContext* browser_context) {
       ProxyServiceFactory::CreatePrefProxyConfigTrackerOfProfile(
           profile->GetPrefs(), nullptr);
   std::unique_ptr<net::ProxyConfigService> proxy_config_service =
-      ProxyServiceFactory::CreateProxyConfigService(config_tracker.get());
+      ProxyServiceFactory::CreateProxyConfigService(config_tracker.get(),
+                                                    profile);
 
   net::ProxyConfigWithAnnotation config;
   net::ProxyConfigService::ConfigAvailability availability =
@@ -268,7 +311,10 @@ bool ProxySettingsAllowUncloaking(content::BrowserContext* browser_context) {
       net::ProxyConfigService::ConfigAvailability::CONFIG_VALID) {
     // PROXY_LIST corresponds to SingleProxy mode.
     if (config.value().proxy_rules().type ==
-        net::ProxyConfig::ProxyRules::Type::PROXY_LIST) {
+            net::ProxyConfig::ProxyRules::Type::PROXY_LIST ||
+        (config.value().proxy_rules().type ==
+             net::ProxyConfig::ProxyRules::Type::PROXY_LIST_PER_SCHEME &&
+         !config.value().proxy_rules().fallback_proxies.IsEmpty())) {
       can_uncloak = false;
     }
   }
@@ -323,10 +369,16 @@ int OnBeforeURLRequest_AdBlockTPPreWork(const ResponseCallback& next_callback,
   // If the following info isn't available, then proper content settings can't
   // be looked up, so do nothing.
   if (ctx->request_url.is_empty() ||
-      ctx->request_url.SchemeIs(content::kChromeDevToolsScheme) ||
       ctx->initiator_url.is_empty() || !ctx->initiator_url.has_host() ||
       !ctx->allow_brave_shields || ctx->allow_ads ||
       ctx->resource_type == BraveRequestInfo::kInvalidResourceType) {
+    return net::OK;
+  }
+
+  // Filter out unnecessary request schemes, to avoid passing large `data:`
+  // URLs to the blocking engine.
+  if (!ctx->request_url.SchemeIsHTTPOrHTTPS() &&
+      !ctx->request_url.SchemeIsWSOrWSS()) {
     return net::OK;
   }
 

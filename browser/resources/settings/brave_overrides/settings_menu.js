@@ -14,6 +14,8 @@ function createMenuElement (title, href, iconName, pageVisibilitySection) {
     menuEl.setAttribute('hidden', `[[!pageVisibility.${pageVisibilitySection}]]`)
   }
   menuEl.href = href
+  menuEl.setAttribute('role', 'menuitem')
+  menuEl.setAttribute('class', 'cr-nav-menu-item')
   const child = document.createElement('iron-icon')
   child.setAttribute('icon', iconName)
   menuEl.appendChild(child)
@@ -133,7 +135,6 @@ RegisterStyleOverride(
         margin-top: 30px !important;
         line-height: 1.25 !important;
         border: none !important;
-        :host { border-radius: 0 !important; }
       }
 
       #advancedButton > iron-icon {
@@ -222,6 +223,14 @@ RegisterPolymerTemplateModifications({
       'shields',
     )
     newTabEl.insertAdjacentElement('afterend', shieldsEl)
+    // Add Rewards item
+    const rewardsEl = createMenuElement(
+      loadTimeData.getString('braveRewards'),
+      '/rewards',
+      'brave_settings:rewards',
+      'rewards',
+    )
+    shieldsEl.insertAdjacentElement('afterend', rewardsEl)
     // Add Embed Blocking item
     const embedEl = createMenuElement(
       loadTimeData.getString('socialBlocking'),
@@ -229,7 +238,7 @@ RegisterPolymerTemplateModifications({
       'brave_settings:social-permissions',
       'socialBlocking',
     )
-    shieldsEl.insertAdjacentElement('afterend', embedEl)
+    rewardsEl.insertAdjacentElement('afterend', embedEl)
     // Add privacy
     const privacyEl = getMenuElement(templateContent, '/privacy')
     embedEl.insertAdjacentElement('afterend', privacyEl)
@@ -273,18 +282,21 @@ RegisterPolymerTemplateModifications({
     const autofillEl = getMenuElement(templateContent, '/autofill')
     const languagesEl = getMenuElement(templateContent, '/languages')
     languagesEl.insertAdjacentElement('beforebegin', autofillEl)
-    // Move safety check after downloads
-    const downloadsEl = getMenuElement(templateContent, '/downloads')
-    const safetyEl = getMenuElement(templateContent, '/safetyCheck')
-    downloadsEl.insertAdjacentElement('afterend', safetyEl)
-    // Move help tips after safety check
+    // Move safety check after downloads and HelpTips after that
     const helpTipsEl = createMenuElement(
       loadTimeData.getString('braveHelpTips'),
       '/braveHelpTips',
       'brave_settings:help',
       'braveHelpTips',
     )
-    safetyEl.insertAdjacentElement('afterend', helpTipsEl)
+    const downloadsEl = getMenuElement(templateContent, '/downloads')
+    if (loadTimeData.getBoolean('enableLandingPageRedesign')) {
+      downloadsEl.insertAdjacentElement('afterend', helpTipsEl)
+    } else {
+      const safetyEl = getMenuElement(templateContent, '/safetyCheck')
+      downloadsEl.insertAdjacentElement('afterend', safetyEl)
+      safetyEl.insertAdjacentElement('afterend', helpTipsEl)
+    }
     // Allow Accessibility to be removed :-(
     const a11yEl = getMenuElement(templateContent, '/accessibility')
     a11yEl.setAttribute('hidden', '[[!pageVisibility.a11y]')

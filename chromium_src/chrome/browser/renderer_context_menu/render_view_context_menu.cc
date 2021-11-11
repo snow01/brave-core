@@ -8,11 +8,12 @@
 #include "brave/browser/ipfs/import/ipfs_import_controller.h"
 #include "brave/browser/profiles/profile_util.h"
 #include "brave/browser/renderer_context_menu/brave_spelling_options_submenu_observer.h"
-#include "brave/browser/translate/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/tor/buildflags/buildflags.h"
+#include "brave/components/translate/core/common/buildflags.h"
 #include "brave/grit/brave_theme_resources.h"
 #include "chrome/browser/autocomplete/chrome_autocomplete_provider_client.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/common/channel_info.h"
 #include "components/omnibox/browser/autocomplete_classifier.h"
 #include "components/omnibox/browser/autocomplete_controller.h"
@@ -34,6 +35,11 @@
 #include "brave/components/ipfs/ipfs_service.h"
 #include "brave/components/ipfs/ipfs_utils.h"
 #endif
+
+#if BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
+#include "brave/browser/translate/brave_translate_utils.h"
+#endif
+
 // Our .h file creates a masquerade for RenderViewContextMenu.  Switch
 // back to the Chromium one for the Chromium implementation.
 #undef RenderViewContextMenu
@@ -90,6 +96,55 @@ void RenderViewContextMenu::RegisterMenuShownCallbackForTesting(
 // Make it clear which class we mean here.
 #undef RenderViewContextMenu
 #undef BRAVE_APPEND_SEARCH_PROVIDER
+
+namespace {
+
+#if BUILDFLAG(ENABLE_TOR)
+bool HasAlreadyOpenedTorWindow(Profile* profile) {
+  for (Browser* browser : *BrowserList::GetInstance()) {
+    if (browser->profile()->IsTor() &&
+        browser->profile()->GetOriginalProfile() == profile)
+      return true;
+  }
+
+  return false;
+}
+
+// Modified OnProfileCreated() in render_view_context_menu.cc
+// to handle additional |use_new_tab| param.
+void OnTorProfileCreated(const GURL& link_url,
+                         bool use_new_tab,
+                         Profile* profile,
+                         Profile::CreateStatus status) {
+  if (status != Profile::CREATE_STATUS_INITIALIZED)
+    return;
+
+  Browser* browser = chrome::FindLastActiveWithProfile(profile);
+  /* |ui::PAGE_TRANSITION_TYPED| is used rather than
+     |ui::PAGE_TRANSITION_LINK| since this ultimately opens the link in
+     another browser. This parameter is used within the tab strip model of
+     the browser it opens in implying a link from the active tab in the
+     destination browser which is not correct. */
+  NavigateParams nav_params(browser, link_url, ui::PAGE_TRANSITION_TYPED);
+  if (use_new_tab) {
+    nav_params.disposition = WindowOpenDisposition::NEW_FOREGROUND_TAB;
+  } else {
+    // Stop current loading to show tab throbber wait spinning till tor is
+    // initialized.
+    if (auto* contents = browser->tab_strip_model()->GetActiveWebContents()) {
+      contents->Stop();
+      nav_params.disposition = WindowOpenDisposition::CURRENT_TAB;
+    }
+  }
+  nav_params.referrer =
+      content::Referrer(GURL(), network::mojom::ReferrerPolicy::kStrictOrigin);
+  nav_params.window_action = NavigateParams::SHOW_WINDOW;
+  Navigate(&nav_params);
+}
+
+#endif
+
+}  // namespace
 
 BraveRenderViewContextMenu::BraveRenderViewContextMenu(
     content::RenderFrameHost* render_frame_host,
@@ -176,14 +231,14 @@ void BraveRenderViewContextMenu::ExecuteCommand(int id, int event_flags) {
       ExecuteIPFSCommand(id, event_flags);
       break;
 #endif
+#if BUILDFLAG(ENABLE_TOR)
     case IDC_CONTENT_CONTEXT_OPENLINKTOR:
       TorProfileManager::SwitchToTorProfile(
           GetProfile(),
-          base::BindRepeating(
-              OnProfileCreated, params_.link_url,
-              content::Referrer(
-                  GURL(), network::mojom::ReferrerPolicy::kStrictOrigin)));
+          base::BindRepeating(OnTorProfileCreated, params_.link_url,
+                              HasAlreadyOpenedTorWindow(GetProfile())));
       break;
+#endif
     default:
       RenderViewContextMenu_Chromium::ExecuteCommand(id, event_flags);
   }
@@ -302,9 +357,7 @@ void BraveRenderViewContextMenu::BuildIPFSMenu() {
 void BraveRenderViewContextMenu::InitMenu() {
   RenderViewContextMenu_Chromium::InitMenu();
 
-#if BUILDFLAG(ENABLE_TOR) || !BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
   int index = -1;
-#endif
 #if BUILDFLAG(ENABLE_TOR)
   // Add Open Link with Tor
   if (!TorProfileServiceFactory::IsTorDisabled() &&
@@ -328,12 +381,19 @@ void BraveRenderViewContextMenu::InitMenu() {
   BuildIPFSMenu();
 #endif
 
+#if BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
+  const bool remove_translate =
+      !translate::IsInternalTranslationEnabled(GetProfile());
+#else
+  const bool remove_translate = true;
+#endif  // BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
+
   // Only show the translate item when go-translate is enabled.
   // This removes menu item, but keeps the duplicated separator. The duplicated
   // separator is removed in |BraveRenderViewContextMenuViews::Show|
-#if !BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
-  index = menu_model_.GetIndexOfCommandId(IDC_CONTENT_CONTEXT_TRANSLATE);
-  if (index != -1)
-    menu_model_.RemoveItemAt(index);
-#endif
+  if (remove_translate) {
+    index = menu_model_.GetIndexOfCommandId(IDC_CONTENT_CONTEXT_TRANSLATE);
+    if (index != -1)
+      menu_model_.RemoveItemAt(index);
+  }
 }

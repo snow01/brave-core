@@ -26,6 +26,7 @@ import org.chromium.base.supplier.Supplier;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ActivityTabProvider;
 import org.chromium.chrome.browser.app.ChromeActivity;
+import org.chromium.chrome.browser.app.tab_activity_glue.TabReparentingController;
 import org.chromium.chrome.browser.bookmarks.BookmarkBridge;
 import org.chromium.chrome.browser.browser_controls.BrowserControlsSizer;
 import org.chromium.chrome.browser.compositor.CompositorViewHolder;
@@ -39,6 +40,7 @@ import org.chromium.chrome.browser.homepage.HomepageManager;
 import org.chromium.chrome.browser.identity_disc.IdentityDiscController;
 import org.chromium.chrome.browser.layouts.LayoutStateProvider;
 import org.chromium.chrome.browser.lifecycle.ActivityLifecycleDispatcher;
+import org.chromium.chrome.browser.merchant_viewer.MerchantTrustSignalsCoordinator;
 import org.chromium.chrome.browser.night_mode.NightModeStateProvider;
 import org.chromium.chrome.browser.omnibox.LocationBar;
 import org.chromium.chrome.browser.profiles.Profile;
@@ -153,7 +155,11 @@ public class BraveToolbarManager extends ToolbarManager {
             @NonNull TabContentManager tabContentManager,
             @NonNull TabCreatorManager tabCreatorManager,
             @NonNull OneshotSupplier<OverviewModeBehavior> overviewModeBehaviorSupplier,
-            @NonNull SnackbarManager snackbarManager, JankTracker jankTracker) {
+            @NonNull SnackbarManager snackbarManager, JankTracker jankTracker,
+            @NonNull Supplier<MerchantTrustSignalsCoordinator>
+                    merchantTrustSignalsCoordinatorSupplier,
+            OneshotSupplier<TabReparentingController> tabReparentingControllerSupplier,
+            boolean initializeWithIncognitoColors) {
         super(activity, controlsSizer, fullscreenManager, controlContainer, compositorViewHolder,
                 urlFocusChangedCallback, topUiThemeColorProvider, tabObscuringHandler,
                 shareDelegateSupplier, identityDiscController, buttonDataProviders, tabProvider,
@@ -165,7 +171,9 @@ public class BraveToolbarManager extends ToolbarManager {
                 isInOverviewModeSupplier, modalDialogManagerSupplier, statusBarColorController,
                 appMenuDelegate, activityLifecycleDispatcher, startSurfaceParentTabSupplier,
                 bottomSheetController, isWarmOnResumeSupplier, tabContentManager, tabCreatorManager,
-                overviewModeBehaviorSupplier, snackbarManager, jankTracker);
+                overviewModeBehaviorSupplier, snackbarManager, jankTracker,
+                merchantTrustSignalsCoordinatorSupplier, tabReparentingControllerSupplier,
+                initializeWithIncognitoColors);
         mOmniboxFocusStateSupplier = omniboxFocusStateSupplier;
         mLayoutStateProviderSupplier = layoutStateProviderSupplier;
         mActivity = activity;
@@ -207,7 +215,7 @@ public class BraveToolbarManager extends ToolbarManager {
                     || TabUiFeatureUtilities.isConditionalTabStripEnabled()) {
                 mTabGroupUi = TabManagementModuleProvider.getDelegate().createTabGroupUi(mActivity,
                         mBottomControls.findViewById(R.id.bottom_container_slot),
-                        mAppThemeColorProvider, mScrimCoordinator, mOmniboxFocusStateSupplier,
+                        mIncognitoStateProvider, mScrimCoordinator, mOmniboxFocusStateSupplier,
                         mBottomSheetController, mActivityLifecycleDispatcher,
                         mIsWarmOnResumeSupplier, mTabModelSelector, mTabContentManager,
                         mCompositorViewHolder, mCompositorViewHolder::getDynamicResourceLoader,
@@ -220,11 +228,11 @@ public class BraveToolbarManager extends ToolbarManager {
                             id -> ((ChromeActivity) mActivity).onOptionsItemSelected(id, null)),
                     mActivityTabProvider, mToolbarTabController::openHomepage,
                     mCallbackController.makeCancelable((reason) -> setUrlBarFocus(true, reason)),
-                    mMenuButtonCoordinator.getMenuButtonHelperSupplier(),
+                    mMenuButtonCoordinator.getMenuButtonHelperSupplier(), mAppThemeColorProvider,
                     /* Below are parameters for BottomControlsCoordinator */
                     mActivity, mWindowAndroid, mLayoutManager,
                     mCompositorViewHolder.getResourceManager(), mBrowserControlsSizer,
-                    mFullscreenManager, mBottomControls, mAppThemeColorProvider, mTabGroupUi,
+                    mFullscreenManager, mBottomControls, mTabGroupUi,
                     mOverlayPanelVisibilitySupplier));
             mBottomControls.setBottomControlsCoordinatorSupplier(
                     mBottomControlsCoordinatorSupplier);

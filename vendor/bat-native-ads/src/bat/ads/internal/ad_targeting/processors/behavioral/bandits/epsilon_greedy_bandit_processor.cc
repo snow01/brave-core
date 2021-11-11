@@ -7,7 +7,9 @@
 
 #include <algorithm>
 
+#include "base/check.h"
 #include "base/notreached.h"
+#include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ad_targeting/data_types/behavioral/bandits/epsilon_greedy_bandit_arms.h"
 #include "bat/ads/internal/ad_targeting/data_types/behavioral/bandits/epsilon_greedy_bandit_segments.h"
 #include "bat/ads/internal/ads_client_helper.h"
@@ -58,7 +60,8 @@ EpsilonGreedyBanditArmMap MaybeDeleteArms(
   EpsilonGreedyBanditArmMap updated_arms = arms;
 
   for (const auto& arm : updated_arms) {
-    const auto iter = std::find(kSegments.begin(), kSegments.end(), arm.first);
+    const auto iter =
+        std::find(kSegments.cbegin(), kSegments.cend(), arm.first);
     if (iter != kSegments.end()) {
       continue;
     }
@@ -81,7 +84,10 @@ EpsilonGreedyBandit::EpsilonGreedyBandit() {
 EpsilonGreedyBandit::~EpsilonGreedyBandit() = default;
 
 void EpsilonGreedyBandit::Process(const BanditFeedbackInfo& feedback) {
+  DCHECK(!feedback.segment.empty());
+
   const std::string segment = GetParentSegment(feedback.segment);
+  DCHECK(!segment.empty());
 
   switch (feedback.ad_event_type) {
     case mojom::AdNotificationEventType::kTimedOut:

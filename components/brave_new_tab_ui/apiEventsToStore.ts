@@ -48,9 +48,6 @@ export function wireApiEventsToStore () {
       rewardsInitData()
     }
     getActions().setInitialData(initialData)
-    if (initialData.preferences.showToday) {
-      getActions().today.todayInit()
-    }
     // Listen for API changes and dispatch to store
     topSitesAPI.addMostVistedInfoChangedListener(onMostVisitedInfoChanged)
     topSitesAPI.updateMostVisitedInfo()
@@ -100,7 +97,7 @@ function fetchRewardsData () {
 }
 
 chrome.braveRewards.initialized.addListener((result: any | NewTab.RewardsResult) => {
-  rewardsInitData()
+  fetchRewardsData()
 })
 
 chrome.braveRewards.onAdsEnabled.addListener((enabled: boolean) => {

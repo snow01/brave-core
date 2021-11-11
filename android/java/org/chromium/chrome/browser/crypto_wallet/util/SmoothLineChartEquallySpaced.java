@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public class SmoothLineChartEquallySpaced extends View {
@@ -43,6 +44,7 @@ public class SmoothLineChartEquallySpaced extends View {
 
     private float[] mValues;
     private String[] mDates;
+    private float mMinY;
     private float mMaxY;
     private float mCurrentLineX;
     private int[] colors;
@@ -85,14 +87,16 @@ public class SmoothLineChartEquallySpaced extends View {
         for (int index = 0; index < data.length; index++) {
             mValues[index] = Float.parseFloat(data[index].price);
             Date date = new Date(data[index].date.microseconds / 1000);
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm a");
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
             mDates[index] = dateFormat.format(date);
         }
 
         if (mValues != null && mValues.length > 0) {
+            mMinY = mValues[0];
             mMaxY = mValues[0];
             for (float y : mValues) {
                 if (y > mMaxY) mMaxY = y;
+                if (y < mMinY) mMinY = y;
             }
         }
 
@@ -104,14 +108,16 @@ public class SmoothLineChartEquallySpaced extends View {
         mDates = new String[values.length];
 
         if (values != null && values.length > 0) {
+            mMinY = values[0];
             mMaxY = values[0];
             for (float y : values) {
                 if (y > mMaxY) mMaxY = y;
+                if (y < mMinY) mMinY = y;
             }
         }
         for (int index = 0; index < mValues.length; index++) {
             Date date = new Date();
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm a");
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
             mDates[index] = dateFormat.format(date);
         }
 
@@ -141,7 +147,6 @@ public class SmoothLineChartEquallySpaced extends View {
         final float width = getMeasuredWidth() - 2 * mBorder;
 
         final float dX = mValues.length > 1 ? mValues.length - 1 : (2);
-        float mMinY = 0;
         final float dY = (mMaxY - mMinY) > 0 ? (mMaxY - mMinY) : (2);
 
         mPath.reset();

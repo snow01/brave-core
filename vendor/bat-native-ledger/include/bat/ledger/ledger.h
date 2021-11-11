@@ -20,6 +20,7 @@
 namespace ledger {
 
 extern type::Environment _environment;
+extern int gemini_retries;
 extern bool is_debug;
 extern bool is_testing;
 extern int reconcile_interval;  // minutes
@@ -88,6 +89,9 @@ using PendingContributionsTotalCallback = std::function<void(double)>;
 
 using PendingContributionInfoListCallback =
     std::function<void(type::PendingContributionInfoList)>;
+
+using UnverifiedPublishersCallback =
+    std::function<void(std::vector<std::string>&&)>;
 
 using PublisherInfoListCallback = std::function<void(type::PublisherInfoList)>;
 

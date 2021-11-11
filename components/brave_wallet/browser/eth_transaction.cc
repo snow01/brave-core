@@ -9,10 +9,12 @@
 
 #include "base/base64.h"
 #include "base/logging.h"
+#include "base/strings/string_number_conversions.h"
 #include "base/values.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
 #include "brave/components/brave_wallet/browser/eth_address.h"
 #include "brave/components/brave_wallet/browser/rlp_encode.h"
+#include "brave/components/brave_wallet/common/hex_utils.h"
 
 namespace brave_wallet {
 
@@ -23,9 +25,10 @@ constexpr uint256_t kTxDataZeroCostPerByte = 4;
 constexpr uint256_t kTxDataCostPerByte = 16;
 }  // namespace
 
-EthTransaction::EthTransaction() = default;
+EthTransaction::EthTransaction() : gas_price_(0), gas_limit_(0), value_(0) {}
+
 EthTransaction::EthTransaction(const EthTransaction&) = default;
-EthTransaction::EthTransaction(uint256_t nonce,
+EthTransaction::EthTransaction(absl::optional<uint256_t> nonce,
                                uint256_t gas_price,
                                uint256_t gas_limit,
                                const EthAddress& to,
@@ -49,16 +52,24 @@ bool EthTransaction::operator==(const EthTransaction& tx) const {
 
 // static
 absl::optional<EthTransaction> EthTransaction::FromTxData(
-    const mojom::TxDataPtr& tx_data) {
+    const mojom::TxDataPtr& tx_data,
+    bool strict) {
   EthTransaction tx;
-  if (!HexValueToUint256(tx_data->nonce, &tx.nonce_))
+  if (!tx_data->nonce.empty()) {
+    uint256_t nonce_uint;
+    if (HexValueToUint256(tx_data->nonce, &nonce_uint)) {
+      tx.nonce_ = nonce_uint;
+    } else if (strict) {
+      return absl::nullopt;
+    }
+  }
+
+  if (!HexValueToUint256(tx_data->gas_price, &tx.gas_price_) && strict)
     return absl::nullopt;
-  if (!HexValueToUint256(tx_data->gas_price, &tx.gas_price_))
-    return absl::nullopt;
-  if (!HexValueToUint256(tx_data->gas_limit, &tx.gas_limit_))
+  if (!HexValueToUint256(tx_data->gas_limit, &tx.gas_limit_) && strict)
     return absl::nullopt;
   tx.to_ = EthAddress::FromHex(tx_data->to);
-  if (!HexValueToUint256(tx_data->value, &tx.value_))
+  if (!HexValueToUint256(tx_data->value, &tx.value_) && strict)
     return absl::nullopt;
   tx.data_ = tx_data->data;
   return tx;
@@ -71,8 +82,13 @@ absl::optional<EthTransaction> EthTransaction::FromValue(
   const std::string* nonce = value.FindStringKey("nonce");
   if (!nonce)
     return absl::nullopt;
-  if (!HexValueToUint256(*nonce, &tx.nonce_))
-    return absl::nullopt;
+
+  if (!nonce->empty()) {
+    uint256_t nonce_uint;
+    if (!HexValueToUint256(*nonce, &nonce_uint))
+      return absl::nullopt;
+    tx.nonce_ = nonce_uint;
+  }
 
   const std::string* gas_price = value.FindStringKey("gas_price");
   if (!gas_price)
@@ -134,10 +150,11 @@ absl::optional<EthTransaction> EthTransaction::FromValue(
   return tx;
 }
 
-std::vector<uint8_t> EthTransaction::GetMessageToSign(
-    uint256_t chain_id) const {
+std::vector<uint8_t> EthTransaction::GetMessageToSign(uint256_t chain_id,
+                                                      bool hash) const {
+  DCHECK(nonce_);
   base::ListValue list;
-  list.Append(RLPUint256ToBlobValue(nonce_));
+  list.Append(RLPUint256ToBlobValue(nonce_.value()));
   list.Append(RLPUint256ToBlobValue(gas_price_));
   list.Append(RLPUint256ToBlobValue(gas_limit_));
   list.Append(base::Value(to_.bytes()));
@@ -150,12 +167,14 @@ std::vector<uint8_t> EthTransaction::GetMessageToSign(
   }
 
   const std::string message = RLPEncode(std::move(list));
-  return KeccakHash(std::vector<uint8_t>(message.begin(), message.end()));
+  auto result = std::vector<uint8_t>(message.begin(), message.end());
+  return hash ? KeccakHash(result) : result;
 }
 
 std::string EthTransaction::GetSignedTransaction() const {
+  DCHECK(nonce_);
   base::ListValue list;
-  list.Append(RLPUint256ToBlobValue(nonce_));
+  list.Append(RLPUint256ToBlobValue(nonce_.value()));
   list.Append(RLPUint256ToBlobValue(gas_price_));
   list.Append(RLPUint256ToBlobValue(gas_limit_));
   list.Append(base::Value(to_.bytes()));
@@ -166,6 +185,32 @@ std::string EthTransaction::GetSignedTransaction() const {
   list.Append(base::Value(s_));
 
   return ToHex(RLPEncode(std::move(list)));
+}
+
+bool EthTransaction::ProcessVRS(const std::string& v,
+                                const std::string& r,
+                                const std::string& s) {
+  uint256_t v_decoded;
+  if (!HexValueToUint256(v, &v_decoded)) {
+    LOG(ERROR) << "Unable to decode v param";
+    return false;
+  }
+
+  std::vector<uint8_t> r_decoded;
+  if (!base::HexStringToBytes(r, &r_decoded)) {
+    LOG(ERROR) << "Unable to decode r param";
+    return false;
+  }
+  std::vector<uint8_t> s_decoded;
+  if (!base::HexStringToBytes(s, &s_decoded)) {
+    LOG(ERROR) << "Unable to decode s param";
+    return false;
+  }
+
+  r_ = r_decoded;
+  s_ = s_decoded;
+  v_ = v_decoded;
+  return true;
 }
 
 // signature and recid will be used to produce v, r, s
@@ -196,7 +241,7 @@ bool EthTransaction::IsSigned() const {
 
 base::Value EthTransaction::ToValue() const {
   base::Value dict(base::Value::Type::DICTIONARY);
-  dict.SetStringKey("nonce", Uint256ValueToHex(nonce_));
+  dict.SetStringKey("nonce", nonce_ ? Uint256ValueToHex(nonce_.value()) : "");
   dict.SetStringKey("gas_price", Uint256ValueToHex(gas_price_));
   dict.SetStringKey("gas_limit", Uint256ValueToHex(gas_limit_));
   dict.SetStringKey("to", to_.ToHex());

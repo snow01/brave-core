@@ -80,6 +80,7 @@
 <translation id="7895302206188277628">Пов’язаний вміст</translation>
 <translation id="3654831858282189202">Публікувати з ключами IPNS</translation>
 <translation id="7691598647605453992">IPFS</translation>
+<translation id="1047401034925735299">Імпортувати вибраний текст до IPFS</translation>
 <translation id="6925604404524625582">Імпорт і копіювання посилання на миттєвий знімок IPFS</translation>
 <translation id="1434416574322382019">Нове Приватне вікно з Tor</translation>
 <translation id="4703780849509456860">Відкрити посилання у Приватному вікні з Tor</translation>
@@ -186,15 +187,14 @@
 <translation id="8488282162676695335">Гаманець Brave</translation>
 <translation id="2356070529366658676">Запитати</translation>
 <translation id="7701040980221191251">Немає</translation>
-<translation id="5655621391922317800">Криптогаманці</translation>
-<translation id="1696548911367097044">Застаріле розширення Crypto Wallets</translation>
-<translation id="1085027414516521238">MetaMask</translation>
-<translation id="7090046810227878892">Провайдер Ethereum для використання Dapps</translation>
-<translation id="5913089932885076110">Завантажувати Криптогаманці при запуску роботи</translation>
-<translation id="757886143331967039">Завантажувати застаріле розширення Crypto Wallets під час запуску</translation>
+<translation id="1274962333945373242">Застаріле розширення Crypto Wallets</translation>
+<translation id="9131889008937672866">Гаманець криптовалюти за замовчуванням</translation>
 <translation id="1834467296210148203">Показувати значок Brave Wallet на панелі інструментів</translation>
+<translation id="8239147115686034860">Автоматично блокувати гаманець Brave</translation>
+<translation id="414639769490080648">Кількість хвилин до автоматичного блокування гаманця Brave</translation>
 <translation id="6864914031231797928">Дозволити вхід через Google для розширень</translation>
 <translation id="5927916530277631319">Метод вирішення Unstoppable Domains</translation>
+<translation id="8412057160793088103"><ph name="BEGIN_LINK"/>Докладніше<ph name="END_LINK"/> про DNS over HTTPS та визначення приватності Ethereum.</translation>
 <translation id="5248318250177143470">Спосіб вирішення Ethereum Name Service (ENS)</translation>
 <translation id="7024553202001112871">Налаштуйте ключі IPNS</translation>
 <translation id="951216659045543447">Підпишіть вміст відповідним закритим ключем та опублікуйте його в IPNS</translation>
@@ -208,7 +208,7 @@
 <translation id="6476061084931271248">Перезапустіть вузол, щоб застосувати зміни</translation>
 <translation id="3754226427671882382">Перезапустити вузол</translation>
 <translation id="949667118776341807">Повернути</translation>
-<translation id="635013291822406289">/ip4/46.21.210.45/tcp/14406/quic/p2p/12D3KooWBdmLJjhpgJ9KZgLM3f894ff9xyBfPvPjFNn7MKJpyrC2</translation>
+<translation id="1381002020878144739">/ip4/46.21.210.45/udp/14406/quic/p2p/12D3KooWBdmLJjhpgJ9KZgLM3f894ff9xyBfPvPjFNn7MKJpyrC2</translation>
 <translation id="724513921936768901">Це ім’я неприпустиме</translation>
 <translation id="6758961763875471084">Змінити перелік вузлів</translation>
 <translation id="1295874070797049002">Експортувати ключ</translation>
@@ -226,12 +226,14 @@
 <translation id="1327977588028644528">Шлюз</translation>
 <translation id="80225669816651290">Локальний вузол</translation>
 <translation id="4927734062756955434">Адреса відкритого шлюзу IPFS</translation>
+<translation id="3399481770463167943"><ph name="BEGIN_LINK_MPL"/>Докладніше<ph name="END_LINK_MPL"/> про локальний вузол IPFS та визначення приватності шлюзу.</translation>
 <translation id="8425213833346101688">Змінити</translation>
 <translation id="557281710253742286">Задати шлюз IPFS</translation>
 <translation id="8571837315037233299">Адреса шлюзу</translation>
 <translation id="1251574393468476924">Максимальний розмір кешу IPFS (ГБ)</translation>
 <translation id="2503497578400410320">Програмна верхня межа для розміру сховища даних IPFS.</translation>
 <translation id="7703184801853248830">Невірна адреса шлюзу</translation>
+<translation id="7690058578502751948">У Brave можна користуватися лише дійсним шлюзом IPFS з увімкненою функцією «Ізоляція походження»</translation>
 <translation id="585868419599255817">Резервний відкритий шлюз IPFS</translation>
 <translation id="207763736230883589">Автоматично переходити на відкритий шлюз IPFS, якщо не вдається зв'язатись із локальним вузлом.</translation>
 <translation id="4107552920076294723">Перенаправляти ресурси IPFS до налаштованого шлюзу IPFS</translation>
@@ -239,6 +241,7 @@
 <translation id="8655170717758778983">Автоматично перенаправляти на сторінки IPFS через DNSLink, коли це можливо</translation>
 <translation id="2233724520223030977">Автоматично використовує DNSLink для переходу до IPFS версії вебсайту за можливості</translation>
 <translation id="6554397389149987360">Використовує компоненти Hangouts, щоб увімкнути поширення екрану та інші функції у браузері.</translation>
+<translation id="7878791177459550035">Маршрутизатор медіавмісту дозволяє транслювати в браузері.</translation>
 <translation id="9156965752763025780">Ваші зміни почнуть діяти після наступного перезапуску Brave.</translation>
 <translation id="7179921470347911571">Перезапустити зараз</translation>
 <translation id="8068526464562249859">Використовує супровідне розширення IPFS для покращеної підтримки IPFS у Brave, в тому числі доступу до частих завдань IPFS з рядка веб-переглядача.</translation>
@@ -299,6 +302,10 @@
 <translation id="1391855377994926460">Переглядайте головні новинні вебсайти у 6 разів швидше.</translation>
 <translation id="9218430445555521422">Установити за умовчанням</translation>
 <translation id="3479552764303398839">Не зараз</translation>
+<translation id="732814027519296280">Хочете зробити пошук Brave ще кращим?</translation>
+<translation id="2677865600861971449">Підпишіться на участь у проєкті з аналізу мережі (Web Discovery Project), щоб анонімно внести деякі результати пошуку й дані перегляду, а також покращити результати пошуку Brave для всіх. Збереження конфіденційності. І жодних зусиль. <ph name="LEARN_MORE_TEXT"/></translation>
+<translation id="5860491529813859533">Увімкнути</translation>
+<translation id="780301667611848630">Ні, дякую</translation>
 <translation id="5039804452771397117">Дозволити</translation>
 <translation id="7053983685419859001">Блокувати</translation>
 <translation id="7815301689257843278">Надсилати звіти про несподіване завершення роботи автоматично, щоб у Brave могли розв’язати цю проблему й запобігти її повторному виникненню?</translation>
@@ -308,6 +315,8 @@
 <translation id="6873781976650514089">це налаштування</translation>
 <translation id="6040143037577758943">Закрити</translation>
 <translation id="5600566490506283344">Рекламне сповіщення Brave</translation>
+<translation id="4174337572777167894">Проєкт з аналізу мережі</translation>
+<translation id="8659271182272561965">Унесіть результати будь-якого анонімного пошуку й дані перегляду, щоб уточнити пошуковий запит Brave.</translation>
 <translation id="1516554614404600536">Підказки Brave</translation>
 <translation id="4877147287319222750">Додати до бічної панелі</translation>
 <translation id="4233010476457917696">Показати бічну панель</translation>
@@ -349,7 +358,23 @@
 Ви можете прочитати <ph name="BEGIN_LINK_BUILD_INSTRUCTIONS"/>інструкції, як завантажити та створити самостійно <ph name="END_LINK_BUILD_INSTRUCTIONS"/>конкретний <ph name="BEGIN_LINK_SOURCE_CODE"/>вихідний код, використаний для створення цієї копії<ph name="END_LINK_SOURCE_CODE"/>.</translation>
 <translation id="4474155171896946103">Позначити закладками всі вкладки...</translation>
 <translation id="2336228925368920074">Позначити закладками всі вкладки...</translation>
+<translation id="4235920711083356755">Показувати кнопку VPN</translation>
+<translation id="4070612712151038707">Показує кнопку VPN на панелі інструментів</translation>
 <translation id="7705524343798198388">VPN</translation>
+<translation id="3960619311638643872">Brave VPN</translation>
+<translation id="2345974803401546682">Про Brave VPN</translation>
+<translation id="4378551569595875038">Підключення…</translation>
+<translation id="3368922792935385530">Підключено</translation>
+<translation id="1536754031901697553">Від’єднання…</translation>
+<translation id="8030169304546394654">Від'єднано</translation>
+<translation id="1863950594388384201">Показувати кнопку VPN на панелі інструментів</translation>
+<translation id="5187139277471084437">Приховати кнопку VPN на панелі інструментів</translation>
+<translation id="8041089156583427627">Надіслати відгук</translation>
+<translation id="4049186905514157504">Керування планом</translation>
+<translation id="7570585565843385325">Показувати кнопку VPN на панелі інструментів</translation>
+<translation id="5310426188697803101">Приховати кнопку VPN на панелі інструментів</translation>
+<translation id="945522503751344254">Надіслати відгук</translation>
+<translation id="3015685033234401792">Керування планом</translation>
 <translation id="796831669370432378">Щоб додати закладку, натисніть кнопку закладки поруч з адресним рядком</translation>
 <translation id="4989337484121655457">Потрібен Повний Доступ до Диску</translation>
 <translation id="8025559074845816210">Brave потребує Повного Доступу до Диску, щоб імпортувати ваші Закладки з Safari.</translation>

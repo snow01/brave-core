@@ -478,7 +478,8 @@ class PageWallet extends React.Component<Props, State> {
   getBalanceToken = (key: string) => {
     const {
       monthlyReport,
-      parameters
+      parameters,
+      externalWallet
     } = this.props.rewardsData
 
     let value = 0.0
@@ -488,7 +489,8 @@ class PageWallet extends React.Component<Props, State> {
 
     return {
       value: value.toFixed(3),
-      converted: utils.convertBalance(value, parameters.rate)
+      converted: utils.convertBalance(value, parameters.rate),
+      link: externalWallet && externalWallet.status === 2 /* VERIFIED */ && key === 'ads' ? externalWallet.activityUrl : undefined
     }
   }
 
@@ -817,17 +819,17 @@ class PageWallet extends React.Component<Props, State> {
       adsData,
       balance,
       balanceReport,
+      enabledContribute,
       externalWalletProviderList,
       ui,
       recoveryKey,
       externalWallet,
       parameters,
-      paymentId
+      paymentId,
+      pendingContributionTotal
     } = this.props.rewardsData
     const { total } = balance
     const { modalBackup } = ui
-
-    const walletProviderName = utils.getWalletProviderName(externalWallet)
 
     let externalWalletInfo: ExternalWallet | null = null
     const walletStatus = this.getExternalWalletStatus()
@@ -845,7 +847,8 @@ class PageWallet extends React.Component<Props, State> {
       adEarnings: balanceReport && balanceReport.ads || 0,
       autoContributions: balanceReport && balanceReport.contribute || 0,
       oneTimeTips: balanceReport && balanceReport.tips || 0,
-      monthlyTips: balanceReport && balanceReport.monthly || 0
+      monthlyTips: balanceReport && balanceReport.monthly || 0,
+      pendingTips: pendingContributionTotal || 0
     }
 
     return (
@@ -860,7 +863,9 @@ class PageWallet extends React.Component<Props, State> {
           exchangeCurrency={'USD'}
           showSummary={true}
           summaryData={summaryData}
+          autoContributeEnabled={enabledContribute}
           onExternalWalletAction={this.onExternalWalletAction}
+          onViewPendingTips={this.onModalPendingToggle}
           onViewStatement={this.onModalActivityToggle}
         />
         <ManageWalletButton onClick={this.onModalBackupOpen} />
@@ -870,7 +875,6 @@ class PageWallet extends React.Component<Props, State> {
               activeTabId={this.state.activeTabId}
               backupKey={recoveryKey}
               showBackupNotice={this.showBackupNotice()}
-              walletProvider={walletProviderName}
               onTabChange={this.onModalBackupTabChange}
               onClose={this.onModalBackupClose}
               onCopy={this.onModalBackupOnCopy}
