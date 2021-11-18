@@ -29,7 +29,26 @@ const run = (cmd, args = []) => {
   return prog
 }
 
-var packageConfigBraveCore = function(key) {
+// this is a huge hack because the npm config doesn't get passed through from brave-browser .npmrc/package.json
+var packageConfig = function (key, sourceDir = rootDir) {
+  let packages = { config: {} }
+  const configAbsolutePath = path.join(sourceDir, 'package.json')
+  if (fs.existsSync(configAbsolutePath)) {
+    packages = require(path.relative(__dirname, configAbsolutePath))
+  }
+
+  // packages.config should include version string.
+  let obj = Object.assign({}, packages.config, { version: packages.version })
+  for (var i = 0, len = key.length; i < len; i++) {
+    if (!obj) {
+      return obj
+    }
+    obj = obj[key[i]]
+  }
+  return obj
+}
+
+var packageConfigBraveCore = function (key) {
   return packageConfig(key, path.join(rootDir, 'src', 'brave'))
 }
 
@@ -39,7 +58,7 @@ const getNPMConfig = (key) => {
     NpmConfig = JSON.parse(list.stdout.toString())
   }
 
-  return NpmConfig[key.join('-').replace(/_/g, '-')] || packageConfigBraveCore(key)
+  return NpmConfig[key.join('-').replace(/_/g, '-')] || packageConfigBraveCore(key) || packageConfig(key)
 }
 
 const parseExtraInputs = (inputs, accumulator, callback) => {
@@ -910,7 +929,7 @@ Object.defineProperty(Config.prototype, 'outputDir', {
       buildConfigDir = this.targetOS + "_" + buildConfigDir
     }
     if (this.targetEnvironment) {
-      buildConfigDir = buildConfigDir  + "_" + this.targetEnvironment
+      buildConfigDir = buildConfigDir + "_" + this.targetEnvironment
     }
 
     return path.join(baseDir, buildConfigDir)
