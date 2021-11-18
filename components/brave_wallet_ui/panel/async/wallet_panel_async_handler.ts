@@ -125,10 +125,9 @@ handler.on(WalletActions.initialize.getType(), async (store) => {
   // TODO(jocelyn): Extract ConnectToSite UI pieces out from panel UI.
   const url = new URL(window.location.href)
   if (url.hash === '#connectWithSite') {
-    const tabId = Number(url.searchParams.get('tabId')) || -1
     const accounts = url.searchParams.getAll('addr') || []
     const origin = url.searchParams.get('origin') || ''
-    store.dispatch(PanelActions.showConnectToSite({ tabId, accounts, origin }))
+    store.dispatch(PanelActions.showConnectToSite({ accounts, origin }))
     return
   } else {
     const chain = await getPendingChainRequest()
@@ -159,9 +158,8 @@ handler.on(WalletActions.initialize.getType(), async (store) => {
 })
 
 handler.on(PanelActions.cancelConnectToSite.getType(), async (store: Store, payload: AccountPayloadType) => {
-  const state = getPanelState(store)
   const apiProxy = getWalletPanelApiProxy()
-  apiProxy.panelHandler.cancelConnectToSite(payload.siteToConnectTo, state.tabId)
+  apiProxy.panelHandler.cancelConnectToSite(payload.siteToConnectTo)
   apiProxy.panelHandler.closeUI()
 })
 
@@ -211,11 +209,10 @@ handler.on(PanelActions.approveHardwareTransaction.getType(), async (store: Stor
 })
 
 handler.on(PanelActions.connectToSite.getType(), async (store: Store, payload: AccountPayloadType) => {
-  const state = getPanelState(store)
   const apiProxy = getWalletPanelApiProxy()
   let accounts: string[] = []
   payload.selectedAccounts.forEach((account) => { accounts.push(account.address) })
-  apiProxy.panelHandler.connectToSite(accounts, payload.siteToConnectTo, state.tabId)
+  apiProxy.panelHandler.connectToSite(accounts, payload.siteToConnectTo)
   apiProxy.panelHandler.closeUI()
 })
 
