@@ -81,7 +81,7 @@ def product_name():
 
 
 def get_chrome_version():
-    version = (os.environ.get('npm_config_chrome_version') or
+    version = (os.environ.get('npm_config_brave_version') or
                brave_core_package()['config']['projects']['chrome']['tag'])
     return version
 
