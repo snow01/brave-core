@@ -226,7 +226,9 @@ constexpr char kNativeBraveWalletDescription[] =
     "Native cryptocurrency wallet support without the use of extensions";
 
 constexpr char kBraveNewsName[] = "Enable Brave News";
-constexpr char kBraveNewsDescription[] = "Enable Brave News";
+constexpr char kBraveNewsDescription[] =
+    "Brave News is completely private and includes anonymized ads matched on "
+    "your device.";
 
 constexpr char kCryptoWalletsForNewInstallsName[] =
     "Enable Crypto Wallets option in settings";

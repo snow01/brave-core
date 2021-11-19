@@ -531,12 +531,10 @@ bool AdsServiceImpl::IsEnabled() const {
 }
 
 bool AdsServiceImpl::IsBraveNewsEnabled() const {
-  if (base::FeatureList::IsEnabled(brave_today::features::kBraveNewsFeature)) {
-    return GetBooleanPref(brave_news::prefs::kBraveTodayOptedIn) &&
-           GetBooleanPref(brave_news::prefs::kNewTabPageShowToday);
-  } else {
-    return false;
-  }
+  return base::FeatureList::IsEnabled(
+             brave_today::features::kBraveNewsFeature) &&
+         GetBooleanPref(brave_news::prefs::kBraveTodayOptedIn) &&
+         GetBooleanPref(brave_news::prefs::kNewTabPageShowToday);
 }
 
 bool AdsServiceImpl::ShouldStart() const {
@@ -675,17 +673,17 @@ void AdsServiceImpl::Initialize() {
       brave_rewards::prefs::kWalletBrave,
       base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
                           base::Unretained(this)));
-  if (base::FeatureList::IsEnabled(brave_today::features::kBraveNewsFeature)) {
-    profile_pref_change_registrar_.Add(
-        brave_news::prefs::kBraveTodayOptedIn,
-        base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
-                            base::Unretained(this)));
 
-    profile_pref_change_registrar_.Add(
-        brave_news::prefs::kNewTabPageShowToday,
-        base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
-                            base::Unretained(this)));
-  }
+  profile_pref_change_registrar_.Add(
+      brave_news::prefs::kBraveTodayOptedIn,
+      base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
+                          base::Unretained(this)));
+
+  profile_pref_change_registrar_.Add(
+      brave_news::prefs::kNewTabPageShowToday,
+      base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
+                          base::Unretained(this)));
+
   MaybeStart(false);
 }
 
@@ -1862,10 +1860,8 @@ void AdsServiceImpl::OnPrefsChanged(const std::string& pref) {
     StartCheckIdleStateTimer();
   } else if (pref == brave_rewards::prefs::kWalletBrave) {
     OnWalletUpdated();
-  } else if (base::FeatureList::IsEnabled(
-                 brave_today::features::kBraveNewsFeature) &&
-             (pref == brave_news::prefs::kBraveTodayOptedIn ||
-              pref == brave_news::prefs::kNewTabPageShowToday)) {
+  } else if (pref == brave_news::prefs::kBraveTodayOptedIn ||
+              pref == brave_news::prefs::kNewTabPageShowToday) {
     MaybeStart(/* should_restart */ false);
   }
 }

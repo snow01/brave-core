@@ -27,16 +27,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class BraveNewsAdapterFeedCard
         extends RecyclerView.Adapter<BraveNewsAdapterFeedCard.ViewHolder> {
     private LayoutInflater mInflater;
-    private int mType;
-    private Context mContext;
     private Activity mActivity;
     private View mView;
-    private LinearLayout linearLayout;
-    private LinearLayout.LayoutParams linearLayoutParams;
 
     public CopyOnWriteArrayList<FeedItemsCard> mNewsItems;
     private FeedItemsCard mNewsItem;
-    private CopyOnWriteArrayList<FeedItemCard> mNewsItemsCard;
     private ViewHolder mHolder;
     private final String TAG = "BN";
 

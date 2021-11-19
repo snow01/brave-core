@@ -189,9 +189,13 @@ public class NTPUtil {
         LinearLayout.LayoutParams imageCreditLayoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 
-        int topMargin = correctImageCreditLayoutTopPosition(ntpImage);
+        if (ChromeFeatureList.isEnabled(BraveFeatureList.BRAVE_NEWS)) {
+            int topMargin = correctImageCreditLayoutTopPosition(ntpImage);
+            if ((BravePrefServiceBridge.getInstance().getNewsOptIn()
+                        && BravePrefServiceBridge.getInstance().getShowNews())) {
+                imageCreditLayoutParams.setMargins(0, topMargin, 0, 50);
+            }
 
-        imageCreditLayoutParams.setMargins(0, topMargin, 0, 50);
 
         if (ChromeFeatureList.isEnabled(BraveFeatureList.BRAVE_NEWS)) {
             ViewGroup optinLayout = view.findViewById(R.id.optin_layout_id);

@@ -62,25 +62,20 @@ public class BraveNewsUtils {
                         }
                         FeedItem item = itemCard.getFeedItem();
 
-                        FeedItemMetadata itemMetaData = new FeedItemMetadata();
                         switch (item.which()) {
                             case FeedItem.Tag.Article:
-
                                 Article article = item.getArticle();
                                 FeedItemMetadata articleData = article.data;
-                                itemMetaData = article.data;
                                 break;
                             case FeedItem.Tag.PromotedArticle:
                                 PromotedArticle promotedArticle = item.getPromotedArticle();
                                 FeedItemMetadata promotedArticleData = promotedArticle.data;
                                 String creativeInstanceId = promotedArticle.creativeInstanceId;
-                                itemMetaData = promotedArticle.data;
                                 break;
                             case FeedItem.Tag.Deal:
                                 Deal deal = item.getDeal();
                                 FeedItemMetadata dealData = deal.data;
                                 String offersCategory = deal.offersCategory;
-                                itemMetaData = deal.data;
                                 break;
                         }
                         index++;
