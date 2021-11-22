@@ -42,27 +42,27 @@ import java.util.TreeMap;
 
 public class BraveNewsCategorySources
         extends PreferenceFragmentCompat implements ConnectionErrorHandler {
-    private PreferenceManager preferenceManager;
+    private PreferenceManager mPreferenceManager;
     private BraveNewsController mBraveNewsController;
-    private String categoryArg;
+    private String mCategoryArg;
 
-    private TreeMap<String, List<Publisher>> categsPublishers;
+    private TreeMap<String, List<Publisher>> mCategsPublishers;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
-        categoryArg = args.getString("category");
+        mCategoryArg = args.getString("category");
     }
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         InitBraveNewsController();
         addPreferencesFromResource(R.xml.brave_news_sources_default);
-        getActivity().setTitle(categoryArg);
+        getActivity().setTitle(mCategoryArg);
 
-        categsPublishers = new TreeMap<>();
-        preferenceManager = getPreferenceManager();
+        mCategsPublishers = new TreeMap<>();
+        mPreferenceManager = getPreferenceManager();
         mBraveNewsController.getPublishers((publishers) -> {
             List<Publisher> allPublishers = new ArrayList<>();
             List<Publisher> categoryPublishers = new ArrayList<>();
@@ -71,22 +71,20 @@ public class BraveNewsCategorySources
 
                 Publisher publisher = entry.getValue();
                 if (publisher.categoryName.toLowerCase(Locale.ROOT)
-                                .equals(categoryArg.toLowerCase(Locale.ROOT))) {
-                    // categsPublishers.computeIfAbsent(publisher.categoryName, k ->new
-                    // ArrayList<>()).add(publisher);
+                                .equals(mCategoryArg.toLowerCase(Locale.ROOT))) {
                     categoryPublishers.add(publisher);
                 }
 
-                categsPublishers.put(publisher.categoryName, categoryPublishers);
+                mCategsPublishers.put(publisher.categoryName, categoryPublishers);
                 allPublishers.add(publisher);
             }
             Comparator<Publisher> compareByName =
                     (Publisher o1, Publisher o2) -> o1.publisherName.compareTo(o2.publisherName);
             Collections.sort(categoryPublishers, compareByName);
             Collections.sort(allPublishers, compareByName);
-            categsPublishers.put("All Sources", allPublishers);
+            mCategsPublishers.put("All Sources", allPublishers);
 
-            addCategs(categsPublishers);
+            addCategs(mCategsPublishers);
         });
     }
 
@@ -126,7 +124,7 @@ public class BraveNewsCategorySources
 
         for (Map.Entry<String, List<Publisher>> map : publisherCategories.entrySet()) {
             String category = map.getKey();
-            if (category.toLowerCase(Locale.ROOT).equals(categoryArg.toLowerCase(Locale.ROOT))) {
+            if (category.toLowerCase(Locale.ROOT).equals(mCategoryArg.toLowerCase(Locale.ROOT))) {
                 List<Publisher> publishers = map.getValue();
 
                 search.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -134,7 +132,7 @@ public class BraveNewsCategorySources
                     public boolean onPreferenceChange(Preference preference, Object newValue) {
                         for (Publisher publisher : publishers) {
                             SwitchPreference publisherSource =
-                                    preferenceManager.findPreference(publisher.publisherName);
+                                    mPreferenceManager.findPreference(publisher.publisherName);
                             if (publisher.publisherName.toLowerCase(Locale.ROOT)
                                             .contains((String) newValue)) {
                                 publisherSource.setVisible(true);

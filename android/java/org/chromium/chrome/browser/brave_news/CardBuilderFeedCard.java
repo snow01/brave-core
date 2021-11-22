@@ -98,15 +98,13 @@ public class CardBuilderFeedCard {
     private int mType;
     private int mPosition;
     private View view;
-    private int horizontalMargin;
-    private boolean isTablet;
+    private int mHorizontalMargin;
     private int mDeviceWidth;
-    private boolean isLandscape;
+    private boolean mIsPromo;
+    private String mCreativeInstanceId;
+    private String mOffersCategory;
 
-    private String TAG = "BN";
-    private boolean isPromo;
-    private String creativeInstanceId;
-    private String offersCategory;
+    private final String TAG = "BN";
     private final int MARGIN_VERTICAL = 10;
     private final String BRAVE_OFFERS_URL = "offers.brave.com";
 
@@ -121,14 +119,14 @@ public class CardBuilderFeedCard {
 
         mDeviceWidth = ConfigurationUtils.getDisplayMetrics(activity).get("width");
 
-        isPromo = false;
-        creativeInstanceId = "";
-        offersCategory = "";
+        mIsPromo = false;
+        mCreativeInstanceId = "";
+        mOffersCategory = "";
 
-        isTablet = ConfigurationUtils.isTablet(activity);
-        isLandscape = ConfigurationUtils.isLandscape(activity);
+        boolean isTablet = ConfigurationUtils.isTablet(activity);
+        boolean isLandscape = ConfigurationUtils.isLandscape(activity);
 
-        horizontalMargin = isTablet
+        mHorizontalMargin = isTablet
                 ? isLandscape ? (int) (0.20 * mDeviceWidth) : (int) (0.10 * mDeviceWidth)
                 : 40;
         try {
@@ -188,7 +186,7 @@ public class CardBuilderFeedCard {
 
         LinearLayout.LayoutParams linearLayoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        linearLayoutParams.setMargins(horizontalMargin, 0, horizontalMargin, 7 * MARGIN_VERTICAL);
+        linearLayoutParams.setMargins(mHorizontalMargin, 0, mHorizontalMargin, 7 * MARGIN_VERTICAL);
 
         try {
             switch (type) {
@@ -227,7 +225,7 @@ public class CardBuilderFeedCard {
 
                     linearLayoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
                     linearLayoutParams.setMargins(
-                            horizontalMargin, 0, horizontalMargin, 5 * MARGIN_VERTICAL);
+                            mHorizontalMargin, 0, mHorizontalMargin, 5 * MARGIN_VERTICAL);
                     mLinearLayout.setLayoutParams(linearLayoutParams);
 
                     mLinearLayout.setBackground(roundedBackground());
@@ -378,7 +376,7 @@ public class CardBuilderFeedCard {
 
                     linearLayoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
                     linearLayoutParams.setMargins(
-                            horizontalMargin, 0, horizontalMargin, 5 * MARGIN_VERTICAL);
+                            mHorizontalMargin, 0, mHorizontalMargin, 5 * MARGIN_VERTICAL);
                     mLinearLayout.setLayoutParams(linearLayoutParams);
 
                     tableLayoutTopNews.setLayoutParams(
@@ -468,7 +466,7 @@ public class CardBuilderFeedCard {
                     tableParamsTopNews.setMargins(30, 40, 30, 40);
                     linearLayoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
                     linearLayoutParams.setMargins(
-                            horizontalMargin, 0, horizontalMargin, 5 * MARGIN_VERTICAL);
+                            mHorizontalMargin, 0, mHorizontalMargin, 5 * MARGIN_VERTICAL);
                     mLinearLayout.setLayoutParams(linearLayoutParams);
 
                     mLinearLayout.addView(tableLayoutTopNews);
@@ -536,7 +534,7 @@ public class CardBuilderFeedCard {
                             new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
                                     TableLayout.LayoutParams.WRAP_CONTENT);
 
-                    params.setMargins(horizontalMargin, 0, horizontalMargin, 5 * MARGIN_VERTICAL);
+                    params.setMargins(mHorizontalMargin, 0, mHorizontalMargin, 5 * MARGIN_VERTICAL);
                     int height = mActivity.getResources().getDisplayMetrics().heightPixels;
                     mLinearLayout.setLayoutParams(params);
 
@@ -589,7 +587,7 @@ public class CardBuilderFeedCard {
 
                     linearLayoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
                     linearLayoutParams.setMargins(
-                            horizontalMargin - 20, 0, horizontalMargin, 5 * MARGIN_VERTICAL);
+                            mHorizontalMargin - 20, 0, mHorizontalMargin, 5 * MARGIN_VERTICAL);
                     mLinearLayout.setLayoutParams(linearLayoutParams);
 
                     LinearLayout.LayoutParams cellParams =
@@ -735,7 +733,7 @@ public class CardBuilderFeedCard {
                             new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
                                     LinearLayout.LayoutParams.WRAP_CONTENT);
                     linearLayoutParams.setMargins(
-                            horizontalMargin, topPosition, horizontalMargin, 5 * MARGIN_VERTICAL);
+                            mHorizontalMargin, topPosition, mHorizontalMargin, 5 * MARGIN_VERTICAL);
 
                     layout.setBackground(makeRound(CARD_LAYOUT, R.color.card_background, 30));
                     layout.setLayoutParams(linearLayoutParams);
@@ -790,7 +788,7 @@ public class CardBuilderFeedCard {
                             new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
                                     LinearLayout.LayoutParams.WRAP_CONTENT);
                     linearLayoutParams.setMargins(
-                            horizontalMargin, 0, horizontalMargin, 5 * MARGIN_VERTICAL);
+                            mHorizontalMargin, 0, mHorizontalMargin, 5 * MARGIN_VERTICAL);
                     layout.setLayoutParams(linearLayoutParams);
 
                     TextView promoted = new TextView(mActivity);
@@ -1142,7 +1140,7 @@ public class CardBuilderFeedCard {
             FeedItemMetadata itemData = getItemData(index);
             if (itemData != null) {
                 setText(itemData, textView, type);
-                setListeners(textView, itemData.url.url, creativeInstanceId, isPromo);
+                setListeners(textView, itemData.url.url, mCreativeInstanceId, mIsPromo);
             }
 
         } catch (Exception e) {
@@ -1174,15 +1172,15 @@ public class CardBuilderFeedCard {
                 case FeedItem.Tag.PromotedArticle:
                     PromotedArticle promotedArticle = feedItem.getPromotedArticle();
                     FeedItemMetadata promotedArticleData = promotedArticle.data;
-                    creativeInstanceId = promotedArticle.creativeInstanceId;
+                    mCreativeInstanceId = promotedArticle.creativeInstanceId;
                     itemData = promotedArticle.data;
 
-                    isPromo = true;
+                    mIsPromo = true;
                     break;
                 case FeedItem.Tag.Deal:
                     Deal deal = feedItem.getDeal();
                     FeedItemMetadata dealData = deal.data;
-                    offersCategory = deal.offersCategory;
+                    mOffersCategory = deal.offersCategory;
                     itemData = deal.data;
 
                     break;
@@ -1241,7 +1239,7 @@ public class CardBuilderFeedCard {
                 textView.setText(itemData.relativeTimeDescription);
                 break;
             case DEALS:
-                textView.setText(offersCategory);
+                textView.setText(mOffersCategory);
                 break;
             case CATEGORY:
                 textView.setText(itemData.categoryName);

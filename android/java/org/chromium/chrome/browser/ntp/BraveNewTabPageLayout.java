@@ -333,7 +333,7 @@ public class BraveNewTabPageLayout
             isFeedUpdateAvailable = false;
 
             InitBraveNewsController();
-            braveNewsUtils = new BraveNewsUtils(BraveActivity.getBraveActivity());
+            braveNewsUtils = new BraveNewsUtils();
 
             isFeedLoaded = BraveActivity.getBraveActivity().isLoadedFeed();
             existingNewsFeedObject = BraveActivity.getBraveActivity().getNewsItemsFeedCards();
@@ -905,7 +905,7 @@ public class BraveNewTabPageLayout
         isShowNewsOn = BravePrefServiceBridge.getInstance().getShowNews();
 
         if (!isNewsOn || (!isNewsOn && isShowOptin)) {
-            correctPosition(false);
+            // correctPosition(false);
             optinLayout.setVisibility(View.VISIBLE);
         } else if (isShowNewsOn) {
             optinLayout.setVisibility(View.GONE);
@@ -963,7 +963,7 @@ public class BraveNewTabPageLayout
                 }
             }
         } else {
-            correctPosition(false);
+            // correctPosition(false);
             optinLayout.setVisibility(View.GONE);
         }
 

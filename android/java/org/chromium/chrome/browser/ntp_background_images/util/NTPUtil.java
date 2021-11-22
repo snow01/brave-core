@@ -159,6 +159,7 @@ public class NTPUtil {
         LinearLayout parentLayout = (LinearLayout)view.findViewById(R.id.parent_layout);
         CompositorViewHolder compositorView = view.findViewById(R.id.compositor_view_holder);
         ViewGroup imageCreditLayout = view.findViewById(R.id.image_credit_layout);
+        ViewGroup newsRecyclerLayout = view.findViewById(R.id.newsRecycler);
 
         ViewGroup mainLayout = view.findViewById(R.id.ntp_main_layout);
 
@@ -166,7 +167,12 @@ public class NTPUtil {
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(dpToPx(context, 170), dpToPx(context, 170));
 
         parentLayout.removeView(mainLayout);
+        parentLayout.removeView(imageCreditLayout);
+        parentLayout.removeView(newsRecyclerLayout);
+
         parentLayout.addView(mainLayout);
+        parentLayout.addView(imageCreditLayout);
+        parentLayout.addView(newsRecyclerLayout);
 
         boolean isTablet = DeviceFormFactor.isNonMultiDisplayContextOnTablet(context);
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
@@ -196,8 +202,6 @@ public class NTPUtil {
                 imageCreditLayoutParams.setMargins(0, topMargin, 0, 50);
             }
 
-
-        if (ChromeFeatureList.isEnabled(BraveFeatureList.BRAVE_NEWS)) {
             ViewGroup optinLayout = view.findViewById(R.id.optin_layout_id);
             LinearLayout.LayoutParams optinLayoutParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -214,8 +218,6 @@ public class NTPUtil {
             layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
 
         } else {
-            mainLayout.removeView(imageCreditLayout);
-            mainLayout.addView(imageCreditLayout);
             layoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
             layoutParams.setMargins(0, 0, 0, dpToPx(context, 5));
         }

@@ -20,13 +20,9 @@ import org.chromium.chrome.browser.brave_news.models.FeedItemCard;
 import org.chromium.chrome.browser.brave_news.models.FeedItemsCard;
 
 public class BraveNewsUtils {
-    private Context mContext;
-
     public static final int BRAVE_NEWS_VIEWD_CARD_TIME = 100; // milliseconds
 
-    public BraveNewsUtils(Context context) {
-        mContext = context;
-    }
+    public BraveNewsUtils() {}
 
     public String getPromotionIdItem(FeedItemsCard items) {
         String creativeInstanceId = "null";
@@ -45,7 +41,8 @@ public class BraveNewsUtils {
         return creativeInstanceId;
     }
 
-    // method for logging news object
+    // method for logging news object. works by putting Log.d in the desired places of the parsing
+    // of the object
     public static void logFeedItem(FeedItemsCard items, String id) {
         if (items != null) {
             if (items.getCardType() == CardType.DISPLAY_AD) {

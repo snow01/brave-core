@@ -1861,7 +1861,7 @@ void AdsServiceImpl::OnPrefsChanged(const std::string& pref) {
   } else if (pref == brave_rewards::prefs::kWalletBrave) {
     OnWalletUpdated();
   } else if (pref == brave_news::prefs::kBraveTodayOptedIn ||
-              pref == brave_news::prefs::kNewTabPageShowToday) {
+             pref == brave_news::prefs::kNewTabPageShowToday) {
     MaybeStart(/* should_restart */ false);
   }
 }

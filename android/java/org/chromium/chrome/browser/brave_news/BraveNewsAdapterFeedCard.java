@@ -61,8 +61,6 @@ public class BraveNewsAdapterFeedCard
         LinearLayout.LayoutParams params1;
         if (mNewsItems != null) {
             mNewsItem = mNewsItems.get(position);
-            BraveNewsUtils.logFeedItem(mNewsItems.get(position),
-                    "createfeed BraveNewsAdapterFeedCard onBindViewHolder position");
             try {
                 if (mBraveNewsController != null) {
                     new CardBuilderFeedCard(mBraveNewsController, mHolder.linearLayout, mActivity,

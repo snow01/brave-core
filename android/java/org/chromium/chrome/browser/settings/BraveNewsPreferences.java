@@ -6,21 +6,10 @@
 
 package org.chromium.chrome.browser.settings;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.preference.CheckBoxPreference;
-import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
@@ -35,10 +24,7 @@ import org.chromium.chrome.R;
 import org.chromium.chrome.browser.BraveLaunchIntentDispatcher;
 import org.chromium.chrome.browser.brave_news.BraveNewsControllerFactory;
 import org.chromium.chrome.browser.preferences.BravePrefServiceBridge;
-import org.chromium.chrome.browser.preferences.BravePreferenceKeys;
-import org.chromium.chrome.browser.settings.BraveAddNewsSources;
 import org.chromium.chrome.browser.settings.BravePreferenceFragment;
-import org.chromium.chrome.browser.settings.SearchPreference;
 import org.chromium.components.browser_ui.settings.ChromeBasePreference;
 import org.chromium.components.browser_ui.settings.ChromeSwitchPreference;
 import org.chromium.components.browser_ui.settings.SettingsUtils;
@@ -59,17 +45,15 @@ public class BraveNewsPreferences extends BravePreferenceFragment
     public static final String PREF_SOURCES_SECTION = "your_sources_section";
     public static final String PREF_ADD_SOURCES = "add_source_news";
 
-    private ChromeSwitchPreference turnOnNews;
-    private ChromeSwitchPreference showNews;
-    private PreferenceCategory yourSources;
-    private EditText mEditText;
-    private PreferenceScreen mainScreen;
-    private PreferenceManager preferenceManager;
-    private TreeMap<String, List<Publisher>> categsPublishers;
+    private ChromeSwitchPreference mTurnOnNews;
+    private ChromeSwitchPreference mShowNews;
+    private PreferenceScreen mMainScreen;
+    private PreferenceManager mPreferenceManager;
+    private TreeMap<String, List<Publisher>> mCategsPublishers;
 
     private final HashMap<String, Preference> mRemovedPreferences = new HashMap<>();
     private BraveNewsController mBraveNewsController;
-    private PreferenceFragmentCompat settingsFragment;
+    private PreferenceFragmentCompat mSettingsFragment;
 
     public static int getPreferenceSummary() {
         return BraveLaunchIntentDispatcher.useCustomTabs() ? R.string.text_on : R.string.text_off;
@@ -79,27 +63,25 @@ public class BraveNewsPreferences extends BravePreferenceFragment
     public void onCreatePreferences(@Nullable Bundle savedInstanceState, String rootKey) {
         SettingsUtils.addPreferencesFromResource(this, R.xml.brave_news_preferences);
         InitBraveNewsController();
-        turnOnNews = (ChromeSwitchPreference) findPreference(PREF_TURN_ON_NEWS);
-        showNews = (ChromeSwitchPreference) findPreference(PREF_SHOW_NEWS);
-        settingsFragment = this;
+        mTurnOnNews = (ChromeSwitchPreference) findPreference(PREF_TURN_ON_NEWS);
+        mShowNews = (ChromeSwitchPreference) findPreference(PREF_SHOW_NEWS);
+        mSettingsFragment = this;
 
-        turnOnNews.setOnPreferenceChangeListener(this);
-        showNews.setOnPreferenceChangeListener(this);
+        mTurnOnNews.setOnPreferenceChangeListener(this);
+        mShowNews.setOnPreferenceChangeListener(this);
 
-        categsPublishers = new TreeMap<>();
+        mCategsPublishers = new TreeMap<>();
         mBraveNewsController.getPublishers((publishers) -> {
             List<Publisher> allPublishers = new ArrayList<>();
             List<Publisher> categoryPublishers = new ArrayList<>();
             for (Map.Entry<String, Publisher> entry : publishers.entrySet()) {
                 String key = entry.getKey();
                 Publisher publisher = entry.getValue();
-                // categsPublishers.computeIfAbsent(publisher.categoryName, k ->new
-                // ArrayList<>()).add(publisher);
                 categoryPublishers.add(publisher);
-                categsPublishers.put(publisher.categoryName, categoryPublishers);
+                mCategsPublishers.put(publisher.categoryName, categoryPublishers);
             }
-            categsPublishers.put("All Sources", allPublishers);
-            addCategs(categsPublishers);
+            mCategsPublishers.put("All Sources", allPublishers);
+            addCategs(mCategsPublishers);
         });
     }
 
@@ -112,10 +94,8 @@ public class BraveNewsPreferences extends BravePreferenceFragment
                     new ChromeBasePreference(ContextUtils.getApplicationContext());
             source.setTitle(category);
             source.setKey(category);
-            Bundle prefExtras = source.getExtras();
-            prefExtras.putString("category", category);
             source.setFragment("org.chromium.chrome.browser.settings.BraveNewsCategorySources");
-            mainScreen.addPreference(source);
+            mMainScreen.addPreference(source);
         }
     }
 
@@ -142,22 +122,22 @@ public class BraveNewsPreferences extends BravePreferenceFragment
         super.onCreate(savedInstanceState);
         getActivity().setTitle(R.string.brave_news_title);
 
-        preferenceManager = getPreferenceManager();
-        mainScreen = preferenceManager.getPreferenceScreen();
+        mPreferenceManager = getPreferenceManager();
+        mMainScreen = mPreferenceManager.getPreferenceScreen();
 
         boolean isNewsOn = BravePrefServiceBridge.getInstance().getNewsOptIn();
 
         if (!isNewsOn) {
-            turnOnNews.setChecked(false);
-            showNews.setVisible(false);
+            mTurnOnNews.setChecked(false);
+            mShowNews.setVisible(false);
         } else {
-            turnOnNews.setChecked(true);
-            turnOnNews.setVisible(false);
-            showNews.setVisible(true);
+            mTurnOnNews.setChecked(true);
+            mTurnOnNews.setVisible(false);
+            mShowNews.setVisible(true);
             if (BravePrefServiceBridge.getInstance().getShowNews()) {
-                showNews.setChecked(true);
+                mShowNews.setChecked(true);
             } else {
-                showNews.setChecked(false);
+                mShowNews.setChecked(false);
             }
         }
     }
@@ -168,14 +148,21 @@ public class BraveNewsPreferences extends BravePreferenceFragment
         if (PREF_TURN_ON_NEWS.equals(key)) {
             BravePrefServiceBridge.getInstance().setNewsOptIn((boolean) newValue);
             if ((boolean) newValue) {
-                showNews.setVisible(true);
-                showNews.setChecked(true);
+                mShowNews.setVisible(true);
+                mShowNews.setChecked(true);
                 BravePrefServiceBridge.getInstance().setShowNews(true);
             } else {
-                showNews.setVisible(false);
+                mShowNews.setVisible(false);
             }
         } else if (PREF_SHOW_NEWS.equals(key)) {
             BravePrefServiceBridge.getInstance().setShowNews((boolean) newValue);
+            for (int i = 0; i < getPreferenceScreen().getPreferenceCount(); i++) {
+                Preference pref = getPreferenceScreen().getPreference(i);
+                if (!pref.getKey().equals(PREF_SHOW_NEWS)
+                        && !pref.getKey().equals(PREF_TURN_ON_NEWS)) {
+                    pref.setVisible((boolean) newValue);
+                }
+            }
         }
         return true;
     }
