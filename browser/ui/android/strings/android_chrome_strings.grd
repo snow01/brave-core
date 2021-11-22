@@ -2897,10 +2897,6 @@ To change this setting, <ph name="BEGIN_LINK">&lt;resetlink&gt;</ph>reset sync<p
       <message name="IDS_N_DAYS_AGO" desc="A number of days in the past. [ICU Syntax]">
         {DAYS, plural, =1 {# day ago} other {# days ago}}
       </message>
-      <message name="IDS_TIME_LONG_MINS"
-               desc="Use an unabbreviated word for minute(s). [ICU Syntax]">
-               {MINUTES, plural, =1 {1 minute} other {# minutes}}
-      </message>
       <message name="IDS_JUST_NOW" desc="A time label for an event that happened just now. For example 'Last synced: just now'">
         just now
       </message>
@@ -4966,6 +4962,11 @@ To change this setting, <ph name="BEGIN_LINK">&lt;resetlink&gt;</ph>reset sync<p
 
       <message name="IDS_LINK_TOGGLE_SHARE_CONTENT_ONLY" desc="Fallback toast displayed when the toggle is clicked for a generic share and a link is excluded.">
         Share content only
+      </message>
+
+      <!-- Lightweight Reactions strings -->
+      <message name="IDS_LIGHTWEIGHT_REACTIONS_CREATING_GIF" desc="Message displayed above the progress bar when the reaction GIF is being generated.">
+        Creating GIF <ph name="PERCENT">%1$d<ex>13</ex></ph>%%
       </message>
 
       <!-- Share Screenshot strings -->
