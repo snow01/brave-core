@@ -546,6 +546,23 @@ bool AdsServiceImpl::ShouldStart() const {
   return IsEnabled() || IsBraveNewsEnabled();
 }
 
+base::DictionaryValue AdsServiceImpl::GetSettingsAsValue() {
+  base::DictionaryValue ads_data;
+
+  ads_data.SetBoolean("adsIsSupported", IsSupportedLocale());
+  ads_data.SetBoolean("adsEnabled", IsEnabled());
+  ads_data.SetInteger("adsPerHour", GetAdsPerHour());
+  ads_data.SetString("adsSubdivisionTargeting",
+                     GetAdsSubdivisionTargetingCode());
+  ads_data.SetString("automaticallyDetectedAdsSubdivisionTargeting",
+                     GetAutoDetectedAdsSubdivisionTargetingCode());
+  ads_data.SetBoolean("shouldAllowAdsSubdivisionTargeting",
+                      ShouldAllowAdsSubdivisionTargeting());
+  ads_data.SetBoolean("adsUIEnabled", true);
+
+  return ads_data;
+}
+
 int64_t AdsServiceImpl::GetAdsPerHour() const {
   int64_t ads_per_hour = GetInt64Pref(ads::prefs::kAdsPerHour);
   if (ads_per_hour == -1) {

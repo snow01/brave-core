@@ -167,9 +167,6 @@ class SettingsBraveRewardsPage extends SettingsBraveRewardsPageBase {
       chrome.braveRewards.openBrowserActionUI('brave_rewards_panel.html')
       this.isAutoContributeSupported_()
     }
-    this.browserProxy_.getLocale().then((locale) => {
-      this.shouldAllowAdsSubdivisionTargeting_ = locale === 'en-US'
-    })
     this.browserProxy_.getRewardsEnabled().then((enabled) => {
       if (enabled) {
         this.isRewardsEnabled_ = true
@@ -177,6 +174,9 @@ class SettingsBraveRewardsPage extends SettingsBraveRewardsPageBase {
         this.wasInlineTippingForTwitterEnabledOnStartup_ = this.getPref('brave.rewards.inline_tip.twitter').value
         this.wasInlineTippingForGithubEnabledOnStartup_ = this.getPref('brave.rewards.inline_tip.github').value
         this.isAutoContributeSupported_()
+        this.browserProxy_.getAdsData().then((adsData) => {
+          this.shouldAllowAdsSubdivisionTargeting_ = adsData.shouldAllowSubdivisionTargeting
+        })
       }
     })
     chrome.braveRewards.onAdsEnabled.addListener(() => {

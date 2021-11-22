@@ -310,8 +310,6 @@ namespace {
 
 const int kDaysOfAdsHistory = 30;
 
-const char kShouldAllowAdsSubdivisionTargeting[] =
-    "shouldAllowAdsSubdivisionTargeting";
 const char kAdsSubdivisionTargeting[] = "adsSubdivisionTargeting";
 const char kAutoDetectedAdsSubdivisionTargeting[] =
     "automaticallyDetectedAdsSubdivisionTargeting";
@@ -1220,34 +1218,8 @@ void RewardsDOMHandler::GetAdsData(base::Value::ConstListView args) {
 
   AllowJavascript();
 
-  base::DictionaryValue ads_data;
-
-  auto is_supported_locale = ads_service_->IsSupportedLocale();
-  ads_data.SetBoolean("adsIsSupported", is_supported_locale);
-
-  auto is_enabled = ads_service_->IsEnabled();
-  ads_data.SetBoolean("adsEnabled", is_enabled);
-
-  auto ads_per_hour = ads_service_->GetAdsPerHour();
-  ads_data.SetInteger("adsPerHour", ads_per_hour);
-
-  const std::string subdivision_targeting_code =
-      ads_service_->GetAdsSubdivisionTargetingCode();
-  ads_data.SetString(kAdsSubdivisionTargeting, subdivision_targeting_code);
-
-  const std::string auto_detected_subdivision_targeting_code =
-      ads_service_->GetAutoDetectedAdsSubdivisionTargetingCode();
-  ads_data.SetString(kAutoDetectedAdsSubdivisionTargeting,
-                     auto_detected_subdivision_targeting_code);
-
-  const bool should_allow_subdivision_ad_targeting =
-      ads_service_->ShouldAllowAdsSubdivisionTargeting();
-  ads_data.SetBoolean(kShouldAllowAdsSubdivisionTargeting,
-                      should_allow_subdivision_ad_targeting);
-
-  ads_data.SetBoolean("adsUIEnabled", true);
-
-  CallJavascriptFunction("brave_rewards.adsData", ads_data);
+  CallJavascriptFunction("brave_rewards.adsData",
+                         ads_service_->GetSettingsAsValue());
 }
 
 void RewardsDOMHandler::GetAdsHistory(base::Value::ConstListView args) {

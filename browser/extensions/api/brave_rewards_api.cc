@@ -1179,6 +1179,20 @@ BraveRewardsGetAdsSupportedFunction::Run() {
   return RespondNow(OneArgument(base::Value(supported)));
 }
 
+BraveRewardsGetAdsDataFunction::~BraveRewardsGetAdsDataFunction() {}
+
+ExtensionFunction::ResponseAction BraveRewardsGetAdsDataFunction::Run() {
+  Profile* profile = Profile::FromBrowserContext(browser_context());
+  AdsService* ads_service = AdsServiceFactory::GetForProfile(profile);
+
+  if (!ads_service) {
+    return RespondNow(Error("Ads service is not initialized"));
+  }
+
+  return RespondNow(
+      OneArgument(base::Value(ads_service->GetSettingsAsValue())));
+}
+
 BraveRewardsGetAnonWalletStatusFunction::
 ~BraveRewardsGetAnonWalletStatusFunction() = default;
 

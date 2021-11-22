@@ -101,6 +101,8 @@ class AdsServiceImpl : public AdsService,
 
   void SetAllowConversionTracking(const bool should_allow) override;
 
+  base::DictionaryValue GetSettingsAsValue() override;
+
   int64_t GetAdsPerHour() const override;
   void SetAdsPerHour(const int64_t ads_per_hour) override;
 
