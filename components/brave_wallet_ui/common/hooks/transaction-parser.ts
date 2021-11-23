@@ -53,7 +53,8 @@ interface ParsedTransaction extends ParsedTransactionFees {
   symbol: string
   decimals: number
   insufficientFundsError: boolean
-  addressError: string
+  sameAddressError?: string
+  contractAddressError?: string
   erc721ERCToken?: ERCToken
   erc721TokenId?: string
   isSwap?: boolean
@@ -100,16 +101,18 @@ export function useTransactionParser (
     return visibleTokens.find((token) => token.contractAddress.toLowerCase() === contractAddress.toLowerCase())
   }, [visibleTokens])
 
-  const checkForAddressError = (to: string, from: string): string => {
+  const checkForSameAddressError = (to: string, from: string): string | undefined => {
     // If value is the same as the selectedAccounts Wallet Address
-    if (to.toLowerCase() === from.toLowerCase()) {
-      return getLocale('braveWalletSameAddressError')
-    }
+    return to.toLowerCase() === from.toLowerCase()
+      ? getLocale('braveWalletSameAddressError')
+      : undefined
+  }
+
+  const checkForContractAddressError = (to: string): string | undefined => {
     // If value is a Tokens Contract Address
-    if (fullTokenList?.some(token => token.contractAddress.toLowerCase() === to.toLowerCase())) {
-      return getLocale('braveWalletContractAddressError')
-    }
-    return ''
+    return fullTokenList?.some(token => token.contractAddress.toLowerCase() === to.toLowerCase())
+      ? getLocale('braveWalletContractAddressError')
+      : undefined
   }
 
   return React.useCallback((transactionInfo: TransactionInfo) => {
@@ -150,7 +153,8 @@ export function useTransactionParser (
           symbol: token?.symbol ?? '',
           decimals: token?.decimals ?? 18,
           insufficientFundsError: insufficientNativeFunds || insufficientTokenFunds,
-          addressError: checkForAddressError(address, transactionInfo.fromAddress),
+          sameAddressError: checkForSameAddressError(address, transactionInfo.fromAddress),
+          contractAddressError: checkForContractAddressError(address),
           ...feeDetails
         } as ParsedTransaction
       }
@@ -182,7 +186,8 @@ export function useTransactionParser (
           insufficientFundsError: insufficientNativeFunds,
           erc721ERCToken: token,
           erc721TokenId: hexToNumber(tokenID ?? ''),
-          addressError: checkForAddressError(toAddress, fromAddress),
+          sameAddressError: checkForSameAddressError(toAddress, fromAddress),
+          contractAddressError: checkForContractAddressError(toAddress),
           ...feeDetails
         } as ParsedTransaction
       }
@@ -246,7 +251,8 @@ export function useTransactionParser (
           symbol: selectedNetwork.symbol,
           decimals: selectedNetwork?.decimals ?? 18,
           insufficientFundsError: Number(totalAmountFiat) > Number(accountsNativeFiatBalance),
-          addressError: checkForAddressError(to, transactionInfo.fromAddress),
+          sameAddressError: checkForSameAddressError(to, transactionInfo.fromAddress),
+          contractAddressError: checkForContractAddressError(to),
           isSwap: transactionInfo.txData.baseData.to.toLowerCase() === SwapExchangeProxy,
           ...feeDetails
         } as ParsedTransaction
