@@ -242,19 +242,19 @@
         Try it out
       </message>
 
-      <message name="IDS_BRAVE_TODAY_TITLE" translateable="false" desc="Title for Brave News news feed section">
-        Brave News
+      <message name="IDS_BRAVE_TODAY_TITLE" translateable="false" desc="Title for DailyHunt News news feed section">
+        DailyHunt News
       </message>
-      <message name="IDS_BRAVE_TODAY_INTRO_TITLE" desc="Title for introduction to Brave News news feed section">
+      <message name="IDS_BRAVE_TODAY_INTRO_TITLE" desc="Title for introduction to DailyHunt News news feed section">
         Today's top stories in a completely private feed, just for you.
       </message>
-      <message name="IDS_BRAVE_TODAY_INTRO_DESCRIPTION" desc="Description for introduction to Brave News news feed section. Do not translate the title Brave News.">
-        Brave News is ad-supported with completely private and anonymized ads matched on your device. Your personal information always stays private, per our <ph name="LINK_START">$1<ex>{</ex></ph>privacy policy<ph name="LINK_END">$2<ex>}</ex></ph>.
+      <message name="IDS_BRAVE_TODAY_INTRO_DESCRIPTION" desc="Description for introduction to DailyHunt News news feed section. Do not translate the title DailyHunt News.">
+        DailyHunt News is ad-supported with completely private and anonymized ads matched on your device. Your personal information always stays private, per our <ph name="LINK_START">$1<ex>{</ex></ph>privacy policy<ph name="LINK_END">$2<ex>}</ex></ph>.
       </message>
-      <message name="IDS_BRAVE_TODAY_OPT_IN_ACTION_LABEL" desc="Button text for opting in to Brave News">
-        Show Brave News
+      <message name="IDS_BRAVE_TODAY_OPT_IN_ACTION_LABEL" desc="Button text for opting in to DailyHunt News">
+        Show DailyHunt News
       </message>
-      <message name="IDS_BRAVE_TODAY_OPT_OUT_ACTION_LABEL" desc="Button text for opting out of Brave News">
+      <message name="IDS_BRAVE_TODAY_OPT_OUT_ACTION_LABEL" desc="Button text for opting out of DailyHunt News">
         No thanks
       </message>
       <message name="IDS_BRAVE_TODAY_STATUS_FETCHING" desc="Indication that the content is being downloaded...">
@@ -263,19 +263,19 @@
       <message name="IDS_BRAVE_TODAY_ACTION_REFRESH" desc="Button text to refresh the feed content">
         Load new content
       </message>
-      <message name="IDS_BRAVE_TODAY_SCROLL_HINT" desc="Indicator text that Brave News content must be scrolled down to. Do not translate the title Brave News.">
-        Scroll for Brave News
+      <message name="IDS_BRAVE_TODAY_SCROLL_HINT" desc="Indicator text that DailyHunt News content must be scrolled down to. Do not translate the title DailyHunt News.">
+        Scroll for DailyHunt News
       </message>
-      <message name="IDS_BRAVE_TODAY_RESET_ACTION" desc="Button text to reset all Brave News publisher options. Do not translate the title Brave News.">
-        Reset Brave News sources
+      <message name="IDS_BRAVE_TODAY_RESET_ACTION" desc="Button text to reset all DailyHunt News publisher options. Do not translate the title DailyHunt News.">
+        Reset DailyHunt News sources
       </message>
-      <message name="IDS_BRAVE_TODAY_RESET_CONFIRM" desc="Confirmation dialog text to reset all Brave News settings. Do not translate the title Brave News.">
-        Reset all your Brave News publisher choices to their default?
+      <message name="IDS_BRAVE_TODAY_RESET_CONFIRM" desc="Confirmation dialog text to reset all DailyHunt News settings. Do not translate the title DailyHunt News.">
+        Reset all your DailyHunt News publisher choices to their default?
       </message>
       <message name="IDS_BRAVE_TODAY_CATEGORY_NAME_ALL" desc="Title for the category which shows all content sources">
         All sources
       </message>
-      <message name="IDS_BRAVE_TODAY_SOURCES_TITLE" desc="Title for the list of source publishers in Brave News settings">
+      <message name="IDS_BRAVE_TODAY_SOURCES_TITLE" desc="Title for the list of source publishers in DailyHunt News settings">
         Sources
       </message>
       <message name="IDS_BRAVE_TODAY_DISABLE_SOURCE_COMMAND" desc="Command text to disable a specific publisher from showing in the feed">

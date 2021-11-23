@@ -7055,7 +7055,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
           Remove from group
         </message>
         <message name="IDS_TAB_CXMENU_PLACEHOLDER_GROUP_TITLE" desc="The descriptive placeholder title of a group used when the user has not explicitly named a group. The plural value refers to the number of tabs in the group other than the one explicitly named. [ICU Syntax]">
-          {NUM_OTHER_TABS, plural, =0 {"<ph name="TAB_TITLE">$1<ex>Brave News</ex></ph>"} =1 {"<ph name="TAB_TITLE">$1<ex>Brave News</ex></ph>" and 1 other tab} other {"<ph name="TAB_TITLE">$1<ex>Brave News</ex></ph>" and # other tabs}}
+          {NUM_OTHER_TABS, plural, =0 {"<ph name="TAB_TITLE">$1<ex>DailyHunt News</ex></ph>"} =1 {"<ph name="TAB_TITLE">$1<ex>DailyHunt News</ex></ph>" and 1 other tab} other {"<ph name="TAB_TITLE">$1<ex>DailyHunt News</ex></ph>" and # other tabs}}
         </message>
         <message name="IDS_TAB_CXMENU_MOVE_TABS_TO_NEW_WINDOW" desc="The label of the 'Move Tabs to New Window' Tab context menu item. NOTE: If having no explicit # makes the phrasing awkward, feel free to add a # as necessary. [ICU Syntax]">
           {NUM_TABS, plural,
@@ -7072,7 +7072,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
         </message>
         <if expr="chromeos or lacros">
           <message name="IDS_TAB_CXMENU_GROUPED_BY_DESK_MENU_ITEM_A11Y" desc="The a11y message for menu items in 'Move tabs to another window' when grouped by desk.">
-            <ph name="TAB_TITLE">$1<ex>Brave News</ex></ph> belongs to desk <ph name="DESK_TITLE">$2<ex>School</ex></ph>
+            <ph name="TAB_TITLE">$1<ex>DailyHunt News</ex></ph> belongs to desk <ph name="DESK_TITLE">$2<ex>School</ex></ph>
           </message>
           <message name="IDS_TAB_CXMENU_GROUPED_BY_DESK_DESK_HEADING_A11Y" desc="The a11y message for desk headings in 'Move tabs to another window' when grouped by desk.">
             Desk <ph name="DESK_TITLE">$1<ex>School</ex></ph> has <ph name="NUM_BROWSERS">$2<ex>3</ex></ph> browser windows open
@@ -7135,7 +7135,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
           Remove From Group
         </message>
         <message name="IDS_TAB_CXMENU_PLACEHOLDER_GROUP_TITLE" desc="The descriptive placeholder title of a group used when the user has not explicitly named a group. The plural value refers to the number of tabs in the group other than the one explicitly named. [ICU Syntax]">
-          {NUM_OTHER_TABS, plural, =0 {"<ph name="TAB_TITLE">$1<ex>Brave News</ex></ph>"} =1 {"<ph name="TAB_TITLE">$1<ex>Brave News</ex></ph>" and 1 Other Tab} other {"<ph name="TAB_TITLE">$1<ex>Brave News</ex></ph>" and # Other Tabs}}
+          {NUM_OTHER_TABS, plural, =0 {"<ph name="TAB_TITLE">$1<ex>DailyHunt News</ex></ph>"} =1 {"<ph name="TAB_TITLE">$1<ex>DailyHunt News</ex></ph>" and 1 Other Tab} other {"<ph name="TAB_TITLE">$1<ex>DailyHunt News</ex></ph>" and # Other Tabs}}
         </message>
         <message name="IDS_TAB_CXMENU_MOVE_TABS_TO_NEW_WINDOW" desc="In Title Case: The label of the 'Move Tabs to New Window' Tab context menu item. NOTE: If having no explicit # makes the phrasing awkward, feel free to add a # as necessary. [ICU Syntax]">
           {NUM_TABS, plural,
