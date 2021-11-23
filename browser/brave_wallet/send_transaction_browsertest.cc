@@ -16,12 +16,14 @@
 #include "brave/browser/brave_wallet/rpc_controller_factory.h"
 #include "brave/common/brave_paths.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_service.h"
+#include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
 #include "brave/components/brave_wallet/browser/eth_json_rpc_controller.h"
 #include "brave/components/brave_wallet/browser/eth_tx_controller.h"
 #include "brave/components/brave_wallet/browser/ethereum_permission_utils.h"
 #include "brave/components/brave_wallet/browser/keyring_controller.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "brave/components/brave_wallet/common/features.h"
+#include "brave/components/brave_wallet/common/hex_utils.h"
 #include "brave/components/permissions/contexts/brave_ethereum_permission_context.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/profiles/profile.h"
@@ -66,7 +68,12 @@ class TestEthTxControllerObserver
     : public brave_wallet::mojom::EthTxControllerObserver {
  public:
   TestEthTxControllerObserver() {}
-  void OnNewUnapprovedTx(mojom::TransactionInfoPtr tx) override {}
+
+  void OnNewUnapprovedTx(mojom::TransactionInfoPtr tx) override {
+    EXPECT_EQ(tx->tx_data->chain_id.empty(), !expect_eip1559_tx_);
+    run_loop_new_unapproved_->Quit();
+  }
+
   void OnUnapprovedTxUpdated(mojom::TransactionInfoPtr tx) override {}
 
   void OnTransactionStatusChanged(mojom::TransactionInfoPtr tx) override {
@@ -75,6 +82,11 @@ class TestEthTxControllerObserver
     } else if (tx->tx_status == mojom::TransactionStatus::Rejected) {
       run_loop_rejected_->Quit();
     }
+  }
+
+  void WaitForNewUnapprovedTx() {
+    run_loop_new_unapproved_ = std::make_unique<base::RunLoop>();
+    run_loop_new_unapproved_->Run();
   }
 
   void WaitForApprovedStatus() {
@@ -92,11 +104,16 @@ class TestEthTxControllerObserver
     return observer_receiver_.BindNewPipeAndPassRemote();
   }
 
+  void SetExpectEip1559Tx(bool eip1559) { expect_eip1559_tx_ = eip1559; }
+  bool expect_eip1559_tx() { return expect_eip1559_tx_; }
+
  private:
   mojo::Receiver<brave_wallet::mojom::EthTxControllerObserver>
       observer_receiver_{this};
+  std::unique_ptr<base::RunLoop> run_loop_new_unapproved_;
   std::unique_ptr<base::RunLoop> run_loop_approved_;
   std::unique_ptr<base::RunLoop> run_loop_rejected_;
+  bool expect_eip1559_tx_ = false;
 };
 
 class SendTransactionBrowserTest : public InProcessBrowserTest {
@@ -145,8 +162,7 @@ class SendTransactionBrowserTest : public InProcessBrowserTest {
     https_server_for_rpc()->SetSSLConfig(net::EmbeddedTestServer::CERT_OK);
     https_server_for_rpc()->RegisterRequestHandler(callback);
     ASSERT_TRUE(https_server_for_rpc()->Start());
-    eth_json_rpc_controller_->SetCustomNetworkForTesting(
-        "0x1", https_server_for_rpc()->base_url());
+    SetNetworkForTesting("0x539");
   }
 
   content::WebContents* web_contents() {
@@ -223,6 +239,10 @@ class SendTransactionBrowserTest : public InProcessBrowserTest {
     run_loop.Run();
   }
 
+  void AddEthereumChain(const std::string& chain_id) {
+    eth_json_rpc_controller_->AddEthereumChainRequestCompleted(chain_id, true);
+  }
+
   void UserGrantPermission(bool granted) {
     std::string expected_address = "undefined";
     if (granted) {
@@ -290,36 +310,35 @@ class SendTransactionBrowserTest : public InProcessBrowserTest {
     run_loop.Run();
   }
 
-  void TestUserApproved(const std::string& test_method) {
-    RestoreWallet();
+  void TestUserApproved(const std::string& test_method,
+                        bool skip_restore = false) {
+    if (!skip_restore)
+      RestoreWallet();
     GURL url =
         https_server_for_files()->GetURL("a.com", "/send_transaction.html");
     ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url));
     WaitForLoadStop(web_contents());
 
-    EXPECT_EQ(EvalJs(web_contents(), "getChainId()",
-                     content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
-                  .ExtractString(),
-              "0x1");
-
-    EXPECT_TRUE(
+    ASSERT_TRUE(
         brave_wallet::BraveWalletTabHelper::FromWebContents(web_contents())
             ->IsShowingBubble());
     UserGrantPermission(true);
     ASSERT_TRUE(
         ExecJs(web_contents(),
                base::StringPrintf(
-                   "sendTransaction(false, '%s', "
+                   "sendTransaction(%s, '%s', "
                    "'0x084DCb94038af1715963F149079cE011C4B22961', "
                    "'0x084DCb94038af1715963F149079cE011C4B22962', '0x11');",
+                   observer()->expect_eip1559_tx() ? "true" : "false",
                    test_method.c_str())));
+    observer()->WaitForNewUnapprovedTx();
     base::RunLoop().RunUntilIdle();
-    EXPECT_TRUE(
+    ASSERT_TRUE(
         brave_wallet::BraveWalletTabHelper::FromWebContents(web_contents())
             ->IsShowingBubble());
 
     auto infos = GetAllTransactionInfo();
-    EXPECT_EQ(1UL, infos.size());
+    ASSERT_EQ(1UL, infos.size());
     EXPECT_TRUE(
         base::EqualsCaseInsensitiveASCII(from(), infos[0]->from_address));
     EXPECT_EQ(mojom::TransactionStatus::Unapproved, infos[0]->tx_status);
@@ -359,6 +378,7 @@ class SendTransactionBrowserTest : public InProcessBrowserTest {
                    "'0x084DCb94038af1715963F149079cE011C4B22961', "
                    "'0x084DCb94038af1715963F149079cE011C4B22962', '0x11');",
                    test_method.c_str())));
+    observer()->WaitForNewUnapprovedTx();
     base::RunLoop().RunUntilIdle();
     EXPECT_TRUE(
         brave_wallet::BraveWalletTabHelper::FromWebContents(web_contents())
@@ -401,6 +421,16 @@ class SendTransactionBrowserTest : public InProcessBrowserTest {
     return transaction_infos;
   }
 
+  void SetNetworkForTesting(const std::string& chain_id) {
+    eth_json_rpc_controller_->SetCustomNetworkForTesting(
+        chain_id, https_server_for_rpc()->base_url());
+    // Needed so ChainChangedEvent observers run
+    base::RunLoop().RunUntilIdle();
+    chain_id_ = chain_id;
+  }
+
+  std::string chain_id() { return chain_id_; }
+
  protected:
   BraveWalletService* brave_wallet_service_;
 
@@ -412,6 +442,7 @@ class SendTransactionBrowserTest : public InProcessBrowserTest {
   KeyringController* keyring_controller_;
   EthTxController* eth_tx_controller_;
   EthJsonRpcController* eth_json_rpc_controller_;
+  std::string chain_id_;
 };
 
 IN_PROC_BROWSER_TEST_F(SendTransactionBrowserTest, UserApprovedRequest) {
@@ -453,7 +484,7 @@ IN_PROC_BROWSER_TEST_F(SendTransactionBrowserTest, InvalidAddress) {
   ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url));
   WaitForLoadStop(web_contents());
 
-  EXPECT_TRUE(
+  ASSERT_TRUE(
       brave_wallet::BraveWalletTabHelper::FromWebContents(web_contents())
           ->IsShowingBubble());
   UserGrantPermission(true);
@@ -480,7 +511,7 @@ IN_PROC_BROWSER_TEST_F(SendTransactionBrowserTest, NoEthPermission) {
   ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url));
   WaitForLoadStop(web_contents());
 
-  EXPECT_TRUE(
+  ASSERT_TRUE(
       brave_wallet::BraveWalletTabHelper::FromWebContents(web_contents())
           ->IsShowingBubble());
   UserGrantPermission(false);
@@ -507,11 +538,6 @@ IN_PROC_BROWSER_TEST_F(SendTransactionBrowserTest, SelectedAddress) {
       https_server_for_files()->GetURL("a.com", "/send_transaction.html");
   ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url));
   WaitForLoadStop(web_contents());
-
-  EXPECT_EQ(EvalJs(web_contents(), "getChainId()",
-                   content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
-                .ExtractString(),
-            "0x1");
 
   EXPECT_TRUE(
       brave_wallet::BraveWalletTabHelper::FromWebContents(web_contents())
@@ -551,6 +577,100 @@ IN_PROC_BROWSER_TEST_F(SendTransactionBrowserTest, SelectedAddress) {
                    content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
                 .ExtractString(),
             from(1));
+}
+
+IN_PROC_BROWSER_TEST_F(SendTransactionBrowserTest, NetworkVersion) {
+  RestoreWallet();
+  GURL url =
+      https_server_for_files()->GetURL("a.com", "/send_transaction.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url));
+  WaitForLoadStop(web_contents());
+
+  EXPECT_EQ(EvalJs(web_contents(), "getChainId()",
+                   content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
+                .ExtractString(),
+            chain_id());
+  uint256_t chain_id_uint256;
+  EXPECT_TRUE(HexValueToUint256(chain_id(), &chain_id_uint256));
+  EXPECT_EQ(EvalJs(web_contents(), "getNetworkVersion()",
+                   content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
+                .ExtractString(),
+            std::to_string((uint64_t)chain_id_uint256));
+
+  // Newly added network change
+  std::string chain_id = "0x38";
+  AddEthereumChain(chain_id);
+  SetNetworkForTesting(chain_id);
+  EXPECT_EQ(EvalJs(web_contents(), "getChainId()",
+                   content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
+                .ExtractString(),
+            chain_id);
+  EXPECT_TRUE(HexValueToUint256(chain_id, &chain_id_uint256));
+  EXPECT_EQ(EvalJs(web_contents(), "getNetworkVersion()",
+                   content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
+                .ExtractString(),
+            std::to_string((uint64_t)chain_id_uint256));
+
+  // Make sure chainId > uint64_t has networkVersion undefined. This is
+  // just a current limitation that we will likely get rid of in the future.
+  chain_id = "0x878678326eac900000000";
+  AddEthereumChain(chain_id);
+  SetNetworkForTesting(chain_id);
+  EXPECT_EQ(EvalJs(web_contents(), "getChainId()",
+                   content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
+                .ExtractString(),
+            chain_id);
+  EXPECT_TRUE(HexValueToUint256(chain_id, &chain_id_uint256));
+  EXPECT_EQ(EvalJs(web_contents(), "getNetworkVersion()",
+                   content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
+                .ExtractString(),
+            "undefined");
+}
+
+IN_PROC_BROWSER_TEST_F(SendTransactionBrowserTest, IsUnlocked) {
+  RestoreWallet();
+  GURL url =
+      https_server_for_files()->GetURL("a.com", "/send_transaction.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url));
+  WaitForLoadStop(web_contents());
+  EXPECT_TRUE(EvalJs(web_contents(), "getIsUnlocked()",
+                     content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
+                  .ExtractBool());
+  LockWallet();
+  EXPECT_FALSE(EvalJs(web_contents(), "getIsUnlocked()",
+                      content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
+                   .ExtractBool());
+  UnlockWallet();
+  EXPECT_TRUE(EvalJs(web_contents(), "getIsUnlocked()",
+                     content::EXECUTE_SCRIPT_USE_MANUAL_REPLY)
+                  .ExtractBool());
+}
+
+IN_PROC_BROWSER_TEST_F(SendTransactionBrowserTest,
+                       EthSendTransactionEIP1559Tx) {
+  SetNetworkForTesting("0x1");  // mainnet
+  observer()->SetExpectEip1559Tx(true);
+  TestUserApproved("request");
+}
+
+IN_PROC_BROWSER_TEST_F(SendTransactionBrowserTest, EthSendTransactionLegacyTx) {
+  SetNetworkForTesting("0x539");  // localhost
+  observer()->SetExpectEip1559Tx(false);
+  TestUserApproved("request");
+}
+
+IN_PROC_BROWSER_TEST_F(SendTransactionBrowserTest,
+                       EthSendTransactionCustomNetworkLegacyTx) {
+  SetNetworkForTesting("0x5566");
+  observer()->SetExpectEip1559Tx(false);
+  RestoreWallet();
+
+  mojom::EthereumChain chain(
+      "0x5566", "Test Custom Chain", {"https://url1.com"}, {"https://url1.com"},
+      {"https://url1.com"}, "TC", "Test Coin", 11, false);
+  AddCustomNetwork(browser()->profile()->GetPrefs(), chain.Clone());
+
+  TestUserApproved("request", true /* skip_restore */);
 }
 
 }  // namespace brave_wallet

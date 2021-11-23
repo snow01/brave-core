@@ -14,7 +14,7 @@
 
 #include "base/containers/flat_map.h"
 #include "base/gtest_prod_util.h"
-#include "brave/components/brave_wallet/browser/brave_wallet_types.h"
+#include "brave/components/brave_wallet/common/brave_wallet_types.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace brave_wallet {
@@ -56,7 +56,8 @@ class HDKeyring {
   // eth_sign
   virtual std::vector<uint8_t> SignMessage(const std::string& address,
                                            const std::vector<uint8_t>& message,
-                                           uint256_t chain_id);
+                                           uint256_t chain_id,
+                                           bool is_eip712);
 
   HDKey* GetHDKeyFromAddress(const std::string& address);
 

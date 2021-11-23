@@ -12,9 +12,9 @@
 
 #include "base/gtest_prod_util.h"
 #include "base/values.h"
-#include "brave/components/brave_wallet/browser/brave_wallet_types.h"
 #include "brave/components/brave_wallet/browser/password_encryptor.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
+#include "brave/components/brave_wallet/common/brave_wallet_types.h"
 #include "components/keyed_service/core/keyed_service.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "mojo/public/cpp/bindings/receiver_set.h"
@@ -164,7 +164,8 @@ class KeyringController : public KeyedService, public mojom::KeyringController {
   };
   SignatureWithError SignMessageByDefaultKeyring(
       const std::string& address,
-      const std::vector<uint8_t>& message);
+      const std::vector<uint8_t>& message,
+      bool is_eip712 = false);
 
   void AddAccountsWithDefaultName(size_t number);
 

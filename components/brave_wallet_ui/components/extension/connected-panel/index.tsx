@@ -6,7 +6,10 @@ import {
   ConnectedHeader
 } from '../'
 import { Tooltip } from '../../shared'
-import { formatWithCommasAndDecimals } from '../../../utils/format-prices'
+import {
+  formatFiatAmountWithCommasAndDecimals,
+  formatTokenAmountWithCommasAndDecimals
+} from '../../../utils/format-prices'
 import { formatBalance } from '../../../utils/format-balances'
 import { reduceAccountDisplayName } from '../../../utils/reduce-account-name'
 
@@ -99,6 +102,26 @@ const ConnectedPanel = (props: Props) => {
     return !SwapSupportedChains.includes(selectedNetwork.chainId)
   }, [SwapSupportedChains, selectedNetwork])
 
+  const formatedAssetBalance = formatBalance(selectedAccount.balance, selectedNetwork.decimals)
+
+  const formatedAssetBalanceWithDecimals = selectedAccount.balance
+    ? formatTokenAmountWithCommasAndDecimals(formatedAssetBalance, selectedNetwork.symbol)
+    : ''
+
+  const onClickViewOnBlockExplorer = () => {
+    const exporerURL = selectedNetwork.blockExplorerUrls[0]
+    if (exporerURL && selectedAccount.address) {
+      const url = `${exporerURL}/address/${selectedAccount.address}`
+      chrome.tabs.create({ url: url }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('tabs.create failed: ' + chrome.runtime.lastError.message)
+        }
+      })
+    } else {
+      alert(getLocale('braveWalletTransactionExplorerMissing'))
+    }
+  }
+
   return (
     <StyledWrapper onClick={onHideMore} panelBackground={bg}>
       <ConnectedHeader
@@ -106,6 +129,7 @@ const ConnectedPanel = (props: Props) => {
         onClickLock={onLockWallet}
         onClickSetting={onOpenSettings}
         onClickMore={onShowMore}
+        onClickViewOnBlockExplorer={onClickViewOnBlockExplorer}
         showMore={showMore}
       />
       <CenterColumn>
@@ -114,10 +138,15 @@ const ConnectedPanel = (props: Props) => {
             {isConnected && <BigCheckMark />}
             <OvalButtonText>{isConnected ? getLocale('braveWalletPanelConnected') : getLocale('braveWalletPanelNotConnected')}</OvalButtonText>
           </OvalButton>
-          <OvalButton onClick={navigate('networks')}>
-            <OvalButtonText>{reduceNetworkDisplayName(selectedNetwork.chainName)}</OvalButtonText>
-            <CaratDownIcon />
-          </OvalButton>
+          <Tooltip
+            text={selectedNetwork.chainName}
+            positionRight={true}
+          >
+            <OvalButton onClick={navigate('networks')}>
+              <OvalButtonText>{reduceNetworkDisplayName(selectedNetwork.chainName)}</OvalButtonText>
+              <CaratDownIcon />
+            </OvalButton>
+          </Tooltip>
         </StatusRow>
         <BalanceColumn>
           <AccountCircle orb={orb} onClick={navigate('accounts')}>
@@ -129,8 +158,8 @@ const ConnectedPanel = (props: Props) => {
           </Tooltip>
         </BalanceColumn>
         <BalanceColumn>
-          <AssetBalanceText>{formatBalance(selectedAccount.balance, selectedNetwork.decimals)} {selectedNetwork.symbol}</AssetBalanceText>
-          <FiatBalanceText>${formatWithCommasAndDecimals(selectedAccount.fiatBalance)}</FiatBalanceText>
+          <AssetBalanceText>{formatedAssetBalanceWithDecimals}</AssetBalanceText>
+          <FiatBalanceText>{formatFiatAmountWithCommasAndDecimals(selectedAccount.fiatBalance)}</FiatBalanceText>
         </BalanceColumn>
       </CenterColumn>
       <ConnectedBottomNav

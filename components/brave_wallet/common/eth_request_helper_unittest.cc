@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+#include "base/strings/string_number_conversions.h"
+#include "base/strings/string_util.h"
 #include "brave/components/brave_wallet/common/eth_request_helper.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -105,6 +107,135 @@ TEST(EthResponseHelperUnitTest, ParseEthSendTransaction1559Params) {
   // reasonable values in this case.
   EXPECT_TRUE(tx_data->max_priority_fee_per_gas.empty());
   EXPECT_TRUE(tx_data->max_fee_per_gas.empty());
+}
+
+TEST(EthResponseHelperUnitTest, ShouldCreate1559Tx) {
+  const std::string ledger_address =
+      "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51C9";
+  const std::string trezor_address =
+      "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51CA";
+
+  mojom::AccountInfoPtr primary_account = mojom::AccountInfo::New(
+      "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51C8", "primary", false, nullptr);
+  mojom::AccountInfoPtr ledger_account = mojom::AccountInfo::New(
+      ledger_address, "ledger", false,
+      mojom::HardwareInfo::New("m/44'/60'/1'/0/0", "Ledger", "123"));
+  mojom::AccountInfoPtr trezor_account = mojom::AccountInfo::New(
+      trezor_address, "trezor", false,
+      mojom::HardwareInfo::New("m/44'/60'/1'/0/0", "Trezor", "123"));
+  std::vector<mojom::AccountInfoPtr> account_infos;
+  account_infos.push_back(std::move(primary_account));
+  account_infos.push_back(std::move(ledger_account));
+  account_infos.push_back(std::move(trezor_account));
+
+  // Test both EIP1559 and legacy gas fee fields are specified.
+  std::string json(
+      R"({
+        "params": [{
+          "from": "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51C8",
+          "to": "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51C7",
+          "gas": "0x146",
+          "gasPrice": "0x123",
+          "value": "0x25F38E9E0000000",
+          "data": "0x010203",
+          "nonce": "0x01",
+          "maxPriorityFeePerGas": "0x1",
+          "maxFeePerGas": "0x2"
+        }]
+      })");
+  std::string from;
+  auto tx_data = ParseEthSendTransaction1559Params(json, &from);
+
+  ASSERT_TRUE(tx_data);
+  EXPECT_TRUE(ShouldCreate1559Tx(tx_data.Clone(),
+                                 true /* network_supports_eip1559 */,
+                                 account_infos, from));
+  EXPECT_TRUE(
+      ShouldCreate1559Tx(tx_data.Clone(), true, account_infos, ledger_address));
+  // From is not found in the account infos, can happen when keyring is locked.
+  EXPECT_TRUE(ShouldCreate1559Tx(
+      tx_data.Clone(), true /* network_supports_eip1559 */, {}, from));
+  // Network don't support EIP1559
+  EXPECT_FALSE(ShouldCreate1559Tx(tx_data.Clone(), false, account_infos, from));
+  // Keyring don't support EIP1559
+  EXPECT_FALSE(
+      ShouldCreate1559Tx(tx_data.Clone(), true, account_infos, trezor_address));
+  EXPECT_FALSE(ShouldCreate1559Tx(tx_data.Clone(), true, account_infos,
+                                  base::ToLowerASCII(trezor_address)));
+
+  // Test only EIP1559 gas fee fields are specified.
+  json =
+      R"({
+        "params": [{
+          "from": "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51C8",
+          "to": "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51C7",
+          "gas": "0x146",
+          "value": "0x25F38E9E0000000",
+          "data": "0x010203",
+          "nonce": "0x01",
+          "maxPriorityFeePerGas": "0x1",
+          "maxFeePerGas": "0x2"
+        }]
+      })";
+
+  tx_data = ParseEthSendTransaction1559Params(json, &from);
+  ASSERT_TRUE(tx_data);
+  EXPECT_TRUE(ShouldCreate1559Tx(tx_data.Clone(),
+                                 true /* network_supports_eip1559 */,
+                                 account_infos, from));
+  EXPECT_FALSE(ShouldCreate1559Tx(tx_data.Clone(), false, account_infos, from));
+
+  // Test only legacy gas field is specified.
+  json =
+      R"({
+        "params": [{
+          "from": "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51C8",
+          "to": "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51C7",
+          "gas": "0x146",
+          "gasPrice": "0x123",
+          "value": "0x25F38E9E0000000",
+          "data": "0x010203",
+          "nonce": "0x01"
+        }]
+      })";
+  tx_data = ParseEthSendTransaction1559Params(json, &from);
+  ASSERT_TRUE(tx_data);
+  EXPECT_FALSE(ShouldCreate1559Tx(tx_data.Clone(),
+                                  true /* network_supports_eip1559 */,
+                                  account_infos, from));
+  EXPECT_FALSE(ShouldCreate1559Tx(tx_data.Clone(), false, account_infos, from));
+
+  // Test no gas fee fields are specified.
+  json =
+      R"({
+        "params": [{
+          "from": "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51C8",
+          "to": "0x7f84E0DfF3ffd0af78770cF86c1b1DdFF99d51C7",
+          "gas": "0x146",
+          "value": "0x25F38E9E0000000",
+          "data": "0x010203"
+        }]
+      })";
+  tx_data = ParseEthSendTransaction1559Params(json, &from);
+  ASSERT_TRUE(tx_data);
+  EXPECT_TRUE(ShouldCreate1559Tx(tx_data.Clone(), true, account_infos, from));
+  EXPECT_TRUE(ShouldCreate1559Tx(tx_data.Clone(), true, account_infos,
+                                 base::ToLowerASCII(from)));
+  EXPECT_TRUE(
+      ShouldCreate1559Tx(tx_data.Clone(), true, account_infos, ledger_address));
+  EXPECT_TRUE(ShouldCreate1559Tx(tx_data.Clone(), true, account_infos,
+                                 base::ToLowerASCII(ledger_address)));
+  // From is not found in the account infos, can happen when keyring is locked.
+  EXPECT_TRUE(ShouldCreate1559Tx(
+      tx_data.Clone(), true /* network_supports_eip1559 */, {}, from));
+
+  EXPECT_FALSE(ShouldCreate1559Tx(tx_data.Clone(), false, account_infos, from));
+  EXPECT_FALSE(ShouldCreate1559Tx(tx_data.Clone(), false, account_infos, from));
+  // Keyring don't support EIP1559
+  EXPECT_FALSE(
+      ShouldCreate1559Tx(tx_data.Clone(), true, account_infos, trezor_address));
+  EXPECT_FALSE(ShouldCreate1559Tx(tx_data.Clone(), true, account_infos,
+                                  base::ToLowerASCII(trezor_address)));
 }
 
 TEST(EthResponseHelperUnitTest, ParseEthSignParams) {
@@ -343,6 +474,84 @@ TEST(EthResponseHelperUnitTest, ParseSwitchEthereumChainParams) {
   EXPECT_FALSE(ParseSwitchEthereumChainParams(
       "{\"params\": [{\"chain_id\": \"0x1\"}]}", &chain_id));
   EXPECT_FALSE(ParseSwitchEthereumChainParams("{\"params\": [{}]}", &chain_id));
+}
+
+TEST(EthRequestHelperUnitTest, ParseEthSignTypedDataParams) {
+  const std::string json = R"({
+    "params": [
+      "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+      "{
+        \"types\" :{
+          \"EIP712Domain\": [
+            { \"name\": \"name\", \"type\": \"string\" },
+            { \"name\": \"version\", \"type\": \"string\" },
+            { \"name\": \"chainId\", \"type\": \"uint256\" },
+            { \"name\": \"verifyingContract\", \"type\": \"address\" },
+          ],
+          \"Mail\": [
+            {\"name\": \"from\", \"type\": \"Person\"},
+            {\"name\": \"to\", \"type\": \"Person\"},
+            {\"name\": \"contents\", \"type\": \"string\"}
+          ],
+          \"Person\": [
+            {\"name\": \"name\", \"type\": \"string\"},
+            {\"name\": \"wallet\", \"type\": \"address\"}
+          ]
+        },
+        \"primaryType\": \"Mail\",
+        \"domain\": {
+          \"name\": \"Ether Mail\",
+          \"version\": \"1\",
+          \"chainId\": 1,
+          \"verifyingContract\": \"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\",
+        },
+        \"message\": {
+          \"from\": {
+            \"name\":\"Cow\", \"wallet\":\"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826\"
+          },
+          \"to\": {
+            \"name\":\"Bob\", \"wallet\":\"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB\"
+          },
+          \"contents\":\"Hello, Bob!\"
+        }
+      }"
+    ]
+  })";
+
+  std::string address;
+  std::string message;
+  base::Value domain;
+  std::vector<uint8_t> message_to_sign;
+
+  EXPECT_TRUE(ParseEthSignTypedDataParams(
+      json, &address, &message, &message_to_sign, &domain,
+      EthSignTypedDataHelper::Version::kV4));
+
+  EXPECT_EQ(address, "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826");
+  EXPECT_EQ(
+      message,
+      "{\"contents\":\"Hello, "
+      "Bob!\",\"from\":{\"name\":\"Cow\",\"wallet\":"
+      "\"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826\"},\"to\":{\"name\":"
+      "\"Bob\",\"wallet\":\"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB\"}}");
+
+  std::string* ds_name = domain.FindStringKey("name");
+  ASSERT_TRUE(ds_name);
+  EXPECT_EQ(*ds_name, "Ether Mail");
+  std::string* ds_version = domain.FindStringKey("version");
+  ASSERT_TRUE(ds_version);
+  EXPECT_EQ(*ds_version, "1");
+  auto chain_id = domain.FindIntKey("chainId");
+  ASSERT_TRUE(chain_id);
+  EXPECT_EQ(*chain_id, 1);
+  std::string* ds_verifying_contract =
+      domain.FindStringKey("verifyingContract");
+  ASSERT_TRUE(ds_verifying_contract);
+  EXPECT_EQ(*ds_verifying_contract,
+            "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC");
+
+  EXPECT_EQ(base::ToLowerASCII(base::HexEncode(message_to_sign)),
+            "be609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2");
 }
 
 }  // namespace brave_wallet

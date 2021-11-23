@@ -18,8 +18,8 @@
 #include "base/observer_list_threadsafe.h"
 #include "brave/components/api_request_helper/api_request_helper.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_constants.h"
-#include "brave/components/brave_wallet/browser/brave_wallet_types.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
+#include "brave/components/brave_wallet/common/brave_wallet_types.h"
 #include "components/keyed_service/core/keyed_service.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "mojo/public/cpp/bindings/receiver_set.h"
@@ -115,6 +115,7 @@ class EthJsonRpcController : public KeyedService,
   bool SetNetwork(const std::string& chain_id);
   void SetNetwork(const std::string& chain_id,
                   SetNetworkCallback callback) override;
+  void GetNetwork(GetNetworkCallback callback) override;
   void AddEthereumChain(mojom::EthereumChainPtr chain,
                         const GURL& origin,
                         AddEthereumChainCallback callback) override;

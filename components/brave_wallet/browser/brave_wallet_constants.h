@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "base/no_destructor.h"
-#include "brave/components/brave_wallet/browser/brave_wallet_types.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
+#include "brave/components/brave_wallet/common/brave_wallet_types.h"
 #include "components/grit/brave_components_strings.h"
 #include "ui/base/webui/web_ui_util.h"
 
@@ -530,6 +530,7 @@ const char kRopstenFeeRecipient[] =
 const char kSwapBaseAPIURL[] = "https://api.0x.org/";
 const char kBuyTokenPercentageFee[] = "0.00875";
 const char kFeeRecipient[] = "0xbd9420A98a7Bd6B89765e5715e169481602D9c3d";
+const char kAffiliateAddress[] = "0xbd9420A98a7Bd6B89765e5715e169481602D9c3d";
 const int64_t kBlockTrackerDefaultTimeInSeconds = 20;
 
 // Unstoppable domains record key for ethereum address.

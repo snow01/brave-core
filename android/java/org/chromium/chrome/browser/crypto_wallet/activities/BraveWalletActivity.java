@@ -56,7 +56,10 @@ import org.chromium.chrome.browser.crypto_wallet.listeners.OnNextPage;
 import org.chromium.chrome.browser.crypto_wallet.util.NavigationItem;
 import org.chromium.chrome.browser.crypto_wallet.util.Utils;
 import org.chromium.chrome.browser.init.AsyncInitializationActivity;
+import org.chromium.chrome.browser.settings.BraveWalletPreferences;
+import org.chromium.chrome.browser.settings.SettingsLauncherImpl;
 import org.chromium.components.browser_ui.modaldialog.AppModalPresenter;
+import org.chromium.components.browser_ui.settings.SettingsLauncher;
 import org.chromium.mojo.bindings.ConnectionErrorHandler;
 import org.chromium.mojo.system.MojoException;
 import org.chromium.ui.base.ActivityWindowAndroid;
@@ -67,9 +70,10 @@ import java.util.List;
 
 public class BraveWalletActivity
         extends AsyncInitializationActivity implements OnNextPage, ConnectionErrorHandler {
-    private Toolbar toolbar;
+    private Toolbar mToolbar;
 
     private View cryptoLayout;
+    private View cryptoOnboardingLayout;
     private ImageView swapButton;
     private ViewPager cryptoWalletOnboardingViewPager;
     private ModalDialogManager mModalDialogManager;
@@ -98,14 +102,24 @@ public class BraveWalletActivity
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.settings) {
+            SettingsLauncher settingsLauncher = new SettingsLauncherImpl();
+            settingsLauncher.launchSettingsActivity(this, BraveWalletPreferences.class);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     protected void triggerLayoutInflation() {
         setContentView(R.layout.activity_brave_wallet);
-        toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitleTextColor(getResources().getColor(android.R.color.black));
-        toolbar.setTitle("");
-        toolbar.setOverflowIcon(
+        mToolbar = findViewById(R.id.toolbar);
+        mToolbar.setTitleTextColor(getResources().getColor(android.R.color.black));
+        mToolbar.setTitle("");
+        mToolbar.setOverflowIcon(
                 ContextCompat.getDrawable(this, R.drawable.ic_baseline_more_vert_24));
-        setSupportActionBar(toolbar);
+        setSupportActionBar(mToolbar);
 
         swapButton = findViewById(R.id.swap_button);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -322,21 +336,7 @@ public class BraveWalletActivity
             securePasswordFragment.setOnNextPageListener(this);
             navigationItems.add(new NavigationItem(
                     getResources().getString(R.string.secure_your_crypto), securePasswordFragment));
-            BackupWalletFragment backupWalletFragment = new BackupWalletFragment();
-            backupWalletFragment.setOnNextPageListener(this);
-            navigationItems.add(new NavigationItem(
-                    getResources().getString(R.string.backup_your_wallet), backupWalletFragment));
-            RecoveryPhraseFragment recoveryPhraseFragment = new RecoveryPhraseFragment();
-            recoveryPhraseFragment.setOnNextPageListener(this);
-            navigationItems.add(
-                    new NavigationItem(getResources().getString(R.string.your_recovery_phrase),
-                            recoveryPhraseFragment));
-            VerifyRecoveryPhraseFragment verifyRecoveryPhraseFragment =
-                    new VerifyRecoveryPhraseFragment();
-            verifyRecoveryPhraseFragment.setOnNextPageListener(this);
-            navigationItems.add(
-                    new NavigationItem(getResources().getString(R.string.verify_recovery_phrase),
-                            verifyRecoveryPhraseFragment));
+            addBackupWalletSequence(navigationItems);
         } else if (type == UNLOCK_WALLET_ACTION) {
             UnlockWalletFragment unlockWalletFragment = new UnlockWalletFragment();
             unlockWalletFragment.setOnNextPageListener(this);
@@ -357,7 +357,7 @@ public class BraveWalletActivity
     }
 
     private void setCryptoLayout() {
-        View cryptoOnboardingLayout = findViewById(R.id.crypto_onboarding_layout);
+        cryptoOnboardingLayout = findViewById(R.id.crypto_onboarding_layout);
         cryptoOnboardingLayout.setVisibility(View.GONE);
         cryptoLayout.setVisibility(View.VISIBLE);
 
@@ -375,13 +375,51 @@ public class BraveWalletActivity
             mKeyringController.isWalletBackedUp(backed_up -> {
                 if (!backed_up) {
                     showWalletBackupBanner();
+                } else {
+                    findViewById(R.id.wallet_backup_banner).setVisibility(View.GONE);
                 }
             });
+    }
+
+    private void addBackupWalletSequence(List<NavigationItem> navigationItems) {
+        BackupWalletFragment backupWalletFragment = new BackupWalletFragment();
+        backupWalletFragment.setOnNextPageListener(this);
+        navigationItems.add(new NavigationItem(
+                getResources().getString(R.string.backup_your_wallet), backupWalletFragment));
+        RecoveryPhraseFragment recoveryPhraseFragment = new RecoveryPhraseFragment();
+        recoveryPhraseFragment.setOnNextPageListener(this);
+        navigationItems.add(new NavigationItem(
+                getResources().getString(R.string.your_recovery_phrase), recoveryPhraseFragment));
+        VerifyRecoveryPhraseFragment verifyRecoveryPhraseFragment =
+                new VerifyRecoveryPhraseFragment();
+        verifyRecoveryPhraseFragment.setOnNextPageListener(this);
+        navigationItems.add(
+                new NavigationItem(getResources().getString(R.string.verify_recovery_phrase),
+                        verifyRecoveryPhraseFragment));
+    }
+
+    public void backupBannerOnClick() {
+        cryptoOnboardingLayout.setVisibility(View.VISIBLE);
+        cryptoLayout.setVisibility(View.GONE);
+
+        List<NavigationItem> navigationItems = new ArrayList<>();
+        addBackupWalletSequence(navigationItems);
+
+        if (cryptoWalletOnboardingPagerAdapter != null) {
+            cryptoWalletOnboardingPagerAdapter.setNavigationItems(navigationItems);
+            cryptoWalletOnboardingPagerAdapter.notifyDataSetChanged();
+        }
     }
 
     private void showWalletBackupBanner() {
         final ViewGroup backupTopBannerLayout = (ViewGroup) findViewById(R.id.wallet_backup_banner);
         backupTopBannerLayout.setVisibility(View.VISIBLE);
+        backupTopBannerLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                backupBannerOnClick();
+            }
+        });
         ImageView bannerClose = backupTopBannerLayout.findViewById(R.id.backup_banner_close);
         bannerClose.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -5,12 +5,13 @@
 
 #include "brave/components/brave_wallet/common/eth_request_helper.h"
 
+#include <memory>
 #include <utility>
-#include <vector>
 
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "base/strings/string_number_conversions.h"
+#include "base/strings/string_util.h"
 #include "brave/components/brave_wallet/common/hex_utils.h"
 #include "brave/components/brave_wallet/common/web3_provider_constants.h"
 
@@ -135,6 +136,40 @@ mojom::TxData1559Ptr ParseEthSendTransaction1559Params(const std::string& json,
   return tx_data;
 }
 
+bool ShouldCreate1559Tx(brave_wallet::mojom::TxData1559Ptr tx_data_1559,
+                        bool network_supports_eip1559,
+                        const std::vector<mojom::AccountInfoPtr>& account_infos,
+                        const std::string& address) {
+  bool keyring_supports_eip1559 = true;
+  auto account_it = std::find_if(account_infos.begin(), account_infos.end(),
+                                 [&](const mojom::AccountInfoPtr& account) {
+                                   return base::EqualsCaseInsensitiveASCII(
+                                       account->address, address);
+                                 });
+
+  // Only ledger hardware keyring supports EIP-1559 at the moment.
+  if (account_it != account_infos.end() && (*account_it)->hardware &&
+      (*account_it)->hardware->vendor != mojom::kLedgerHardwareVendor) {
+    keyring_supports_eip1559 = false;
+  }
+
+  // Network or keyring without EIP1559 support.
+  if (!network_supports_eip1559 || !keyring_supports_eip1559)
+    return false;
+
+  // Network with EIP1559 support and EIP1559 gas fields are specified.
+  if (tx_data_1559 && !tx_data_1559->max_priority_fee_per_gas.empty() &&
+      !tx_data_1559->max_fee_per_gas.empty())
+    return true;
+
+  // Network with EIP1559 support and legacy gas fields are specified.
+  if (tx_data_1559 && !tx_data_1559->base_data->gas_price.empty())
+    return false;
+
+  // Network with EIP1559 support and no gas fields are specified.
+  return true;
+}
+
 bool GetEthJsonRequestInfo(const std::string& json,
                            base::Value* id,
                            std::string* method,
@@ -247,6 +282,64 @@ bool ParsePersonalSignParams(const std::string& json,
   } else {
     *message = ToHex(*message_str);
   }
+
+  return true;
+}
+
+bool ParseEthSignTypedDataParams(const std::string& json,
+                                 std::string* address,
+                                 std::string* message_out,
+                                 std::vector<uint8_t>* message_to_sign_out,
+                                 base::Value* domain_out,
+                                 EthSignTypedDataHelper::Version version) {
+  if (!address || !message_out || !domain_out || !message_to_sign_out)
+    return false;
+
+  auto list = GetParamsList(json);
+  if (!list || list->size() != 2)
+    return false;
+
+  const std::string* address_str = (*list)[0].GetIfString();
+  const std::string* typed_data_str = (*list)[1].GetIfString();
+  if (!address_str || !typed_data_str)
+    return false;
+
+  auto typed_data =
+      base::JSONReader::Read(*typed_data_str, base::JSON_ALLOW_TRAILING_COMMAS);
+  if (!typed_data || !typed_data->is_dict())
+    return false;
+
+  const std::string* primary_type = typed_data->FindStringKey("primaryType");
+  if (!primary_type)
+    return false;
+
+  const base::Value* domain = typed_data->FindKey("domain");
+  if (!domain)
+    return false;
+
+  const base::Value* message = typed_data->FindKey("message");
+  if (!message)
+    return false;
+
+  *address = *address_str;
+  if (!base::JSONWriter::Write(*message, message_out))
+    return false;
+
+  const base::Value* types = typed_data->FindKey("types");
+  if (!types)
+    return false;
+  std::unique_ptr<EthSignTypedDataHelper> helper =
+      EthSignTypedDataHelper::Create(*types, version);
+  if (!helper)
+    return false;
+
+  auto message_to_sign =
+      helper->GetTypedDataMessageToSign(*primary_type, *message, *domain);
+  if (!message_to_sign)
+    return false;
+  *message_to_sign_out = *message_to_sign;
+
+  *domain_out = domain->Clone();
 
   return true;
 }

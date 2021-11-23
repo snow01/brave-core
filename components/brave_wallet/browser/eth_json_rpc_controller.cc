@@ -18,6 +18,7 @@
 #include "brave/components/brave_wallet/browser/eth_response_parser.h"
 #include "brave/components/brave_wallet/browser/pref_names.h"
 #include "brave/components/brave_wallet/common/eth_request_helper.h"
+#include "brave/components/brave_wallet/common/hex_utils.h"
 #include "brave/components/brave_wallet/common/value_conversion_utils.h"
 #include "brave/components/brave_wallet/common/web3_provider_constants.h"
 #include "components/grit/brave_components_strings.h"
@@ -212,6 +213,10 @@ void EthJsonRpcController::SetNetwork(const std::string& chain_id,
     std::move(callback).Run(false);
   else
     std::move(callback).Run(true);
+}
+
+void EthJsonRpcController::GetNetwork(GetNetworkCallback callback) {
+  std::move(callback).Run(GetChain(prefs_, chain_id_));
 }
 
 void EthJsonRpcController::MaybeUpdateIsEip1559(const std::string& chain_id) {

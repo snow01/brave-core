@@ -48,11 +48,26 @@ interface BraveWalletProvider {
   // error will be 0 when success
   SignMessage(string address, string message) => (string signature, int32 error, string error_message);
 
+  // Used for eth_signTypedData
+  // message is for displaying the sign request to users
+  // message_to_sign is the hex representation without 0x for eip712 hash
+  // domain is the domain separator defined in eip712
+  SignTypedMessage(string address, string message, string message_to_sign,
+                   mojo_base.mojom.DictionaryValue domain)
+    => (string signature, int32 error, string error_message);
+
   // Used for the connect event
   GetChainId() => (string chain_id);
 
+  // Used for getting current network and keyring information.
+  GetNetworkAndDefaultKeyringInfo() => (EthereumChain network,
+                                        KeyringInfo keyring_info);
+
   // Used for eth_accounts method requests
   GetAllowedAccounts() => (bool success, array<string> accounts);
+
+  // Determines if the keyring is locked.
+  IsLocked() => (bool isLocked);
 };
 
 // Used by the WebUI page to bootstrap bidirectional communication.
@@ -468,6 +483,7 @@ interface EthJsonRpcController {
   GetPendingSwitchChainRequests() => (array<SwitchChainRequest> requests);
 
   SetNetwork(string chain_id) => (bool success);
+  GetNetwork() => (EthereumChain network);
   GetAllNetworks() => (array<EthereumChain> networks);
 
   // Obtains the current network's chain ID
