@@ -1,0 +1,33 @@
+diff --git a/content/browser/accessibility/browser_accessibility_cocoa.mm b/content/browser/accessibility/browser_accessibility_cocoa.mm
+index 37530717d17ea339635bc390cf47e4adf601fff4..ae487b74602caa0bcc157116d7262f16a58f3d1a 100644
+--- a/content/browser/accessibility/browser_accessibility_cocoa.mm
++++ b/content/browser/accessibility/browser_accessibility_cocoa.mm
+@@ -40,8 +40,8 @@
+ 
+ #import "ui/accessibility/platform/ax_platform_node_mac.h"
+ 
+-using AXTextMarkerRangeRef = CFTypeRef;
+-using AXTextMarkerRef = CFTypeRef;
++// using AXTextMarkerRangeRef = CFTypeRef;
++// using AXTextMarkerRef = CFTypeRef;
+ using StringAttribute = ax::mojom::StringAttribute;
+ using content::AccessibilityMatchPredicate;
+ using content::BrowserAccessibility;
+@@ -253,7 +253,7 @@ AXTextMarkerRef AXTextMarkerCreate(CFAllocatorRef allocator,
+ 
+ const UInt8* AXTextMarkerGetBytePtr(AXTextMarkerRef text_marker);
+ 
+-size_t AXTextMarkerGetLength(AXTextMarkerRef text_marker);
++CFIndex AXTextMarkerGetLength(AXTextMarkerRef text_marker);
+ 
+ CFTypeID AXTextMarkerRangeGetTypeID();
+ 
+@@ -795,7 +795,7 @@ id content::AXTextMarkerFrom(const BrowserAccessibilityCocoa* anchor,
+ 
+ id content::AXTextMarkerRangeFrom(id anchor_textmarker, id focus_textmarker) {
+   AXTextMarkerRangeRef cf_marker_range = AXTextMarkerRangeCreate(
+-      kCFAllocatorDefault, anchor_textmarker, focus_textmarker);
++      kCFAllocatorDefault, static_cast<AXTextMarkerRef>(anchor_textmarker), static_cast<AXTextMarkerRef>(focus_textmarker));
+   return [static_cast<id>(cf_marker_range) autorelease];
+ }
+ 
