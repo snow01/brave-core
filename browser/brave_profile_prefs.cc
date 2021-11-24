@@ -131,7 +131,7 @@ using extensions::FeatureSwitch;
 #endif
 
 #if BUILDFLAG(ENABLE_BRAVE_NEWS)
-#include "brave/components/brave_today/browser/brave_news_controller.h"
+#include "brave/components/dh_news_ffi/browser/brave_news_controller.h"
 #endif
 
 namespace brave {

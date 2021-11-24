@@ -12,7 +12,7 @@
 #include "base/one_shot_event.h"
 #include "base/scoped_observation.h"
 #include "brave/components/api_request_helper/api_request_helper.h"
-#include "brave/components/brave_today/browser/publishers_controller.h"
+#include "brave/components/dh_news_ffi/browser/publishers_controller.h"
 #include "brave/components/brave_today/common/brave_news.mojom.h"
 #include "components/history/core/browser/history_service.h"
 

@@ -3,7 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this file,
 // you can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "brave/components/brave_today/browser/brave_news_controller.h"
+#include "brave/components/dh_news_ffi/browser/brave_news_controller.h"
 
 #include <cmath>
 #include <memory>
@@ -19,7 +19,7 @@
 #include "brave/components/brave_ads/browser/ads_service.h"
 #include "brave/components/brave_private_cdn/headers.h"
 #include "brave/components/brave_private_cdn/private_cdn_helper.h"
-#include "brave/components/brave_today/browser/network.h"
+#include "brave/components/dh_news_ffi/browser/network.h"
 #include "brave/components/brave_today/common/brave_news.mojom-forward.h"
 #include "brave/components/brave_today/common/brave_news.mojom-shared.h"
 #include "brave/components/brave_today/common/brave_news.mojom.h"

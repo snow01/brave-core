@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "base/containers/flat_map.h"
-#include "brave/components/brave_today/browser/feed_building.h"
+#include "brave/components/dh_news_ffi/browser/feed_building.h"
 #include "brave/components/brave_today/common/brave_news.mojom-forward.h"
 #include "brave/components/brave_today/common/brave_news.mojom-shared.h"
 #include "brave/components/brave_today/common/brave_news.mojom.h"

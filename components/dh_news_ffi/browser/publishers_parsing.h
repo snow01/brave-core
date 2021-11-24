@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "brave/components/brave_today/browser/publishers_controller.h"
+#include "brave/components/dh_news_ffi/browser/publishers_controller.h"
 
 namespace brave_news {
 
