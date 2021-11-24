@@ -16,7 +16,7 @@ crate-type = [
     "staticlib",
     "rlib",
 ]
-name = "dh_news"
+name = "dh_feedcontroller"
 
 [features]
 cbindgen = []
