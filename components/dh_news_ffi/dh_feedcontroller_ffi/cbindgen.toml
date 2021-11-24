@@ -1,0 +1,25 @@
+# The language to output bindings in
+language = "C"
+include_guard = "DH_FEEDCONTROLLER_FFI_H"
+
+[parse]
+# Whether to parse dependent crates and include their types in the generated
+# bindings
+parse_deps = true
+# A black list of crate names that are not allowed to be parsed
+include = ["dh_news"]
+
+[parse.expand]
+# A list of crate names that should be run through `cargo expand` before
+# parsing to expand any macros
+# crates = ["adblock-ffi"]
+crates = []
+all_features = false
+default_features = false
+features = ["cbindgen"]
+
+[export]
+# A prefix to add before the name of every item
+prefix = "C_"
+
+[defines]

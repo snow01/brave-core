@@ -27,6 +27,7 @@ static_library("browser") {
     "//brave/components/brave_private_cdn",
     "//brave/components/brave_today/common",
     "//brave/components/brave_today/common:mojo_bindings",
+    "//brave/components/dh_news_ffi/dh_feedcontroller_ffi",
     "//brave/components/l10n/browser",
     "//brave/components/l10n/common",
     "//brave/components/weekly_storage",

@@ -1,0 +1,31 @@
+[package]
+name = "dh_feedcontroller_ffi"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#cxx = "1.0.56"
+dh_news = { git = "https://github.com/snow01/dh_news.git" }
+libc = "0.2"
+
+[lib]
+crate-type = [
+    "cdylib",
+    "staticlib",
+    "rlib",
+]
+name = "dh_news"
+
+[features]
+cbindgen = []
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+
+#[build-dependencies]
+#cxx-build = "1.0"
