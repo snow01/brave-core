@@ -403,7 +403,7 @@ source_set("ui") {
     ]
     if (enable_brave_news) {
       deps += [
-	  	"//brave/components/dh_news_ffi/browser",
+        "//brave/components/dh_news_ffi/browser",
         "//brave/components/brave_today/common",
       ]
     }
