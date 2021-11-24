@@ -10,7 +10,7 @@ speedreader-ffi = { path = "../../components/speedreader/rust/ffi" }
 [patch.crates-io]
 cssparser = { git = 'https://github.com/AndriusA/rust-cssparser', branch = "glibc" }
 
-dh-feedcontroller-ffi = { path = "../../components/dh_news_ffi/dh_feedcontroller_ffi" }
+dh_feedcontroller_ffi = { path = "../../components/dh_news_ffi/dh_feedcontroller_ffi" }
 
 [lib]
 crate-type = [ "staticlib" ]
