@@ -10,7 +10,7 @@ rust_ffi("dh_feedcontroller_ffi") {
 
     sources = [
         "include/blobstore.h",
-#        "src/lib.h",
+        "src/lib.rs.h",
         "src/blobstore.cc",
 #        "src/wrapper.h"
     ]

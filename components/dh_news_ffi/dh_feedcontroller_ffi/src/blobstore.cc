@@ -1,5 +1,5 @@
-#include "dh_feedcontroller_ffi/include/blobstore.h"
-#include "dh_feedcontroller_ffi/src/lib.rs.h"
+#include "//brave/components/dh_news_ffi/dh_feedcontroller_ffi/include/blobstore.h"
+#include "//brave/components/dh_news_ffi/dh_feedcontroller_ffi/src/lib.rs.h"
 #include <algorithm>
 #include <functional>
 #include <set>
