@@ -108,7 +108,13 @@ void BraveWalletProviderImpl::AddEthereumChain(
     return;
   }
 
+  // Check if we already have the chain
   if (GetNetworkURL(prefs_, chain->chain_id).is_valid()) {
+    if (rpc_controller_->GetChainId() != chain->chain_id) {
+      SwitchEthereumChain(chain->chain_id, std::move(callback));
+      return;
+    }
+
     std::move(callback).Run(0, std::string());
     return;
   }
@@ -138,7 +144,7 @@ void BraveWalletProviderImpl::AddEthereumChain(
   rpc_controller_->AddEthereumChain(
       chain->Clone(), delegate_->GetOrigin(),
       base::BindOnce(&BraveWalletProviderImpl::OnAddEthereumChain,
-                     base::Unretained(this)));
+                     weak_factory_.GetWeakPtr()));
 }
 
 void BraveWalletProviderImpl::OnAddEthereumChain(const std::string& chain_id,
@@ -154,7 +160,7 @@ void BraveWalletProviderImpl::OnAddEthereumChain(const std::string& chain_id,
     chain_callbacks_.erase(chain_id);
     return;
   }
-  delegate_->ShowBubble();
+  delegate_->ShowPanel();
 }
 
 void BraveWalletProviderImpl::SwitchEthereumChain(
@@ -163,7 +169,7 @@ void BraveWalletProviderImpl::SwitchEthereumChain(
   // Only show bubble when there is no immediate error
   if (rpc_controller_->AddSwitchEthereumChainRequest(
           chain_id, delegate_->GetOrigin(), std::move(callback)))
-    delegate_->ShowBubble();
+    delegate_->ShowPanel();
 }
 
 void BraveWalletProviderImpl::GetNetworkAndDefaultKeyringInfo(
@@ -293,7 +299,7 @@ void BraveWalletProviderImpl::OnAddUnapprovedTransaction(
     const std::string& error_message) {
   if (success) {
     add_tx_callbacks_[tx_meta_id] = std::move(callback);
-    delegate_->ShowBubble();
+    delegate_->ShowPanel();
   } else {
     std::move(callback).Run(false, "", error_message);
   }
@@ -399,7 +405,7 @@ void BraveWalletProviderImpl::ContinueSignMessage(
                        weak_factory_.GetWeakPtr(), std::move(callback), address,
                        std::move(message_to_sign), is_eip712));
   }
-  delegate_->ShowBubble();
+  delegate_->ShowPanel();
 }
 
 void BraveWalletProviderImpl::OnSignMessageRequestProcessed(
@@ -467,11 +473,15 @@ void BraveWalletProviderImpl::OnAddEthereumChainRequestCompleted(
   if (!chain_callbacks_.contains(chain_id))
     return;
   if (error.empty()) {
-    std::move(chain_callbacks_[chain_id]).Run(0, std::string());
-  } else {
-    std::move(chain_callbacks_[chain_id])
-        .Run(static_cast<int>(ProviderErrors::kUserRejectedRequest), error);
+    // To match MM for webcompat, after adding a chain we should prompt
+    // again to switch to the chain. And the error result only depends on
+    // what the switch action is at that point.
+    SwitchEthereumChain(chain_id, std::move(chain_callbacks_[chain_id]));
+    chain_callbacks_.erase(chain_id);
+    return;
   }
+  std::move(chain_callbacks_[chain_id])
+      .Run(static_cast<int>(ProviderErrors::kUserRejectedRequest), error);
   chain_callbacks_.erase(chain_id);
 }
 

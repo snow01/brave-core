@@ -10,12 +10,10 @@
 #include <vector>
 
 #include "base/bind.h"
-#include "brave/browser/brave_wallet/brave_wallet_tab_helper.h"
+#include "brave/browser/brave_wallet/brave_wallet_provider_delegate_impl_helper.h"
 #include "brave/browser/brave_wallet/keyring_controller_factory.h"
-#include "brave/browser/ui/brave_pages.h"
 #include "brave/components/brave_wallet/browser/keyring_controller.h"
 #include "brave/components/permissions/contexts/brave_ethereum_permission_context.h"
-#include "chrome/browser/ui/browser_finder.h"
 #include "components/content_settings/core/common/content_settings.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/web_contents.h"
@@ -48,14 +46,13 @@ void OnGetAllowedAccounts(
   std::move(callback).Run(success, allowed_accounts);
 }
 
-base::OnceCallback<void()> g_NewSetupNeededForTestingCallback;
-
 }  // namespace
 
 BraveWalletProviderDelegateImpl::BraveWalletProviderDelegateImpl(
     content::WebContents* web_contents,
     content::RenderFrameHost* const render_frame_host)
-    : web_contents_(web_contents),
+    : WebContentsObserver(web_contents),
+      web_contents_(web_contents),
       host_id_(render_frame_host->GetGlobalId()),
       weak_ptr_factory_(this) {
   keyring_controller_ =
@@ -66,22 +63,13 @@ BraveWalletProviderDelegateImpl::BraveWalletProviderDelegateImpl(
 
 BraveWalletProviderDelegateImpl::~BraveWalletProviderDelegateImpl() = default;
 
-// static
-void BraveWalletProviderDelegateImpl::SetCallbackForNewSetupNeededForTesting(
-    base::OnceCallback<void()> callback) {
-  g_NewSetupNeededForTestingCallback = std::move(callback);
-}
-
 GURL BraveWalletProviderDelegateImpl::GetOrigin() const {
   auto* rfh = content::RenderFrameHost::FromID(host_id_);
   return rfh ? rfh->GetLastCommittedURL().GetOrigin() : GURL();
 }
 
-void BraveWalletProviderDelegateImpl::ShowBubble() {
-  auto* tab_helper =
-      brave_wallet::BraveWalletTabHelper::FromWebContents(web_contents_);
-  if (tab_helper)
-    tab_helper->ShowBubble();
+void BraveWalletProviderDelegateImpl::ShowPanel() {
+  ::brave_wallet::ShowPanel(web_contents_);
 }
 
 void BraveWalletProviderDelegateImpl::RequestEthereumPermissions(
@@ -118,12 +106,7 @@ void BraveWalletProviderDelegateImpl::
         const std::vector<std::string>& allowed_accounts,
         brave_wallet::mojom::KeyringInfoPtr keyring_info) {
   if (!keyring_info->is_default_keyring_created) {
-    Browser* browser = chrome::FindBrowserWithWebContents(web_contents_);
-    if (browser) {
-      brave::ShowBraveWalletOnboarding(browser);
-    } else if (g_NewSetupNeededForTestingCallback) {
-      std::move(g_NewSetupNeededForTestingCallback).Run();
-    }
+    ShowWalletOnboarding(web_contents_);
     std::move(callback).Run(false, std::vector<std::string>());
     return;
   }
@@ -172,6 +155,10 @@ void BraveWalletProviderDelegateImpl::ContinueGetAllowedAccounts(
             base::BindOnce(&OnGetAllowedAccounts, std::move(callback)));
       },
       host_id_, std::move(callback), selected_account));
+}
+
+void BraveWalletProviderDelegateImpl::WebContentsDestroyed() {
+  web_contents_ = nullptr;
 }
 
 }  // namespace brave_wallet

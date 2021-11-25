@@ -167,24 +167,24 @@ class SettingsBraveRewardsPage extends SettingsBraveRewardsPageBase {
       chrome.braveRewards.openBrowserActionUI('brave_rewards_panel.html')
       this.isAutoContributeSupported_()
     }
-    this.browserProxy_.getLocale().then((locale) => {
-      this.shouldAllowAdsSubdivisionTargeting_ = locale === 'en-US'
-    })
     this.browserProxy_.getRewardsEnabled().then((enabled) => {
       if (enabled) {
-        this.isRewardsEnabled_ = true
-        this.wasInlineTippingForRedditEnabledOnStartup_ = this.getPref('brave.rewards.inline_tip.reddit').value
-        this.wasInlineTippingForTwitterEnabledOnStartup_ = this.getPref('brave.rewards.inline_tip.twitter').value
-        this.wasInlineTippingForGithubEnabledOnStartup_ = this.getPref('brave.rewards.inline_tip.github').value
-        this.isAutoContributeSupported_()
+        this.onRewardsEnabled_()
       }
     })
     chrome.braveRewards.onAdsEnabled.addListener(() => {
-      // Populate the auto contribute amount dropdown when Ads/Rewards is
-      // enabled (we don't have a Rewards-specific listener, but this works for
-      // our purposes as we just want to ensure the dropdown is populated the
-      // first time we enable)
-      this.populateAutoContributeAmountDropdown_()
+      // If Rewards hasn't been enabled before now, we know it is now so trigger
+      // its handler
+      if (!this.isRewardsEnabled_) {
+        this.onRewardsEnabled_()
+      }
+    })
+    chrome.settingsPrivate.onPrefsChanged.addListener((prefs) => {
+      prefs.forEach((pref) => {
+        if (pref.key === 'brave.brave_ads.should_allow_ads_subdivision_targeting') {
+          this.getAdsDataForSubdivisionTargeting_()
+        }
+      }, this)
     })
   }
 
@@ -192,6 +192,22 @@ class SettingsBraveRewardsPage extends SettingsBraveRewardsPageBase {
     this.browserProxy_.isAutoContributeSupported().then((supported) => {
       // Show auto-contribute settings if this profile supports it
       this.shouldShowAutoContributeSettings_ = supported
+    })
+  }
+
+  onRewardsEnabled_() {
+    this.isRewardsEnabled_ = true
+    this.wasInlineTippingForRedditEnabledOnStartup_ = this.getPref('brave.rewards.inline_tip.reddit').value
+    this.wasInlineTippingForTwitterEnabledOnStartup_ = this.getPref('brave.rewards.inline_tip.twitter').value
+    this.wasInlineTippingForGithubEnabledOnStartup_ = this.getPref('brave.rewards.inline_tip.github').value
+    this.isAutoContributeSupported_()
+    this.populateAutoContributeAmountDropdown_()
+    this.getAdsDataForSubdivisionTargeting_()
+  }
+
+  getAdsDataForSubdivisionTargeting_() {
+    this.browserProxy_.getAdsData().then((adsData) => {
+      this.shouldAllowAdsSubdivisionTargeting_ = adsData.shouldAllowAdsSubdivisionTargeting
     })
   }
 
