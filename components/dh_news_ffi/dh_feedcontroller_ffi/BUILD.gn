@@ -9,9 +9,10 @@ rust_ffi("dh_feedcontroller_ffi") {
     implementation_define = "DH_FEEDCONTROLLER_IMPLEMENTATION"
 
     sources = [
-        "src/lib.h",
-        "src/wrapper.cc",
-        "src/wrapper.h"
+        "include/blobstore.h",
+#        "src/lib.h",
+        "src/blobstore.cc",
+#        "src/wrapper.h"
     ]
 
     deps = [
@@ -22,7 +23,7 @@ rust_ffi("dh_feedcontroller_ffi") {
 rust_crate("rust_lib") {
     inputs = [
         "Cargo.toml",
-        "cbindgen.toml",
+#        "cbindgen.toml",
         "src/lib.rs",
     ]
 }
