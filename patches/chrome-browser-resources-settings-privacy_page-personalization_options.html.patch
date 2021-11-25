@@ -1,0 +1,59 @@
+diff --git a/chrome/browser/resources/settings/privacy_page/personalization_options.html b/chrome/browser/resources/settings/privacy_page/personalization_options.html
+index f69e4c52ca5a661bb2dc7061caf687fa5fd60c0b..6dbbf8badc58963dfef6354d81bdaf948aab7bfb 100644
+--- a/chrome/browser/resources/settings/privacy_page/personalization_options.html
++++ b/chrome/browser/resources/settings/privacy_page/personalization_options.html
+@@ -8,6 +8,7 @@
+         border-top: none;
+       }
+     </style>
++<if expr="_google_chrome">    
+ <if expr="not chromeos and not lacros">
+     <!-- Signout is not supported yet on lacros, https://crbug.com/1217645 -->
+     <settings-toggle-button id="signinAllowedToggle"
+@@ -21,6 +22,7 @@
+         no-set-pref>
+     </settings-toggle-button>
+ </if><!-- not chromeos and not lacros -->
++</if>
+     <settings-toggle-button id="searchSuggestToggle"
+         class="hr"
+         hidden="[[!pageVisibility.searchPrediction]]"
+@@ -36,6 +38,8 @@
+         sub-label="$i18n{enablePersonalizationLoggingDesc}">
+     </settings-toggle-button>
+ </if><!-- chromeos -->
++</if><!-- _google_chrome -->
++<if expr="_chromium">
+ <if expr="not chromeos">
+     <settings-toggle-button id="metricsReportingControl"
+         class="hr"
+@@ -51,13 +55,15 @@
+       </template>
+     </settings-toggle-button>
+ </if><!-- not chromeos -->
+-</if><!-- _google_chrome -->
++</if><!-- _chromium -->
++<if expr="_google_chrome">
+     <settings-toggle-button id="urlCollectionToggle"
+         class="hr"
+         pref="{{prefs.url_keyed_anonymized_data_collection.enabled}}"
+         label="$i18n{urlKeyedAnonymizedDataCollection}"
+         sub-label="$i18n{urlKeyedAnonymizedDataCollectionDesc}">
+     </settings-toggle-button>
++</if>    
+ <if expr="_google_chrome">
+     <settings-toggle-button id="spellCheckControl"
+         class="hr"
+@@ -68,6 +74,7 @@
+         hidden="[[!showSpellCheckControl_(prefs.spellcheck.dictionaries)]]">
+     </settings-toggle-button>
+ </if><!-- _google_chrome -->
++<if expr="_google_chrome">
+     <template is="dom-if" if="[[shouldShowDriveSuggest_(
+         syncStatus, syncStatus.signedIn, syncStatus.statusAction)]]" restamp>
+       <settings-toggle-button id="driveSuggestControl" class="hr"
+@@ -89,3 +96,4 @@
+       <cr-button on-click="onRestartTap_">$i18n{restart}</cr-button>
+     </cr-toast>
+ </if>
++</if>

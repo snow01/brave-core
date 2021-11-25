@@ -1,0 +1,12 @@
+diff --git a/base/threading/thread_restrictions.h b/base/threading/thread_restrictions.h
+index a9d955d6eddda079c36fded464c14610b6ea3da1..de221f4d216c0677a232cc01826158e555cefc08 100644
+--- a/base/threading/thread_restrictions.h
++++ b/base/threading/thread_restrictions.h
+@@ -525,6 +525,7 @@ class BASE_EXPORT ScopedDisallowBaseSyncPrimitives {
+ 
+   ~ScopedDisallowBaseSyncPrimitives() EMPTY_BODY_IF_DCHECK_IS_OFF;
+ 
++ BRAVE_SCOPED_ALLOW_BASE_SYNC_PRIMITIVES_H
+  private:
+ #if DCHECK_IS_ON()
+   std::unique_ptr<BooleanWithStack> was_disallowed_;

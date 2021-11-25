@@ -1,0 +1,17 @@
+diff --git a/content/browser/accessibility/browser_accessibility_cocoa.mm b/content/browser/accessibility/browser_accessibility_cocoa.mm
+index 5f00a94dfe76753e8588b9ff246be64e9338932c..1c110413e56068f5864457d9b42fae219fffc551 100644
+--- a/content/browser/accessibility/browser_accessibility_cocoa.mm
++++ b/content/browser/accessibility/browser_accessibility_cocoa.mm
+@@ -242,10 +242,10 @@ CFTypeID AXTextMarkerGetTypeID();
+ AXTextMarkerRef AXTextMarkerCreate(CFAllocatorRef,
+                                    const UInt8* bytes,
+                                    CFIndex length);
+-size_t AXTextMarkerGetLength(AXTextMarkerRef);
++CFIndex AXTextMarkerGetLength(AXTextMarkerRef);
+ const UInt8* AXTextMarkerGetBytePtr(AXTextMarkerRef);
+ 
+-CFTypeID AXTextMarkerRangeGetTypeID();
++size_t AXTextMarkerRangeGetTypeID();
+ AXTextMarkerRangeRef AXTextMarkerRangeCreate(CFAllocatorRef,
+                                              AXTextMarkerRef start,
+                                              AXTextMarkerRef end);

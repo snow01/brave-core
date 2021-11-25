@@ -1,0 +1,13 @@
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index ca4a54e4335ae206f5b96431e7bb2b61edc65ae4..74a1e4ceb62d5c6972b0c53e890444d97c12e37e 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -1623,6 +1623,8 @@ config("chromium_code") {
+     }
+   }
+ 
++  cflags -= brave_removed_chromium_code_cflags
++
+   configs = [
+     ":default_warnings",
+     ":noshadowing",

@@ -1,0 +1,21 @@
+diff --git a/chrome/browser/resources/history/synced_device_manager.html b/chrome/browser/resources/history/synced_device_manager.html
+index 8658151958b1dedb65fe4e641ac8adca4a942be2..c05564665302b960d8a6cf3de64f7d5fc0e614ec 100644
+--- a/chrome/browser/resources/history/synced_device_manager.html
++++ b/chrome/browser/resources/history/synced_device_manager.html
+@@ -73,6 +73,8 @@
+                                        guestSession_)]]">
+       [[noSyncedTabsMessage(fetchingSyncedTabs_, searchTerm)]]
+     </div>
++
++<!--    
+     <div id="sign-in-guide"
+         hidden="[[!showSignInGuide(signInState, guestSession_,
+                                    signInAllowed_)]]">
+@@ -84,6 +86,7 @@
+         $i18n{signInButton}
+       </cr-button>
+     </div>
++-->
+ 
+     <cr-lazy-render id="menu">
+       <template>

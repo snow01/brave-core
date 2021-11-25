@@ -1,0 +1,22 @@
+diff --git a/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.h b/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.h
+index 39786e1735187756306778af52b0c21ed482f15b..4debb37d628b825ac0b486483fc7f8ecfe7a2e22 100644
+--- a/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.h
++++ b/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.h
+@@ -88,6 +88,7 @@ class ChromeBrowsingDataRemoverDelegate
+   void OverrideDomainReliabilityClearerForTesting(
+       DomainReliabilityClearer clearer);
+ 
++ BRAVE_CHROME_BROWSING_DATA_REMOVER_DELEGATE_H
+  private:
+   using WebRtcEventLogManager = webrtc_event_logging::WebRtcEventLogManager;
+ 
+@@ -136,7 +137,8 @@ class ChromeBrowsingDataRemoverDelegate
+     kAccountCompromisedCredentials = 39,
+     kFaviconCacheExpiration = 40,
+     kSecurePaymentConfirmationCredentials = 41,
+-    kMaxValue = kSecurePaymentConfirmationCredentials,
++    kIPFSCache = 42,
++    kMaxValue = kIPFSCache,
+   };
+ 
+   // Called by CreateTaskCompletionClosure().
