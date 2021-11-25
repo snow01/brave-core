@@ -1,3 +1,7 @@
+pub fn hello_world() {
+    println!("Hello World");
+}
+
 #[no_mangle]
 pub extern "C" fn rust_function() {
     println!("Hello World");

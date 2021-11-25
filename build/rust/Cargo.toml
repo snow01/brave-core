@@ -7,10 +7,10 @@ edition = "2018"
 adblock-ffi = { path = "../../components/adblock_rust_ffi" }
 challenge-bypass-ristretto-ffi = { path = "../../vendor/challenge_bypass_ristretto_ffi" }
 speedreader-ffi = { path = "../../components/speedreader/rust/ffi" }
+dh_feedcontroller_ffi = { path = "../../components/dh_news_ffi/dh_feedcontroller_ffi" }
+
 [patch.crates-io]
 cssparser = { git = 'https://github.com/AndriusA/rust-cssparser', branch = "glibc" }
-
-dh_feedcontroller_ffi = { path = "../../components/dh_news_ffi/dh_feedcontroller_ffi" }
 
 [lib]
 crate-type = [ "staticlib" ]
