@@ -16,7 +16,7 @@ deps = {
   "vendor/gn-project-generators": "https://github.com/brave/gn-project-generators.git@b76e14b162aa0ce40f11920ec94bfc12da29e5d0",
   "vendor/web-discovery-project": "https://github.com/brave/web-discovery-project@9b00978b0a4ebfc0cd7d68e7c354b7178fe184a4",
   "third_party/ethash/src": "https://github.com/chfast/ethash.git@e4a15c3d76dc09392c7efd3e30d84ee3b871e9ce",
-  "third_party/bitcoin-core/src": "https://github.com/bitcoin/bitcoin.git@95ea54ba089610019a74c1176a2c7c0dba144b1c",
+  "third_party/bitcoin-core/src": "https://github.com/bitcoin/bitcoin.git@fecf436d5327717801da84beb3066f5a9b80ea8e",
   "third_party/argon2/src": "https://github.com/P-H-C/phc-winner-argon2.git@62358ba2123abd17fccf2a108a301d4b52c01a7c",
 }
 
