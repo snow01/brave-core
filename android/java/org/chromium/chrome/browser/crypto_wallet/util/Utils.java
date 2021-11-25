@@ -103,9 +103,10 @@ public class Utils {
             ".{7,}" + // at least 7 characters
             "$");
 
-    public static int ONBOARDING_ACTION = 1;
-    public static int UNLOCK_WALLET_ACTION = 2;
-    public static int RESTORE_WALLET_ACTION = 3;
+    public static int ONBOARDING_FIRST_PAGE_ACTION = 1;
+    public static int ONBOARDING_ACTION = 2;
+    public static int UNLOCK_WALLET_ACTION = 3;
+    public static int RESTORE_WALLET_ACTION = 4;
 
     public static int ACCOUNT_ITEM = 1;
     public static int ASSET_ITEM = 2;
@@ -523,6 +524,21 @@ public class Utils {
         BigInteger bigNumber2 = new BigInteger(number2, 16);
 
         BigInteger res = bigNumber1.multiply(bigNumber2);
+
+        return "0x" + res.toString(16);
+    }
+
+    public static String concatHexBN(String number1, String number2) {
+        if (number1.startsWith("0x")) {
+            number1 = number1.substring(2);
+        }
+        if (number2.startsWith("0x")) {
+            number2 = number2.substring(2);
+        }
+        BigInteger bigNumber1 = new BigInteger(number1, 16);
+        BigInteger bigNumber2 = new BigInteger(number2, 16);
+
+        BigInteger res = bigNumber1.add(bigNumber2);
 
         return "0x" + res.toString(16);
     }
