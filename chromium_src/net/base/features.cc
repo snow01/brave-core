@@ -11,7 +11,7 @@ namespace net {
 namespace features {
 
 OVERRIDE_FEATURE_DEFAULT_STATES({{
-    {kLegacyTLSEnforced, base::FEATURE_ENABLED_BY_DEFAULT},
+    //{kLegacyTLSEnforced, base::FEATURE_ENABLED_BY_DEFAULT},
 
     {kFirstPartySets, base::FEATURE_DISABLED_BY_DEFAULT},
 }});

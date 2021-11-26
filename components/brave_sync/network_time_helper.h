@@ -46,7 +46,10 @@ class NetworkTimeHelper {
 
   base::WeakPtrFactory<NetworkTimeHelper> weak_ptr_factory_{this};
 
-  DISALLOW_COPY_AND_ASSIGN(NetworkTimeHelper);
+  //DISALLOW_COPY_AND_ASSIGN(NetworkTimeHelper);
+  NetworkTimeHelper(const NetworkTimeHelper&) = delete;
+  NetworkTimeHelper& operator=(const NetworkTimeHelper&) = delete;
+
 };
 
 }  // namespace brave_sync

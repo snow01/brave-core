@@ -21,8 +21,42 @@ import {assert} from 'chrome://resources/js/assert.m.js';
 import {Polymer, html} from 'chrome://resources/polymer/v3_0/polymer/polymer_bundled.min.js';
 import {I18nBehavior} from 'chrome://resources/js/i18n_behavior.m.js';
 
-import {Route, RouteObserverBehavior, Router} from '../router.js';
+import {Route, Router} from '../router.js';
 import {SyncBrowserProxyImpl, StatusAction} from '../people_page/sync_browser_proxy.js';
+
+/** @polymerBehavior */
+const RouteObserverBehavior = {
+  /** @override */
+  attached() {
+    Router.getInstance().addObserver(this);
+
+    // Emulating Polymer data bindings, the observer is called when the
+    // element starts observing the route.
+    this.currentRouteChanged(Router.getInstance().currentRoute, undefined);
+  },
+
+  /** @override */
+  detached() {
+    Router.getInstance().removeObserver(this);
+  },
+
+  /**
+   * @param {!Route} newRoute
+   * @param {!Route=} opt_oldRoute
+   */
+  currentRouteChanged(newRoute, opt_oldRoute) {
+    assertNotReached();
+  },
+};
+
+/** @interface */
+class RouteObserverBehaviorInterface {
+  /**
+   * @param {!Route} newRoute
+   * @param {!Route=} opt_oldRoute
+   */
+  currentRouteChanged(newRoute, opt_oldRoute) {}
+}
 
 /**
 * @fileoverview

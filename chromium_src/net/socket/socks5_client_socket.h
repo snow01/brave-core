@@ -45,7 +45,11 @@ class NET_EXPORT_PRIVATE SOCKS5ClientSocketAuth : public SOCKS5ClientSocket {
   scoped_refptr<IOBuffer> iobuf_;
   std::string buffer_;
   size_t buffer_left_;
-  DISALLOW_COPY_AND_ASSIGN(SOCKS5ClientSocketAuth);
+
+  //DISALLOW_COPY_AND_ASSIGN(SOCKS5ClientSocketAuth);
+  SOCKS5ClientSocketAuth(const SOCKS5ClientSocketAuth&) = delete;
+  SOCKS5ClientSocketAuth& operator=(const SOCKS5ClientSocketAuth&) = delete;
+  
 };
 
 }  // namespace net

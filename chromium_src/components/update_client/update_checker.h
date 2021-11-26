@@ -87,7 +87,10 @@ class SequentialUpdateChecker : public UpdateChecker {
   // Aggregates results from all sequential update requests.
   ProtocolParser::Results results_;
 
-  DISALLOW_COPY_AND_ASSIGN(SequentialUpdateChecker);
+  //DISALLOW_COPY_AND_ASSIGN(SequentialUpdateChecker);
+  SequentialUpdateChecker(const SequentialUpdateChecker&) = delete;
+  SequentialUpdateChecker& operator=(const SequentialUpdateChecker&) = delete;
+  
 };
 
 }  // namespace update_client

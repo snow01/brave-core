@@ -37,7 +37,11 @@ class COMPONENT_EXPORT(NETWORK_CPP) SystemRequestHandler {
 
   OnBeforeSystemRequestCallback on_before_system_request_callback_;
 
-  DISALLOW_COPY_AND_ASSIGN(SystemRequestHandler);
+  //DISALLOW_COPY_AND_ASSIGN(SystemRequestHandler);
+  SystemRequestHandler(const SystemRequestHandler&) = delete;
+  SystemRequestHandler& operator=(const SystemRequestHandler&) = delete;
+
+
 };
 
 }  // namespace network
