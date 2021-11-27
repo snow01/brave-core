@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/content_browser_client.h"
@@ -39,7 +40,7 @@ class BraveContentBrowserClient : public ChromeContentBrowserClient {
 
   // Overridden from ChromeContentBrowserClient:
   std::unique_ptr<content::BrowserMainParts> CreateBrowserMainParts(
-      const content::MainFunctionParams& parameters) override;
+      content::MainFunctionParams parameters) override;
   void BrowserURLHandlerCreated(content::BrowserURLHandler* handler) override;
   void RenderProcessWillLaunch(content::RenderProcessHost* host) override;
   bool BindAssociatedReceiverFromFrame(

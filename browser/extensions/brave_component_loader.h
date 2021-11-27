@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "brave/base/macros.h"
 #include "base/files/file_path.h"
 #include "brave/browser/ethereum_remote_client/buildflags/buildflags.h"
 #include "chrome/browser/extensions/component_loader.h"

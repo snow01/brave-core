@@ -6,6 +6,7 @@
 #ifndef BRAVE_CHROMIUM_SRC_NET_SOCKET_SOCKS5_CLIENT_SOCKET_H_
 #define BRAVE_CHROMIUM_SRC_NET_SOCKET_SOCKS5_CLIENT_SOCKET_H_
 
+#include "brave/base/macros.h"
 #include "../../../../net/socket/socks5_client_socket.h"
 
 #include <memory>
@@ -46,10 +47,7 @@ class NET_EXPORT_PRIVATE SOCKS5ClientSocketAuth : public SOCKS5ClientSocket {
   std::string buffer_;
   size_t buffer_left_;
 
-  //DISALLOW_COPY_AND_ASSIGN(SOCKS5ClientSocketAuth);
-  SOCKS5ClientSocketAuth(const SOCKS5ClientSocketAuth&) = delete;
-  SOCKS5ClientSocketAuth& operator=(const SOCKS5ClientSocketAuth&) = delete;
-  
+  DISALLOW_COPY_AND_ASSIGN(SOCKS5ClientSocketAuth);
 };
 
 }  // namespace net

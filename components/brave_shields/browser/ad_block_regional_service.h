@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/callback.h"
 #include "base/files/file_path.h"
 #include "brave/components/adblock_rust_ffi/src/wrapper.h"

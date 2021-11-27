@@ -11,6 +11,7 @@
 // Brave.Uptime.BrowserOpenMinutes, Brave.Core.LastTimeIncognitoUsed and
 // Brave.Core.TorEverUsed don't work on Android
 
+#include "brave/base/macros.h"
 #include "build/build_config.h"
 
 #if defined(OS_ANDROID)

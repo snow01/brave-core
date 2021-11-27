@@ -7,7 +7,7 @@
 #import <Foundation/Foundation.h>
 
 #include "base/mac/bundle_locations.h"
-//#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/no_destructor.h"
 #include "base/strings/sys_string_conversions.h"
 #include "components/version_info/version_info.h"

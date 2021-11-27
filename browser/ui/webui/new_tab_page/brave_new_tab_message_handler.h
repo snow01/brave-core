@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "brave/base/macros.h"
 #include "base/memory/weak_ptr.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "brave/components/tor/tor_launcher_observer.h"

@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "brave/components/brave_component_updater/browser/brave_component.h"
 #include "components/component_updater/component_updater_service.h"
 

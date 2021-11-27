@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "brave/base/macros.h"
 #include "brave/browser/ui/tabs/brave_tab_strip_model.h"
 #include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "brave/components/sidebar/buildflags/buildflags.h"

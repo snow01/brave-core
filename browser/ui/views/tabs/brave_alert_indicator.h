@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_TABS_BRAVE_ALERT_INDICATOR_H_
 #define BRAVE_BROWSER_UI_VIEWS_TABS_BRAVE_ALERT_INDICATOR_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/tabs/alert_indicator.h"
 
 class BraveAlertIndicator : public AlertIndicator {

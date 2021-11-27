@@ -8,6 +8,7 @@
 
 #include <map>
 
+#include "brave/base/macros.h"
 #include "components/ntp_tiles/popular_sites_impl.h"
 
 namespace ntp_tiles {

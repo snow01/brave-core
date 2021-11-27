@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_BOOKMARK_BOOKMARK_PREFS_SERVICE_H_
 #define BRAVE_BROWSER_UI_BOOKMARK_BOOKMARK_PREFS_SERVICE_H_
 
+#include "brave/base/macros.h"
 #include "components/keyed_service/core/keyed_service.h"
 #include "components/prefs/pref_change_registrar.h"
 #include "content/public/browser/browser_thread.h"

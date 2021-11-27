@@ -366,7 +366,7 @@ void CosmeticFiltersJSHandler::ApplyRules() {
   }
   if (!scriptlet_script.empty()) {
     web_frame->ExecuteScriptInIsolatedWorld(
-        isolated_world_id_, blink::WebString::FromUTF8(scriptlet_script),
+        isolated_world_id_, blink::WebScriptSource(blink::WebString::FromUTF8(scriptlet_script)),
         blink::BackForwardCacheAware::kAllow);
   }
 
@@ -383,7 +383,7 @@ void CosmeticFiltersJSHandler::ApplyRules() {
       kPreInitScript, cosmetic_filtering_init_script.c_str());
 
   web_frame->ExecuteScriptInIsolatedWorld(
-      isolated_world_id_, blink::WebString::FromUTF8(pre_init_script),
+      isolated_world_id_, blink::WebScriptSource(blink::WebString::FromUTF8(pre_init_script)),
       blink::BackForwardCacheAware::kAllow);
   ExecuteObservingBundleEntryPoint();
 
@@ -424,7 +424,7 @@ void CosmeticFiltersJSHandler::CSSRulesRoutine(
     std::string new_selectors_script =
         base::StringPrintf(kHideSelectorsInjectScript, json_selectors.c_str());
     web_frame->ExecuteScriptInIsolatedWorld(
-        isolated_world_id_, blink::WebString::FromUTF8(new_selectors_script),
+        isolated_world_id_, blink::WebScriptSource(blink::WebString::FromUTF8(new_selectors_script)),
         blink::BackForwardCacheAware::kAllow);
   }
 
@@ -439,7 +439,7 @@ void CosmeticFiltersJSHandler::CSSRulesRoutine(
     std::string new_selectors_script = base::StringPrintf(
         kForceHideSelectorsInjectScript, json_selectors.c_str());
     web_frame->ExecuteScriptInIsolatedWorld(
-        isolated_world_id_, blink::WebString::FromUTF8(new_selectors_script),
+        isolated_world_id_, blink::WebScriptSource(blink::WebString::FromUTF8(new_selectors_script)),
         blink::BackForwardCacheAware::kAllow);
   }
 
@@ -456,7 +456,7 @@ void CosmeticFiltersJSHandler::CSSRulesRoutine(
         base::StringPrintf(kStyleSelectorsInjectScript, json_selectors.c_str());
     if (!json_selectors.empty()) {
       web_frame->ExecuteScriptInIsolatedWorld(
-          isolated_world_id_, blink::WebString::FromUTF8(new_selectors_script),
+          isolated_world_id_, blink::WebScriptSource(blink::WebString::FromUTF8(new_selectors_script)),
           blink::BackForwardCacheAware::kAllow);
     }
   }
@@ -489,7 +489,7 @@ void CosmeticFiltersJSHandler::OnHiddenClassIdSelectors(base::Value result) {
       base::StringPrintf(kHideSelectorsInjectScript, json_selectors.c_str());
   if (selectors_list->GetList().size() != 0) {
     web_frame->ExecuteScriptInIsolatedWorld(
-        isolated_world_id_, blink::WebString::FromUTF8(new_selectors_script),
+        isolated_world_id_, blink::WebScriptSource(blink::WebString::FromUTF8(new_selectors_script)),
         blink::BackForwardCacheAware::kAllow);
   }
 
@@ -507,7 +507,7 @@ void CosmeticFiltersJSHandler::ExecuteObservingBundleEntryPoint() {
     bundle_injected_ = true;
 
     web_frame->ExecuteScriptInIsolatedWorld(
-        isolated_world_id_, blink::WebString::FromUTF8(*s_observing_script),
+        isolated_world_id_, blink::WebScriptSource(blink::WebString::FromUTF8(*s_observing_script)),
         blink::BackForwardCacheAware::kAllow);
 
     // kObservingScriptletEntryPoint was called by `s_observing_script`.
@@ -516,7 +516,7 @@ void CosmeticFiltersJSHandler::ExecuteObservingBundleEntryPoint() {
 
   web_frame->ExecuteScriptInIsolatedWorld(
       isolated_world_id_,
-      blink::WebString::FromUTF8(kObservingScriptletEntryPoint),
+      blink::WebScriptSource(blink::WebString::FromUTF8(kObservingScriptletEntryPoint)),
       blink::BackForwardCacheAware::kAllow);
 }
 

@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_DOWNLOAD_BRAVE_DOWNLOAD_ITEM_VIEW_H_
 #define BRAVE_BROWSER_UI_VIEWS_DOWNLOAD_BRAVE_DOWNLOAD_ITEM_VIEW_H_
 
+#include "brave/base/macros.h"
 #include "brave/browser/download/brave_download_item_model.h"
 #include "chrome/browser/ui/download/download_item_mode.h"
 #include "chrome/browser/ui/views/download/download_item_view.h"

@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_PROFILES_BRAVE_PROFILE_MENU_VIEW_H_
 #define BRAVE_BROWSER_UI_VIEWS_PROFILES_BRAVE_PROFILE_MENU_VIEW_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/profiles/profile_menu_view.h"
 
 class BraveProfileMenuView : public ProfileMenuView {

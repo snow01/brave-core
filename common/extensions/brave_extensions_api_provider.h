@@ -5,7 +5,7 @@
 #ifndef BRAVE_COMMON_EXTENSIONS_BRAVE_EXTENSIONS_API_PROVIDER_H_
 #define BRAVE_COMMON_EXTENSIONS_BRAVE_EXTENSIONS_API_PROVIDER_H_
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "extensions/common/extensions_api_provider.h"
 
 namespace extensions {

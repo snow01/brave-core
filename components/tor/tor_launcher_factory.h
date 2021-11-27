@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/callback.h"
 #include "base/memory/singleton.h"
 #include "base/memory/weak_ptr.h"

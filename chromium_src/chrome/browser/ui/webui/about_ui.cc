@@ -4,6 +4,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "base/strings/string_split.h"
+#include "base/containers/contains.h"
 #include "third_party/re2/src/re2/re2.h"
 
 #include "../../../../../../chrome/browser/ui/webui/about_ui.cc"

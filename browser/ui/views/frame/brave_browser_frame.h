@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_FRAME_BRAVE_BROWSER_FRAME_H_
 #define BRAVE_BROWSER_UI_VIEWS_FRAME_BRAVE_BROWSER_FRAME_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/frame/browser_frame.h"
 
 class BraveBrowserFrame : public BrowserFrame {

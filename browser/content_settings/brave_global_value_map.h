@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "brave/base/macros.h"
 #include "components/content_settings/core/browser/content_settings_global_value_map.h"
 #include "components/content_settings/core/browser/content_settings_provider.h"
 #include "components/content_settings/core/common/content_settings_types.h"

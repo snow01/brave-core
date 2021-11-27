@@ -9,7 +9,7 @@
 #include <string>
 
 #include "base/callback.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 
 namespace base {
 template <typename T>

@@ -6,6 +6,7 @@
 source_set("base_unittests") {
   testonly = true
   sources = [
+    "macros.h",
     "feature_override_unittest.cc",
     "tools_sanity_unittest.cc",
   ]

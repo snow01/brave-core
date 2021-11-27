@@ -8,7 +8,7 @@
 #include <utility>
 
 #include "base/base64.h"
-#include "base/bind_post_task.h"
+#include "base/task/bind_post_task.h"
 #include "base/json/json_reader.h"
 #include "base/strings/utf_string_conversion_utils.h"
 #include "base/task/thread_pool.h"
@@ -519,7 +519,7 @@ std::string BraveWalletServiceDelegateImpl::GetActiveOriginInternal() {
   content::WebContents* contents = GetActiveWebContents();
   return contents ? contents->GetMainFrame()
                         ->GetLastCommittedURL()
-                        .GetOrigin()
+                        .DeprecatedGetOriginAsURL()
                         .spec()
                   : "";
 }

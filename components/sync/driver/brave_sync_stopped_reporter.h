@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "brave/base/macros.h"
 #include "components/sync/driver/sync_stopped_reporter.h"
 
 namespace syncer {

@@ -5,6 +5,7 @@
 
 #include <functional>
 
+#include "brave/base/macros.h"
 #include "base/bind.h"
 #include "base/containers/contains.h"
 #include "base/feature_list.h"

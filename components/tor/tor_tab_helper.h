@@ -6,6 +6,7 @@
 #ifndef BRAVE_COMPONENTS_TOR_TOR_TAB_HELPER_H_
 #define BRAVE_COMPONENTS_TOR_TOR_TAB_HELPER_H_
 
+#include "brave/base/macros.h"
 #include "base/memory/weak_ptr.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "content/public/browser/web_contents_user_data.h"

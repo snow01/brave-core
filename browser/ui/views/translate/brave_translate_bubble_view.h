@@ -9,6 +9,7 @@
 #include <memory>
 #include <utility>
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/translate/translate_bubble_view.h"
 
 class BraveTranslateIconView;

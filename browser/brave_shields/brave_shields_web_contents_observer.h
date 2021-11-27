@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "base/containers/flat_map.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/synchronization/lock.h"
 #include "brave/components/brave_shields/common/brave_shields.mojom.h"
 #include "content/public/browser/render_frame_host_receiver_set.h"

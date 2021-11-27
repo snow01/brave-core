@@ -11,7 +11,7 @@
 
 #include "base/android/jni_android.h"
 #include "base/compiler_specific.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/memory/singleton.h"
 #include "brave/components/ntp_background_images/browser/ntp_background_images_service.h"
 #include "components/keyed_service/content/browser_context_keyed_service_factory.h"

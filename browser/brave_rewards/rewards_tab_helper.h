@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "brave/components/brave_rewards/browser/rewards_service_observer.h"
 #include "build/build_config.h"
 #include "components/sessions/core/session_id.h"

@@ -7,7 +7,8 @@
 
 #include <memory>
 
-#include "base/macros.h"
+#include "base/ignore_result.h"
+#include "brave/base/macros.h"
 #include "brave/browser/extensions/brave_extensions_browser_api_provider.h"
 #include "chrome/browser/extensions/chrome_component_extension_resource_manager.h"
 

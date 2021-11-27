@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/containers/flat_map.h"
 #include "base/containers/flat_set.h"
 #include "brave/components/brave_shields/common/brave_shields.mojom.h"

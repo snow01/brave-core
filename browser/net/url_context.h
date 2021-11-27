@@ -10,6 +10,7 @@
 #include <set>
 #include <string>
 
+#include "brave/base/macros.h"
 #include "net/base/network_isolation_key.h"
 #include "net/http/http_request_headers.h"
 #include "net/http/http_response_headers.h"

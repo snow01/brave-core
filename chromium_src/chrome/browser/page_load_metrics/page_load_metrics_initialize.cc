@@ -5,6 +5,7 @@
 
 #define InitializePageLoadMetricsForWebContents \
   InitializePageLoadMetricsForWebContents_Chromium
+#include "brave/base/macros.h"
 #include "../../../../../chrome/browser/page_load_metrics/page_load_metrics_initialize.cc"
 #undef InitializePageLoadMetricsForWebContents
 

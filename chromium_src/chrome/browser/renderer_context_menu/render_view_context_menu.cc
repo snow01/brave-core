@@ -147,7 +147,7 @@ void OnTorProfileCreated(const GURL& link_url,
 }  // namespace
 
 BraveRenderViewContextMenu::BraveRenderViewContextMenu(
-    content::RenderFrameHost* render_frame_host,
+    content::RenderFrameHost& render_frame_host,
     const content::ContextMenuParams& params)
     : RenderViewContextMenu_Chromium(render_frame_host, params)
 #if BUILDFLAG(ENABLE_IPFS)
@@ -317,7 +317,7 @@ void BraveRenderViewContextMenu::BuildIPFSMenu() {
 
   auto page_url = source_web_contents_->GetURL();
   if (page_url.SchemeIsHTTPOrHTTPS() &&
-      !ipfs::IsAPIGateway(page_url.GetOrigin(), chrome::GetChannel())) {
+      !ipfs::IsAPIGateway(page_url.DeprecatedGetOriginAsURL(), chrome::GetChannel())) {
     ipfs_submenu_model_.AddItemWithStringId(
         IDC_CONTENT_CONTEXT_IMPORT_IPFS_PAGE,
         IDS_CONTENT_CONTEXT_IMPORT_IPFS_PAGE);

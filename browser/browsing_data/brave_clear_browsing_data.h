@@ -6,7 +6,7 @@
 #ifndef BRAVE_BROWSER_BROWSING_DATA_BRAVE_CLEAR_BROWSING_DATA_H_
 #define BRAVE_BROWSER_BROWSING_DATA_BRAVE_CLEAR_BROWSING_DATA_H_
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 
 namespace content {
 class BrowsingDataRemover;

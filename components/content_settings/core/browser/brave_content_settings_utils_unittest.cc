@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "brave/components/content_settings/core/browser/brave_content_settings_utils.h"
 #include "chrome/test/base/testing_profile.h"
 #include "components/content_settings/core/common/content_settings_pattern.h"

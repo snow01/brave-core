@@ -5,6 +5,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_BRAVE_VIEWS_DELEGATE_LINUX_H_
 #define BRAVE_BROWSER_UI_VIEWS_BRAVE_VIEWS_DELEGATE_LINUX_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/chrome_views_delegate.h"
 
 class BraveViewsDelegateLinux : public ChromeViewsDelegate {

@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/tabs/browser_tab_strip_controller.h"
 
 class BraveTabContextMenuContents;

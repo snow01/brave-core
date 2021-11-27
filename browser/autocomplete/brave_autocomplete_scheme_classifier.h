@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "brave/base/macros.h"
 #include "brave/components/brave_webtorrent/browser/buildflags/buildflags.h"
 #include "chrome/browser/autocomplete/chrome_autocomplete_scheme_classifier.h"
 

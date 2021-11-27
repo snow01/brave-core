@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_BRAVE_ACTIONS_BRAVE_ACTION_VIEW_H_
 #define BRAVE_BROWSER_UI_VIEWS_BRAVE_ACTIONS_BRAVE_ACTION_VIEW_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_action_view.h"
 
 namespace gfx {

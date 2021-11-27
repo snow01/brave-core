@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_LOCATION_BAR_BRAVE_STAR_VIEW_H_
 #define BRAVE_BROWSER_UI_VIEWS_LOCATION_BAR_BRAVE_STAR_VIEW_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/location_bar/star_view.h"
 
 class BraveStarView : public StarView {

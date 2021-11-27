@@ -8,7 +8,7 @@
 
 // Pull in all original includes: Init and GetState are too common - we don't
 // want to redefine them elsewhere.
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/memory/weak_ptr.h"
 #include "build/build_config.h"
 #include "chrome/browser/profiles/profile_attributes_storage.h"

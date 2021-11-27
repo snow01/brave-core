@@ -78,10 +78,11 @@ void WalletButton::UpdateImageAndText() {
 }
 
 void WalletButton::InitBubbleManagerAnchor() {
-  View* anchor_view = this;
-  if (!prefs_->GetBoolean(kShowWalletIconOnToolbar)) {
-    anchor_view = backup_anchor_view_;
-  }
+  // SHAILENDRA: unused code	
+  //View* anchor_view = this;
+  //if (!prefs_->GetBoolean(kShowWalletIconOnToolbar)) {
+  //  anchor_view = backup_anchor_view_;
+  //}
 }
 
 void WalletButton::UpdateVisibility() {

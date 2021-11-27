@@ -5,7 +5,7 @@
 #ifndef BRAVE_BROWSER_EXTENSIONS_BRAVE_EXTENSIONS_BROWSER_API_PROVIDER_H_
 #define BRAVE_BROWSER_EXTENSIONS_BRAVE_EXTENSIONS_BROWSER_API_PROVIDER_H_
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "extensions/browser/extensions_browser_api_provider.h"
 
 namespace extensions {

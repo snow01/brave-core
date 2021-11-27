@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_EXTENSIONS_BRAVE_EXTENSIONS_BROWSER_CLIENT_IMPL_H_
 #define BRAVE_BROWSER_EXTENSIONS_BRAVE_EXTENSIONS_BROWSER_CLIENT_IMPL_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/extensions/chrome_extensions_browser_client.h"
 
 namespace extensions {

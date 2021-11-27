@@ -8,7 +8,7 @@
 #include <utility>
 
 #include "base/bind.h"
-#include "base/bind_post_task.h"
+#include "base/task/bind_post_task.h"
 #include "base/callback_helpers.h"
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "brave/components/tor/service_sandbox_type.h"

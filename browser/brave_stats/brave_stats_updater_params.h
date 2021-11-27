@@ -10,7 +10,7 @@
 #include <string>
 
 #include "base/gtest_prod_util.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/time/time.h"
 #include "brave/components/brave_stats/browser/brave_stats_updater_util.h"
 

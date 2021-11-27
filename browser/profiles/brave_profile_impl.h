@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_PROFILES_BRAVE_PROFILE_IMPL_H_
 #define BRAVE_BROWSER_PROFILES_BRAVE_PROFILE_IMPL_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/profiles/profile_impl.h"
 
 #include "base/memory/weak_ptr.h"

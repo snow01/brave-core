@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_PROFILES_BRAVE_PROFILE_SHORTCUT_MANAGER_WIN_H_
 #define BRAVE_BROWSER_PROFILES_BRAVE_PROFILE_SHORTCUT_MANAGER_WIN_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/profiles/profile_shortcut_manager_win.h"
 
 class BraveProfileShortcutManagerWin : public ProfileShortcutManagerWin {

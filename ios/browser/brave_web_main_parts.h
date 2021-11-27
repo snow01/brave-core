@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "ios/chrome/browser/ios_chrome_field_trials.h"
 #include "ios/web/public/init/web_main_parts.h"
 

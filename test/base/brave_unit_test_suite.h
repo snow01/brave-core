@@ -9,7 +9,7 @@
 
 #include "base/compiler_specific.h"
 #include "base/files/file_path.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/test/test_discardable_memory_allocator.h"
 #include "chrome/test/base/chrome_unit_test_suite.h"
 

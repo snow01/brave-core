@@ -6,7 +6,7 @@
 #ifndef BRAVE_BROWSER_EXTENSIONS_BRAVE_WEBTORRENT_NAVIGATION_THROTTLE_H_
 #define BRAVE_BROWSER_EXTENSIONS_BRAVE_WEBTORRENT_NAVIGATION_THROTTLE_H_
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/scoped_observation.h"
 #include "base/timer/timer.h"
 #include "content/public/browser/navigation_throttle.h"

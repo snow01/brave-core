@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "brave/components/tor/tor_launcher_observer.h"
 #include "content/public/browser/web_ui_controller.h"
 #include "content/public/browser/web_ui_message_handler.h"

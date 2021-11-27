@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_TOOLBAR_BOOKMARK_BUTTON_H_
 #define BRAVE_BROWSER_UI_VIEWS_TOOLBAR_BOOKMARK_BUTTON_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_button.h"
 
 class BookmarkButton : public ToolbarButton {

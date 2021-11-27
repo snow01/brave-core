@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/memory/ref_counted.h"
 #include "base/memory/scoped_refptr.h"
 #include "chrome/browser/extensions/updater/chrome_update_client_config.h"

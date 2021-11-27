@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/translate/translate_icon_view.h"
 
 #include "base/memory/weak_ptr.h"

@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_OMNIBOX_BRAVE_OMNIBOX_CLIENT_IMPL_H_
 #define BRAVE_BROWSER_UI_OMNIBOX_BRAVE_OMNIBOX_CLIENT_IMPL_H_
 
+#include "brave/base/macros.h"
 #include "brave/browser/autocomplete/brave_autocomplete_scheme_classifier.h"
 #include "chrome/browser/ui/omnibox/chrome_omnibox_client.h"
 

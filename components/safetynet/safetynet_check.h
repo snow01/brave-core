@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/android/scoped_java_ref.h"
 #include "net/base/completion_once_callback.h"
 

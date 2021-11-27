@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/containers/queue.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/observer_list.h"

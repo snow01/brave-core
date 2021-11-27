@@ -7,7 +7,7 @@
 #define BRAVE_IOS_BROWSER_METRICS_IOS_BRAVE_METRICS_SERVICES_MANAGER_CLIENT_H_
 
 #include <memory>
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "ios/chrome/browser/metrics/ios_chrome_metrics_services_manager_client.h"
 
 class PrefService;

@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/values.h"
 #include "bat/ledger/mojom_structs.h"
 #include "brave/components/brave_rewards/browser/rewards_notification_service.h"

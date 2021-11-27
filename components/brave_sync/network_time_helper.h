@@ -6,6 +6,7 @@
 #ifndef BRAVE_COMPONENTS_BRAVE_SYNC_NETWORK_TIME_HELPER_H_
 #define BRAVE_COMPONENTS_BRAVE_SYNC_NETWORK_TIME_HELPER_H_
 
+#include "brave/base/macros.h"
 #include "base/callback.h"
 #include "base/memory/singleton.h"
 #include "base/memory/weak_ptr.h"
@@ -46,9 +47,7 @@ class NetworkTimeHelper {
 
   base::WeakPtrFactory<NetworkTimeHelper> weak_ptr_factory_{this};
 
-  //DISALLOW_COPY_AND_ASSIGN(NetworkTimeHelper);
-  NetworkTimeHelper(const NetworkTimeHelper&) = delete;
-  NetworkTimeHelper& operator=(const NetworkTimeHelper&) = delete;
+  DISALLOW_COPY_AND_ASSIGN(NetworkTimeHelper);
 
 };
 

@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/webui/settings/settings_ui.h"
 
 namespace content {

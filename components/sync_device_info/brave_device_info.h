@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/time/time.h"
 #include "components/sync/protocol/sync.pb.h"
 #include "components/sync_device_info/device_info.h"

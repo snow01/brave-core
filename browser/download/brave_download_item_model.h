@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 
 // The purpose of this class is to extend DonwloadItemModel's class
 // functionality by adding a method for the origin URL text and

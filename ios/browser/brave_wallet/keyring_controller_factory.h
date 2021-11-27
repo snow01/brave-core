@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "brave/base/macros.h"
 #include "base/memory/singleton.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "components/keyed_service/ios/browser_state_keyed_service_factory.h"

@@ -22,7 +22,8 @@ class BraveSyncManagerImpl : public SyncManagerImpl {
   void StartSyncingNormally(base::Time last_poll_time) override;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(BraveSyncManagerImpl);
+  BraveSyncManagerImpl(const BraveSyncManagerImpl&) = delete;
+  BraveSyncManagerImpl& operator=(const BraveSyncManagerImpl&) = delete;
 };
 
 }  // namespace syncer

@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/memory/ptr_util.h"
 #include "brave/net/proxy_resolution/proxy_config_service_tor.h"
 #include "net/base/test_completion_callback.h"

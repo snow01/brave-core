@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "brave/base/macros.h"
 #include "brave/net/proxy_resolution/proxy_config_service_tor.h"
 
 #include <stdlib.h>
@@ -44,9 +45,8 @@ class TorProxyMap {
   std::map<std::string, std::pair<std::string, base::Time>> map_;
   std::priority_queue<std::pair<base::Time, std::string>> queue_;
   base::OneShotTimer timer_;
-  //DISALLOW_COPY_AND_ASSIGN(TorProxyMap);
-  TorProxyMap(const TorProxyMap&) = delete;
-  TorProxyMap& operator=(const TorProxyMap&) = delete;
+
+  DISALLOW_COPY_AND_ASSIGN(TorProxyMap);
   
 };
 

@@ -6,7 +6,7 @@
 #ifndef BRAVE_BROWSER_BRAVE_BROWSER_MAIN_LOOP_H_
 #define BRAVE_BROWSER_BRAVE_BROWSER_MAIN_LOOP_H_
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "content/browser/browser_main_loop.h"
 
 namespace brave {

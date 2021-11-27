@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "brave/base/macros.h"
 #include "base/gtest_prod_util.h"
 #include "brave/components/tor/tor_launcher_observer.h"
 #include "content/public/browser/navigation_throttle.h"

@@ -9,6 +9,7 @@
 #include <jni.h>
 #include <string>
 
+#include "brave/base/macros.h"
 #include "base/android/jni_weak_ref.h"
 #include "base/scoped_multi_source_observation.h"
 #include "components/sync/driver/sync_service.h"

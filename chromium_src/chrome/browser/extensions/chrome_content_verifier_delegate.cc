@@ -24,7 +24,7 @@
 #include "build/chromeos_buildflags.h"
 #include "chrome/browser/extensions/extension_service.h"
 #include "chrome/browser/extensions/install_verifier.h"
-#include "chrome/browser/extensions/policy_extension_reinstaller.h"
+//#include "chrome/browser/extensions/policy_extension_reinstaller.h"
 #include "chrome/common/chrome_switches.h"
 #include "chrome/common/extensions/extension_constants.h"
 #include "extensions/browser/disable_reason.h"

@@ -71,7 +71,7 @@ END_METADATA
 WebDiscoveryDialogView::WebDiscoveryDialogView(Browser* browser,
                                                PrefService* prefs)
     : browser_(browser), prefs_(prefs) {
-  set_should_ignore_snapping(true);
+  // SHAILENDRA: set_should_ignore_snapping(true);
   SetModalType(ui::MODAL_TYPE_CHILD);
   SetButtonLabel(
       ui::DIALOG_BUTTON_OK,

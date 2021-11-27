@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "brave/browser/net/url_context.h"
 #include "content/public/browser/browser_thread.h"
 #include "net/base/completion_once_callback.h"

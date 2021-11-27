@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "brave/base/macros.h"
 #include "base/path_service.h"
 #include "brave/common/brave_paths.h"
 #include "brave/components/brave_shields/common/brave_shield_constants.h"

@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "brave/base/macros.h"
 #include "chrome/utility/chrome_content_utility_client.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 

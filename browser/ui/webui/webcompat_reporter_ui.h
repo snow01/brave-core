@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/webui/constrained_web_dialog_ui.h"
 
 namespace content {

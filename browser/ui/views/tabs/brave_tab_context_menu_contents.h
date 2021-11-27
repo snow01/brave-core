@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "brave/base/macros.h"
 #include "ui/base/models/simple_menu_model.h"
 #include "ui/base/ui_base_types.h"
 

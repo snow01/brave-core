@@ -10,7 +10,7 @@
 #include <string>
 
 #include "base/compiler_specific.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #import "ios/web/public/web_client.h"
 
 class BraveWebMainParts;

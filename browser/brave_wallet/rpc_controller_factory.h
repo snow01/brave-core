@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_BRAVE_WALLET_RPC_CONTROLLER_FACTORY_H_
 #define BRAVE_BROWSER_BRAVE_WALLET_RPC_CONTROLLER_FACTORY_H_
 
+#include "brave/base/macros.h"
 #include "base/memory/singleton.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "components/keyed_service/content/browser_context_keyed_service_factory.h"

@@ -273,8 +273,8 @@ class BraveWalletProviderImplUnitTest : public testing::Test {
 
   void Navigate(const GURL& url) { web_contents()->NavigateAndCommit(url); }
 
-  GURL GetOrigin() {
-    return web_contents()->GetMainFrame()->GetLastCommittedURL().GetOrigin();
+  GURL.DeprecatedGetOriginAsURL() {
+    return web_contents()->GetMainFrame()->GetLastCommittedURL().DeprecatedGetOriginAsURL();
   }
 
   void CreateBraveWalletTabHelper() {
@@ -476,7 +476,7 @@ class BraveWalletProviderImplUnitTest : public testing::Test {
                       }));
     if (user_approved)
       eth_json_rpc_controller_->NotifySwitchChainRequestProcessed(
-          *user_approved, GetOrigin());
+          *user_approved,.DeprecatedGetOriginAsURL());
     run_loop.Run();
   }
 
@@ -1314,7 +1314,7 @@ TEST_F(BraveWalletProviderImplUnitTest, SwitchEthereumChain) {
   EXPECT_EQ(error_message,
             l10n_util::GetStringUTF8(IDS_WALLET_ALREADY_IN_PROGRESS_ERROR));
   eth_json_rpc_controller()->NotifySwitchChainRequestProcessed(true,
-                                                               GetOrigin());
+                                                              .DeprecatedGetOriginAsURL());
   run_loop.Run();
   EXPECT_EQ(eth_json_rpc_controller()->GetChainId(), "0x1");
 }
@@ -1340,7 +1340,7 @@ TEST_F(BraveWalletProviderImplUnitTest, AddEthereumChainSwitchesForInnactive) {
                   }));
   EXPECT_TRUE(brave_wallet_tab_helper()->IsShowingBubble());
   eth_json_rpc_controller_->NotifySwitchChainRequestProcessed(true,
-                                                              GetOrigin());
+                                                             .DeprecatedGetOriginAsURL());
   run_loop.Run();
   brave_wallet_tab_helper()->CloseBubble();
   EXPECT_FALSE(brave_wallet_tab_helper()->IsShowingBubble());

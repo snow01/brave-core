@@ -11,8 +11,8 @@
 #include "base/logging.h"
 #include "base/task/post_task.h"
 #include "base/task/thread_pool.h"
-#include "base/task_runner.h"
-#include "base/task_runner_util.h"
+#include "base/task/task_runner.h"
+#include "base/task/task_runner_util.h"
 #include "brave/components/ipfs/ipfs_utils.h"
 #include "components/component_updater/component_updater_service.h"
 

@@ -6,7 +6,7 @@
 #include "ui/base/ui_base_types.h"
 
 #define DIALOG_BUTTON_NONE \
-  DIALOG_BUTTON_NONE && !dialog_delegate->should_ignore_snapping()
+  DIALOG_BUTTON_NONE // && !dialog_delegate->should_ignore_snapping()
 
 #include "../../../../../ui/views/bubble/bubble_frame_view.cc"
 

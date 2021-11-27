@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/containers/flat_map.h"
 #include "base/memory/ref_counted.h"
 #include "base/threading/thread_checker.h"
@@ -87,9 +88,7 @@ class SequentialUpdateChecker : public UpdateChecker {
   // Aggregates results from all sequential update requests.
   ProtocolParser::Results results_;
 
-  //DISALLOW_COPY_AND_ASSIGN(SequentialUpdateChecker);
-  SequentialUpdateChecker(const SequentialUpdateChecker&) = delete;
-  SequentialUpdateChecker& operator=(const SequentialUpdateChecker&) = delete;
+  DISALLOW_COPY_AND_ASSIGN(SequentialUpdateChecker);
   
 };
 

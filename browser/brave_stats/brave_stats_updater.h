@@ -10,7 +10,7 @@
 #include <string>
 
 #include "base/callback.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/memory/scoped_refptr.h"
 #include "brave/components/brave_stats/browser/brave_stats_updater_util.h"
 #include "chrome/browser/profiles/profile_manager_observer.h"

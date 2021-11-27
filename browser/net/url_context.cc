@@ -109,7 +109,7 @@ std::shared_ptr<brave::BraveRequestInfo> BraveRequestInfo::MakeCTX(
     content::WebContents* contents =
         content::WebContents::FromFrameTreeNodeId(ctx->frame_tree_node_id);
     if (contents) {
-      ctx->tab_origin = contents->GetLastCommittedURL().GetOrigin();
+      ctx->tab_origin = contents->GetLastCommittedURL().DeprecatedGetOriginAsURL();
     }
   }
 
@@ -129,7 +129,7 @@ std::shared_ptr<brave::BraveRequestInfo> BraveRequestInfo::MakeCTX(
   if (ipfs::IsLocalGatewayConfigured(prefs) && ctx->tab_origin.is_empty() &&
       ipfs::IsLocalGatewayURL(ctx->initiator_url)) {
     ctx->tab_url = ctx->initiator_url;
-    ctx->tab_origin = ctx->initiator_url.GetOrigin();
+    ctx->tab_origin = ctx->initiator_url.DeprecatedGetOriginAsURL();
   }
 #endif
 

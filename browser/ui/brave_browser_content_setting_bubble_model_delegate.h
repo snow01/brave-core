@@ -5,6 +5,7 @@
 #ifndef BRAVE_BROWSER_UI_BRAVE_BROWSER_CONTENT_SETTING_BUBBLE_MODEL_DELEGATE_H_
 #define BRAVE_BROWSER_UI_BRAVE_BROWSER_CONTENT_SETTING_BUBBLE_MODEL_DELEGATE_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/browser_content_setting_bubble_model_delegate.h"
 
 class BraveBrowserContentSettingBubbleModelDelegate

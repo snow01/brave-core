@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/containers/flat_map.h"
 #include "base/memory/ref_counted.h"
 #include "base/metrics/histogram_base.h"

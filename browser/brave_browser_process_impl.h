@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "brave/base/macros.h"
 #include "base/memory/ref_counted.h"
 #include "brave/browser/brave_browser_process.h"
 #include "brave/components/brave_component_updater/browser/brave_component.h"

@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "brave/components/brave_shields/browser/ad_block_base_service.h"
 
 class AdBlockServiceTest;

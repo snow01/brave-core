@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "brave/base/macros.h"
 #include "base/memory/weak_ptr.h"
 #include "brave/components/tor/brave_tor_client_updater.h"
 #include "brave/components/tor/tor_launcher_factory.h"

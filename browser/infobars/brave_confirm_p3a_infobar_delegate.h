@@ -7,7 +7,7 @@
 #define BRAVE_BROWSER_INFOBARS_BRAVE_CONFIRM_P3A_INFOBAR_DELEGATE_H_
 
 #include "base/compiler_specific.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "components/infobars/core/confirm_infobar_delegate.h"
 #include "url/gurl.h"
 

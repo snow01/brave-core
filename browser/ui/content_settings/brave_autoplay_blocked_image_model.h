@@ -5,6 +5,7 @@
 #ifndef BRAVE_BROWSER_UI_CONTENT_SETTINGS_BRAVE_AUTOPLAY_BLOCKED_IMAGE_MODEL_H_
 #define BRAVE_BROWSER_UI_CONTENT_SETTINGS_BRAVE_AUTOPLAY_BLOCKED_IMAGE_MODEL_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/content_settings/content_setting_image_model.h"
 
 class BraveAutoplayBlockedImageModel : public ContentSettingSimpleImageModel {

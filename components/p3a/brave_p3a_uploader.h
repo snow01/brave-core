@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "brave/base/macros.h"
 #include "base/callback.h"
 #include "base/memory/ref_counted.h"
 #include "url/gurl.h"

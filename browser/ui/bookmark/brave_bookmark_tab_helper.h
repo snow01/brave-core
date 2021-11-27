@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_BOOKMARK_BRAVE_BOOKMARK_TAB_HELPER_H_
 #define BRAVE_BROWSER_UI_BOOKMARK_BRAVE_BOOKMARK_TAB_HELPER_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/bookmarks/bookmark_tab_helper.h"
 #include "content/public/browser/web_contents_user_data.h"
 

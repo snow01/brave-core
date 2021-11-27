@@ -6,6 +6,7 @@
 #ifndef BRAVE_COMPONENTS_P3A_BRAVE_P3A_SCHEDULER_H_
 #define BRAVE_COMPONENTS_P3A_BRAVE_P3A_SCHEDULER_H_
 
+#include "brave/base/macros.h"
 #include "base/callback_forward.h"
 #include "components/metrics/metrics_scheduler.h"
 

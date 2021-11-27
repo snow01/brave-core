@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "base/lazy_instance.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "components/content_settings/core/browser/content_settings_info.h"
 #include "components/content_settings/core/browser/content_settings_utils.h"
 #include "components/content_settings/core/browser/website_settings_info.h"

@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_IPFS_IPFS_BLOB_CONTEXT_GETTER_FACTORY_H_
 #define BRAVE_BROWSER_IPFS_IPFS_BLOB_CONTEXT_GETTER_FACTORY_H_
 
+#include "brave/base/macros.h"
 #include "brave/components/ipfs/blob_context_getter_factory.h"
 
 namespace content {

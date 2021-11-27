@@ -4,6 +4,7 @@
 // you can obtain one at http://mozilla.org/MPL/2.0/.
 
 
+#include "brave/base/macros.h"
 #include "brave/browser/extensions/api/brave_action_api.h"
 
 #include <memory>

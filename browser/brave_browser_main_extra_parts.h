@@ -7,7 +7,7 @@
 #define BRAVE_BROWSER_BRAVE_BROWSER_MAIN_EXTRA_PARTS_H_
 
 #include "base/compiler_specific.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "chrome/browser/chrome_browser_main.h"
 #include "chrome/browser/chrome_browser_main_extra_parts.h"
 

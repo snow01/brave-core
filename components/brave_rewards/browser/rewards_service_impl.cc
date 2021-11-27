@@ -25,7 +25,7 @@
 #include "base/json/json_string_value_serializer.h"
 #include "base/json/json_writer.h"
 #include "base/logging.h"
-#include "base/sequenced_task_runner.h"
+#include "base/task/sequenced_task_runner.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_split.h"
 #include "base/strings/string_util.h"
@@ -33,7 +33,7 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/post_task.h"
 #include "base/task/thread_pool.h"
-#include "base/task_runner_util.h"
+#include "base/task/task_runner_util.h"
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "base/time/time.h"
 #include "bat/ads/pref_names.h"
@@ -661,7 +661,7 @@ void RewardsServiceImpl::OnLoad(SessionID tab_id, const GURL& url) {
     return;
   }
 
-  auto origin = url.GetOrigin().host();
+  auto origin = url.DeprecatedGetOriginAsURL().host();
   std::string baseDomain =
       GetDomainAndRegistry(url.host(), INCLUDE_PRIVATE_REGISTRIES);
 #if BUILDFLAG(ENABLE_IPFS)
@@ -1791,7 +1791,7 @@ void RewardsServiceImpl::GetPublisherActivityFromUrl(
     return;
   }
 
-  auto origin = parsed_url.GetOrigin().spec();
+  auto origin = parsed_url.DeprecatedGetOriginAsURL().spec();
   std::string baseDomain =
       GetDomainAndRegistry(parsed_url.host(), INCLUDE_PRIVATE_REGISTRIES);
   std::string path = parsed_url.has_path() ? parsed_url.PathForRequest() : "";

@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 #include "ui/views/view.h"
 

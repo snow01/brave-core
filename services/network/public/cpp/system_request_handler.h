@@ -6,6 +6,7 @@
 #ifndef BRAVE_SERVICES_NETWORK_PUBLIC_CPP_SYSTEM_REQUEST_HANDLER_H_
 #define BRAVE_SERVICES_NETWORK_PUBLIC_CPP_SYSTEM_REQUEST_HANDLER_H_
 
+#include "brave/base/macros.h"
 #include "base/callback.h"
 #include "base/component_export.h"
 #include "base/memory/singleton.h"
@@ -37,10 +38,7 @@ class COMPONENT_EXPORT(NETWORK_CPP) SystemRequestHandler {
 
   OnBeforeSystemRequestCallback on_before_system_request_callback_;
 
-  //DISALLOW_COPY_AND_ASSIGN(SystemRequestHandler);
-  SystemRequestHandler(const SystemRequestHandler&) = delete;
-  SystemRequestHandler& operator=(const SystemRequestHandler&) = delete;
-
+  DISALLOW_COPY_AND_ASSIGN(SystemRequestHandler);
 
 };
 

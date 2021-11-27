@@ -6,7 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_BRAVE_LAYOUT_PROVIDER_H_
 #define BRAVE_BROWSER_UI_VIEWS_BRAVE_LAYOUT_PROVIDER_H_
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/chrome_layout_provider.h"
 
 class BraveLayoutProvider : public ChromeLayoutProvider {

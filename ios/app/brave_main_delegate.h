@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "ios/chrome/app/startup/ios_chrome_main_delegate.h"
 
 class BraveWebClient;

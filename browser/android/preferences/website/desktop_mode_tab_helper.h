@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_ANDROID_PREFERENCES_WEBSITE_DESKTOP_MODE_TAB_HELPER_H_
 #define BRAVE_BROWSER_ANDROID_PREFERENCES_WEBSITE_DESKTOP_MODE_TAB_HELPER_H_
 
+#include "brave/base/macros.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "content/public/browser/web_contents_user_data.h"
 

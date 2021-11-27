@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "components/keyed_service/core/keyed_service.h"
 
 namespace base {

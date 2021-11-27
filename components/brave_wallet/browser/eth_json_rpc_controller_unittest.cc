@@ -375,7 +375,7 @@ TEST_F(EthJsonRpcControllerUnitTest, SetNetwork) {
     const std::string& expected_url = network->rpc_urls.front();
     rpc_controller_->GetNetworkUrl(base::BindLambdaForTesting(
         [&callback_is_called, &expected_url](const std::string& spec) {
-          EXPECT_EQ(GURL(spec).GetOrigin(), GURL(expected_url).GetOrigin());
+          EXPECT_EQ(GURL(spec).DeprecatedGetOriginAsURL(), GURL(expected_url).DeprecatedGetOriginAsURL());
           callback_is_called = true;
         }));
     ASSERT_TRUE(callback_is_called);
@@ -411,7 +411,7 @@ TEST_F(EthJsonRpcControllerUnitTest, SetCustomNetwork) {
   const std::string& expected_url = chain1.rpc_urls.front();
   rpc_controller_->GetNetworkUrl(base::BindLambdaForTesting(
       [&callback_is_called, &expected_url](const std::string& spec) {
-        EXPECT_EQ(GURL(spec).GetOrigin(), GURL(expected_url).GetOrigin());
+        EXPECT_EQ(GURL(spec).DeprecatedGetOriginAsURL(), GURL(expected_url).DeprecatedGetOriginAsURL());
         callback_is_called = true;
       }));
   ASSERT_TRUE(callback_is_called);

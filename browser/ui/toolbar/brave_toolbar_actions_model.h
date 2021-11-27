@@ -5,6 +5,7 @@
 #ifndef BRAVE_BROWSER_UI_TOOLBAR_TOOLBAR_ACTIONS_MODEL_H_
 #define BRAVE_BROWSER_UI_TOOLBAR_TOOLBAR_ACTIONS_MODEL_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/toolbar/toolbar_actions_model.h"
 
 namespace extensions {

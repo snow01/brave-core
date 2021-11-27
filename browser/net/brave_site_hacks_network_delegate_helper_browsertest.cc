@@ -371,7 +371,7 @@ IN_PROC_BROWSER_TEST_F(BraveSiteHacksNetworkDelegateBrowserTest,
     const GURL same_origin_test_url = url(dest_url, onion_post_url());
     NavigateToURLAndWaitForRedirects(same_origin_test_url, dest_url);
     EXPECT_EQ(last_referrer(dest_url), same_origin_test_url.spec());
-    std::string full_origin = same_origin_test_url.GetOrigin().spec();
+    std::string full_origin = same_origin_test_url.DeprecatedGetOriginAsURL().spec();
     full_origin.pop_back();  // CORS headers don't use canonical forms.
     EXPECT_EQ(last_origin(dest_url), full_origin);
 
@@ -416,7 +416,7 @@ IN_PROC_BROWSER_TEST_F(BraveSiteHacksNetworkDelegateBrowserTest,
   NavigateToURLAndWaitForRedirects(images_url(), images_url());
 
   // Same-origin sub-requests
-  std::string full_origin = images_url().GetOrigin().spec();
+  std::string full_origin = images_url().DeprecatedGetOriginAsURL().spec();
   full_origin.pop_back();  // CORS headers don't use canonical forms.
   EXPECT_EQ(last_referrer(image_url("1")), images_url().spec());
   EXPECT_EQ(last_origin(image_url("1")), "");  // nocors

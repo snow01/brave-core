@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_PROFILES_BRAVE_BOOKMARK_MODEL_LOADED_OBSERVER_H_
 #define BRAVE_BROWSER_PROFILES_BRAVE_BOOKMARK_MODEL_LOADED_OBSERVER_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/profiles/bookmark_model_loaded_observer.h"
 
 class BraveBookmarkModelLoadedObserver

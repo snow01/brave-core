@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_THEMES_BRAVE_THEME_HELPER_WIN_H_
 #define BRAVE_BROWSER_THEMES_BRAVE_THEME_HELPER_WIN_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/themes/theme_helper_win.h"
 
 class BraveThemeHelperWin : public ThemeHelperWin {

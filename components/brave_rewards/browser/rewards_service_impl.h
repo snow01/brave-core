@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/containers/flat_map.h"
 #include "base/files/file.h"
 #include "base/files/file_path.h"

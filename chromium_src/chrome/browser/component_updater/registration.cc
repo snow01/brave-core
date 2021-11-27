@@ -17,8 +17,8 @@ namespace component_updater {
 void RegisterComponentsForUpdate(bool is_off_the_record_profile,
                                  PrefService* profile_prefs,
                                  const base::FilePath& profile_path) {
-  RegisterComponentsForUpdate_ChromiumImpl(is_off_the_record_profile,
-                                           profile_prefs, profile_path);
+  // SHAILENDRA: removed args, how these are being provided now ?
+  RegisterComponentsForUpdate_ChromiumImpl();
   ComponentUpdateService* cus = g_browser_process->component_updater();
   brave_wallet::RegisterWalletDataFilesComponent(cus);
 }

@@ -7,7 +7,7 @@
 
 #include <cmath>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "brave_base/random.h"
 #include "testing/gtest/include/gtest/gtest.h"
 

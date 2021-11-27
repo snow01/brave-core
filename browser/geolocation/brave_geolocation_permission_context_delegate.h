@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_GEOLOCATION_BRAVE_GEOLOCATION_PERMISSION_CONTEXT_DELEGATE_H_
 #define BRAVE_BROWSER_GEOLOCATION_BRAVE_GEOLOCATION_PERMISSION_CONTEXT_DELEGATE_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/geolocation/geolocation_permission_context_delegate.h"
 
 class Profile;

@@ -5,6 +5,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_UPDATE_RECOMMENDED_MESSAGE_BOX_MAC_H_
 #define BRAVE_BROWSER_UI_VIEWS_UPDATE_RECOMMENDED_MESSAGE_BOX_MAC_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/update_recommended_message_box.h"
 
 class UpdateRecommendedMessageBoxMac : public UpdateRecommendedMessageBox {

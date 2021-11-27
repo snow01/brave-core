@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "brave/components/brave_shields/browser/brave_shields_util.h"
 #include "brave/components/brave_shields/common/brave_shield_constants.h"
 #include "brave/components/brave_shields/common/features.h"

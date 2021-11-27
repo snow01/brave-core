@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "chrome/browser/ui/views/location_bar/location_bar_view.h"

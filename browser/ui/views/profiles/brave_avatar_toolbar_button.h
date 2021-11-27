@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_VIEWS_PROFILES_BRAVE_AVATAR_TOOLBAR_BUTTON_H_
 #define BRAVE_BROWSER_UI_VIEWS_PROFILES_BRAVE_AVATAR_TOOLBAR_BUTTON_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/profiles/avatar_toolbar_button.h"
 
 class BrowserView;

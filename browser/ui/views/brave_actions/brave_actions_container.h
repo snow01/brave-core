@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 
+#include "brave/base/macros.h"
 #include "base/scoped_observation.h"
 #include "brave/browser/extensions/api/brave_action_api.h"
 #include "brave/browser/ui/views/brave_actions/brave_rewards_action_stub_view.h"

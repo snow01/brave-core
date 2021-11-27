@@ -4,6 +4,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #define AddProfilesExtraParts AddProfilesExtraParts_ChromiumImpl
+#include "brave/base/macros.h"
 #include "../../../../../chrome/browser/profiles/chrome_browser_main_extra_parts_profiles.cc"
 #undef AddProfilesExtraParts
 

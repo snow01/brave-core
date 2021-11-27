@@ -136,7 +136,7 @@ IN_PROC_BROWSER_TEST_F(BraveWalletEthereumChainTest, AddEthereumChainApproved) {
   GetEthJsonRpcController()->AddEthereumChainRequestCompleted("0x38", true);
   base::RunLoop().RunUntilIdle();  // For FirePendingRequestCompleted
   GetEthJsonRpcController()->NotifySwitchChainRequestProcessed(true,
-                                                               url.GetOrigin());
+                                                               url.DeprecatedGetOriginAsURL());
   auto result_first = EvalJs(contents, kScriptWaitForEvent,
                              content::EXECUTE_SCRIPT_USE_MANUAL_REPLY);
   EXPECT_EQ(base::Value(true), result_first.value);
@@ -255,7 +255,7 @@ IN_PROC_BROWSER_TEST_F(BraveWalletEthereumChainTest,
   GetEthJsonRpcController()->AddEthereumChainRequestCompleted("0x11", true);
   base::RunLoop().RunUntilIdle();  // For FirePendingRequestCompleted
   GetEthJsonRpcController()->NotifySwitchChainRequestProcessed(
-      false, urlB.GetOrigin());
+      false, urlB.DeprecatedGetOriginAsURL());
   auto rejected_same_id = EvalJs(web_contentsB, kScriptWaitForEvent,
                                  content::EXECUTE_SCRIPT_USE_MANUAL_REPLY);
   EXPECT_EQ(base::Value(false), rejected_same_id.value);
@@ -307,7 +307,7 @@ IN_PROC_BROWSER_TEST_F(BraveWalletEthereumChainTest, AddDifferentChainsSwitch) {
   GetEthJsonRpcController()->AddEthereumChainRequestCompleted("0x11", true);
   base::RunLoop().RunUntilIdle();  // For FirePendingRequestCompleted
   GetEthJsonRpcController()->NotifySwitchChainRequestProcessed(
-      true, urlB.GetOrigin());
+      true, urlB.DeprecatedGetOriginAsURL());
   auto rejected_same_id = EvalJs(web_contentsB, kScriptWaitForEvent,
                                  content::EXECUTE_SCRIPT_USE_MANUAL_REPLY);
   EXPECT_EQ(base::Value(true), rejected_same_id.value);

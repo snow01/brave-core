@@ -5,7 +5,7 @@
 
 #include "chrome/browser/renderer_context_menu/spelling_menu_observer.h"
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/values.h"
 #include "brave/browser/renderer_context_menu/brave_mock_render_view_context_menu.h"

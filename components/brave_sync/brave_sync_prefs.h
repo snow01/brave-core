@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-//#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/values.h"
 
 class PrefRegistrySimple;
@@ -56,10 +56,7 @@ class Prefs {
  private:
   PrefService* const pref_service_;
 
-  // DISALLOW_COPY_AND_ASSIGN(Prefs);
-  Prefs(const Prefs&) = delete;
-  Prefs& operator=(const Prefs&) = delete;
-
+  DISALLOW_COPY_AND_ASSIGN(Prefs);
 };
 
 void MigrateBraveSyncPrefs(PrefService* prefs);

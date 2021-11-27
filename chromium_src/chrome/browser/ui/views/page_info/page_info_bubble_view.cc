@@ -9,13 +9,15 @@
 #include "brave/components/ipfs/ipfs_utils.h"
 #include "brave/components/vector_icons/vector_icons.h"
 #include "brave/grit/brave_theme_resources.h"
+#include "chrome/browser/ui/views/page_info/page_info_hover_button.h"
+#include "chrome/browser/ui/views/page_info/page_info_bubble_view.h"
 #include "chrome/browser/ui/views/page_info/page_info_view_factory.h"
 #include "components/grit/brave_components_strings.h"
 #include "ui/base/l10n/l10n_util.h"
 
 namespace {
 
-const char kIPFSDocsURL[] = "https://docs.ipfs.io/";
+/*const char kIPFSDocsURL[] = "https://docs.ipfs.io/";
 
 std::unique_ptr<PageInfoHoverButton> CreateButton(
     int logo_resource_id,
@@ -32,7 +34,7 @@ std::unique_ptr<PageInfoHoverButton> CreateButton(
       text_resource_id, std::u16string(),
       PageInfoViewFactory::VIEW_ID_PAGE_INFO_LINK_OR_BUTTON_COOKIE_DIALOG,
       tooltip, std::u16string());
-}
+}*/
 
 }  // namespace
 
@@ -43,7 +45,8 @@ std::unique_ptr<PageInfoHoverButton> CreateButton(
 #include "../../../../../../../chrome/browser/ui/views/page_info/page_info_bubble_view.cc"
 #undef InitializeUiState
 
-void PageInfoBubbleView::BraveAddIPFSButtons(PageInfoBubbleView* ui) {
+// SHAILENDRA: disabled this temporarily
+/*void PageInfoBubbleView::BraveAddIPFSButtons(PageInfoBubbleView* ui) {
   site_settings_view_->AddChildViewAt(
       CreateButton(IDR_BRAVE_IPFS_LOGO, IDS_PAGE_INFO_IPFS_SETTINGS_BUTTON_TEXT,
                    IDS_PAGE_INFO_IPFS_SETTINGS_BUTTON_TOOLTIP_TEXT,
@@ -77,6 +80,6 @@ void PageInfoBubbleView::BraveAddIPFSButtons(PageInfoBubbleView* ui) {
 
   Layout();
   SizeToContents();
-}
+}*/
 
 #undef BRAVE_PAGE_INFO_VIEW_FACTORY_GET_PERMISSION_ICON

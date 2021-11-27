@@ -79,7 +79,7 @@ void CrashReportPermissionAskDialogView::Show(Browser* browser) {
 
 CrashReportPermissionAskDialogView::CrashReportPermissionAskDialogView(
     Browser* browser) {
-  set_should_ignore_snapping(true);
+  // SHAILENDRA: set_should_ignore_snapping(true);
 
   SetButtonLabel(ui::DIALOG_BUTTON_OK,
                  l10n_util::GetStringUTF16(

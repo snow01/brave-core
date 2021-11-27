@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_EXTENSIONS_BRAVE_EXTENSION_MANAGEMENT_H_
 #define BRAVE_BROWSER_EXTENSIONS_BRAVE_EXTENSION_MANAGEMENT_H_
 
+#include "brave/base/macros.h"
 #include "base/scoped_observation.h"
 #include "chrome/browser/extensions/extension_management.h"
 #include "components/prefs/pref_change_registrar.h"

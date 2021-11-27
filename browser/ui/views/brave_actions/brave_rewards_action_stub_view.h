@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "brave/base/macros.h"
 #include "components/prefs/pref_member.h"
 #include "ui/views/controls/button/label_button.h"
 #include "ui/views/view.h"

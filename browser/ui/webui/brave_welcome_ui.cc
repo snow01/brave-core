@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "brave/base/macros.h"
 #include "base/metrics/histogram_macros.h"
 #include "brave/browser/ui/webui/brave_webui_source.h"
 #include "brave/browser/ui/webui/settings/brave_import_data_handler.h"

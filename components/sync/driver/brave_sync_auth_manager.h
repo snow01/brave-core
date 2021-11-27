@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/time/time.h"
 #include "components/sync/driver/sync_auth_manager.h"
 

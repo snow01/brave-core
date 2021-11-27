@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "brave/base/macros.h"
 #include "base/values.h"
 #include "brave/components/brave_shields/browser/ad_block_base_service.h"
 #include "components/keyed_service/core/keyed_service.h"

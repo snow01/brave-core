@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_DEVTOOLS_BRAVE_DEVTOOLS_UI_BINDINGS_H_
 #define BRAVE_BROWSER_DEVTOOLS_BRAVE_DEVTOOLS_UI_BINDINGS_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/devtools/devtools_ui_bindings.h"
 
 class BraveDevToolsUIBindings : public DevToolsUIBindings {

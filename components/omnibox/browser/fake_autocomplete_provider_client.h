@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "brave/base/macros.h"
 #include "components/omnibox/browser/mock_autocomplete_provider_client.h"
 #include "components/prefs/testing_pref_service.h"
 

@@ -227,8 +227,9 @@ void AddFootnoteViewIfNeeded(
         std::max(GetPreferredSize().width(),                              \
                  permission_lifetime_view->GetPreferredSize().width()) +  \
         margins().width());                                               \
-    set_should_ignore_snapping(true);                                     \
   }
+// SHAILENDRA: commented for now... set_should_ignore_snapping(true);                                     
+  
 
 #include "../../../../../../../chrome/browser/ui/views/permission_bubble/permission_prompt_bubble_view.cc"
 #undef BRAVE_PERMISSION_PROMPT_BUBBLE_VIEW

@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_BRAVE_ACTIONS_BRAVE_ACTION_ICON_WITH_BADGE_IMAGE_SOURCE_H_
 #define BRAVE_BROWSER_UI_BRAVE_ACTIONS_BRAVE_ACTION_ICON_WITH_BADGE_IMAGE_SOURCE_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/extensions/icon_with_badge_image_source.h"
 
 namespace gfx {

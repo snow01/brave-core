@@ -8,7 +8,7 @@
 
 #include <string>
 
-//#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/memory/singleton.h"
 #include "build/build_config.h"
 

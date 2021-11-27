@@ -18,6 +18,7 @@
   UpdateColors();    \
   void UpdateColorsForBrave
 
+#include "brave/base/macros.h"
 #include "../../../../../../ui/views/controls/button/md_text_button.h"
 
 #undef UpdateColors

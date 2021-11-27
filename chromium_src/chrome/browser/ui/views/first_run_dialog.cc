@@ -49,22 +49,76 @@ void ShowFirstRunDialog(Profile* profile) {
 }
 
 void ShowFirstRunDialogViews(Profile* profile) {
-  FirstRunDialog::Show(profile);
+  base::RunLoop run_loop(base::RunLoop::Type::kNestableTasksAllowed);
+  FirstRunDialog::Show(
+      base::BindRepeating(&platform_util::OpenExternal,
+                          base::Unretained(profile),
+                          GURL(chrome::kLearnMoreReportingURL)),
+      run_loop.QuitClosure());
+  run_loop.Run();
 }
+
 
 }  // namespace first_run
 
 // static
-void FirstRunDialog::Show(Profile* profile) {
-  FirstRunDialog* dialog = new FirstRunDialog(profile);
+void FirstRunDialog::Show(base::RepeatingClosure learn_more_callback,
+                          base::RepeatingClosure quit_runloop) {
+  FirstRunDialog* dialog = new FirstRunDialog(std::move(learn_more_callback),
+                                              std::move(quit_runloop));
   views::DialogDelegate::CreateDialogWidget(dialog, NULL, NULL)->Show();
-
-  base::RunLoop run_loop(base::RunLoop::Type::kNestableTasksAllowed);
-  dialog->quit_runloop_ = run_loop.QuitClosure();
-  run_loop.Run();
 }
 
-FirstRunDialog::FirstRunDialog(Profile* profile) {
+FirstRunDialog::FirstRunDialog(base::RepeatingClosure learn_more_callback,
+                               base::RepeatingClosure quit_runloop)
+    : quit_runloop_(quit_runloop) {
+  SetTitle(l10n_util::GetStringUTF16(IDS_FIRST_RUN_DIALOG_WINDOW_TITLE));
+  SetButtons(ui::DIALOG_BUTTON_OK);
+  SetExtraView(
+      std::make_unique<views::Link>(l10n_util::GetStringUTF16(IDS_LEARN_MORE)))
+      ->SetCallback(std::move(learn_more_callback));
+
+  constexpr int kChildSpacing = 16;
+  constexpr int kPadding = 24;
+
+  SetLayoutManager(std::make_unique<views::BoxLayout>(
+      views::BoxLayout::Orientation::kVertical,
+      gfx::Insets(kPadding, kPadding, kPadding, kPadding), kChildSpacing));
+//      ChromeLayoutProvider::Get()->GetDialogInsetsForContentType(
+//          views::DialogContentType::kControl,
+//          views::DialogContentType::kControl),
+//      ChromeLayoutProvider::Get()->GetDistanceMetric(
+//          views::DISTANCE_RELATED_CONTROL_VERTICAL)));
+
+
+   constexpr int kFontSize = 15;
+  int size_diff = kFontSize - views::Label::GetDefaultFontList().GetFontSize();
+  views::Label::CustomFont contents_font = {
+      views::Label::GetDefaultFontList()
+          .DeriveWithSizeDelta(size_diff)
+          .DeriveWithWeight(gfx::Font::Weight::NORMAL)};
+  auto* contents_label = AddChildView(std::make_unique<views::Label>(
+      l10n_util::GetStringUTF16(
+          IDS_FIRSTRUN_DLG_COMPLETE_INSTALLATION_LABEL_BRAVE),
+      contents_font));
+  contents_label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  contents_label->SetMultiLine(true);
+  constexpr int kMaxWidth = 450;
+  contents_label->SetMaximumWidth(kMaxWidth);
+
+  make_default_ = AddChildView(std::make_unique<views::Checkbox>(
+      l10n_util::GetStringUTF16(IDS_FR_CUSTOMIZE_DEFAULT_BROWSER_BRAVE)));
+  make_default_->SetChecked(true);
+
+  report_crashes_ = AddChildView(std::make_unique<views::Checkbox>(
+      l10n_util::GetStringUTF16(IDS_FR_ENABLE_LOGGING)));
+  // Having this box checked means the user has to opt-out of metrics recording.
+  report_crashes_->SetChecked(!first_run::IsMetricsReportingOptIn());
+
+  chrome::RecordDialogCreation(chrome::DialogIdentifier::FIRST_RUN_DIALOG);
+}
+
+/*FirstRunDialog::FirstRunDialog(Profile* profile) {
   ALLOW_UNUSED_LOCAL(report_crashes_);
 
   SetTitle(l10n_util::GetStringUTF16(IDS_FIRST_RUN_DIALOG_WINDOW_TITLE));
@@ -102,7 +156,7 @@ FirstRunDialog::FirstRunDialog(Profile* profile) {
   make_default_->SetChecked(true);
 
   chrome::RecordDialogCreation(chrome::DialogIdentifier::FIRST_RUN_DIALOG);
-}
+}*/
 
 FirstRunDialog::~FirstRunDialog() = default;
 

@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/views/location_bar/location_bar_view.h"
 
 #include "base/strings/string_util.h"

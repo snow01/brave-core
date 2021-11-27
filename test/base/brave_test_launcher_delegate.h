@@ -6,7 +6,7 @@
 #define BRAVE_TEST_BASE_BRAVE_TEST_LAUNCHER_H_
 
 #include "chrome/test/base/chrome_test_launcher.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 
 class BraveTestLauncherDelegate : public ChromeTestLauncherDelegate {
  public:

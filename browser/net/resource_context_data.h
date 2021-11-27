@@ -12,7 +12,7 @@
 #include <string>
 
 #include "base/containers/unique_ptr_adapters.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/memory/ref_counted.h"
 #include "base/supports_user_data.h"
 #include "content/public/browser/browser_thread.h"

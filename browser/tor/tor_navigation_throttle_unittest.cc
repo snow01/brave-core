@@ -5,6 +5,7 @@
 
 #include <utility>
 
+#include "brave/base/macros.h"
 #include "base/test/bind.h"
 #include "brave/browser/tor/tor_profile_manager.h"
 #include "brave/browser/tor/tor_profile_service_factory.h"

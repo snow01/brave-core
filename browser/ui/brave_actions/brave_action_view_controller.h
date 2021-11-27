@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/extensions/extension_action_view_controller.h"
 #include "extensions/common/extension_id.h"
 

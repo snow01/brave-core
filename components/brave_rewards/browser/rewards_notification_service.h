@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "base/observer_list.h"
 
 namespace brave_rewards {

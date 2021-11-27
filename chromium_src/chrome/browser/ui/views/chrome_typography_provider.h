@@ -7,6 +7,7 @@
 #define BRAVE_CHROMIUM_SRC_CHROME_BROWSER_UI_VIEWS_CHROME_TYPOGRAPHY_PROVIDER_H_
 
 #include "ui/views/style/typography_provider.h"
+#include "brave/base/macros.h"
 
 #define ChromeTypographyProvider ChromeTypographyProvider_ChromiumImpl
 #include "../../../../../../chrome/browser/ui/views/chrome_typography_provider.h"

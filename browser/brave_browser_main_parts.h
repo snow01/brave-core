@@ -6,7 +6,7 @@
 #ifndef BRAVE_BROWSER_BRAVE_BROWSER_MAIN_PARTS_H_
 #define BRAVE_BROWSER_BRAVE_BROWSER_MAIN_PARTS_H_
 
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "chrome/browser/chrome_browser_main.h"
 
 class BraveBrowserMainParts : public ChromeBrowserMainParts {

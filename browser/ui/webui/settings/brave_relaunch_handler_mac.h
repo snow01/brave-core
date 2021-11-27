@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_UI_WEBUI_SETTINGS_BRAVE_RELAUNCH_HANDLER_MAC_H_
 #define BRAVE_BROWSER_UI_WEBUI_SETTINGS_BRAVE_RELAUNCH_HANDLER_MAC_H_
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/webui/settings/settings_page_ui_handler.h"
 
 class Profile;

@@ -7,7 +7,7 @@
 #define BRAVE_BROWSER_UI_VIEWS_BOOKMARKS_BOOKMARK_BAR_INSTRUCTIONS_VIEW_H_
 
 #include "base/compiler_specific.h"
-#include "base/macros.h"
+#include "brave/base/macros.h"
 #include "ui/views/context_menu_controller.h"
 #include "ui/views/view.h"
 

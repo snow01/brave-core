@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "brave/base/macros.h"
 #include "brave/browser/webcompat_reporter/webcompat_reporter_dialog.h"
 
 #include <memory>
@@ -102,7 +103,7 @@ bool WebcompatReporterDialogDelegate::ShouldShowDialogTitle() const {
 void OpenWebcompatReporterDialog(content::WebContents* initiator) {
   GURL site_url = initiator->GetLastCommittedURL();
   auto params_dict = std::make_unique<base::DictionaryValue>();
-  params_dict->SetString("siteUrl", site_url.GetOrigin().spec());
+  params_dict->SetString("siteUrl", site_url.DeprecatedGetOriginAsURL().spec());
 
   gfx::Size min_size(kDialogWidth, kDialogMinHeight);
   gfx::Size max_size(kDialogWidth, kDialogMaxHeight);

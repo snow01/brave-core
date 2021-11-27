@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "brave/base/macros.h"
 #include "chrome/app/chrome_main_delegate.h"
 
 // Chrome implementation of ContentMainDelegate.

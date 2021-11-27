@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "brave/base/macros.h"
 #include "base/memory/weak_ptr.h"
 #include "brave/browser/ethereum_remote_client/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"

@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "brave/base/macros.h"
 #include "chrome/browser/ui/webui/chrome_web_ui_controller_factory.h"
 
 namespace base {
