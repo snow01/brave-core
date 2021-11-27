@@ -13,8 +13,8 @@
 #include "base/containers/flat_map.h"
 #include "base/timer/timer.h"
 #include "brave/components/api_request_helper/api_request_helper.h"
-#include "brave/components/dh_news_ffi/browser/feed_controller.h"
-#include "brave/components/dh_news_ffi/browser/publishers_controller.h"
+#include "brave/components/brave_today/browser/feed_controller.h"
+#include "brave/components/brave_today/browser/publishers_controller.h"
 #include "brave/components/brave_today/common/brave_news.mojom-forward.h"
 #include "brave/components/brave_today/common/brave_news.mojom.h"
 #include "components/keyed_service/core/keyed_service.h"
@@ -55,6 +55,7 @@ class BraveNewsController : public KeyedService,
   BraveNewsController(const BraveNewsController&) = delete;
   BraveNewsController& operator=(const BraveNewsController&) = delete;
 
+  mojo::PendingRemote<mojom::BraveNewsController> MakeRemote();
   void Bind(mojo::PendingReceiver<mojom::BraveNewsController> receiver);
 
   // Remove any cache that would identify user browsing history

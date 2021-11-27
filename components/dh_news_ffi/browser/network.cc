@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "brave/components/dh_news_ffi/browser/network.h"
+#include "brave/components/brave_today/browser/network.h"
 
 namespace brave_news {
 

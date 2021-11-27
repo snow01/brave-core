@@ -3,7 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this file,
 // you can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "brave/components/dh_news_ffi/browser/feed_building.h"
+#include "brave/components/brave_today/browser/feed_building.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -21,7 +21,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/stringprintf.h"
 #include "base/time/time.h"
-#include "brave/components/dh_news_ffi/browser/feed_parsing.h"
+#include "brave/components/brave_today/browser/feed_parsing.h"
 #include "brave/components/brave_today/common/brave_news.mojom-forward.h"
 #include "brave/components/brave_today/common/brave_news.mojom-shared.h"
 #include "brave/components/brave_today/common/brave_news.mojom.h"
