@@ -5,7 +5,7 @@
 
 import { createReducer } from 'redux-act'
 import {
-  HardwareWalletErrorType,
+  HardwareWalletResponseCodeType,
   PanelState,
   SwapErrorResponse,
   SwapResponse,
@@ -24,7 +24,6 @@ const defaultState: PanelState = {
   connectToSiteOrigin: '',
   selectedPanel: 'main',
   panelTitle: '',
-  tabId: -1,
   connectingAccounts: [],
   networkPayload: {
     chainId: '0x1',
@@ -50,7 +49,7 @@ const defaultState: PanelState = {
     },
     chainId: ''
   },
-  hardwareWalletError: undefined
+  hardwareWalletCode: undefined
 }
 
 const reducer = createReducer<PanelState>({}, defaultState)
@@ -69,7 +68,6 @@ reducer.on(PanelActions.navigateTo, (state: any, selectedPanel: string) => {
 reducer.on(PanelActions.showConnectToSite, (state: any, payload: ShowConnectToSitePayload) => {
   return {
     ...state,
-    tabId: payload.tabId,
     connectToSiteOrigin: payload.origin,
     connectingAccounts: payload.accounts
   }
@@ -110,10 +108,10 @@ reducer.on(PanelActions.signMessage, (state: any, payload: SignMessagePayload[])
   }
 })
 
-reducer.on(PanelActions.setHardwareWalletInteractionError, (state: any, payload?: HardwareWalletErrorType) => {
+reducer.on(PanelActions.setHardwareWalletInteractionError, (state: any, payload?: HardwareWalletResponseCodeType) => {
   return {
     ...state,
-    hardwareWalletError: payload
+    hardwareWalletCode: payload
   }
 })
 

@@ -134,10 +134,11 @@ export type ChartTimelineType =
   | '1Year'
   | 'AllTime'
 
-export type HardwareWalletErrorType =
+export type HardwareWalletResponseCodeType =
   | 'deviceNotConnected'
   | 'deviceBusy'
   | 'openEthereumApp'
+  | 'transactionRejected'
 
 export interface BuySendSwapObjectType {
   name: string
@@ -211,14 +212,13 @@ export interface PanelState {
   connectToSiteOrigin: string
   selectedPanel: PanelTypes
   panelTitle: string
-  tabId: number
   connectingAccounts: string[]
   networkPayload: BraveWallet.EthereumChain
   swapQuote?: BraveWallet.SwapResponse
   swapError?: SwapErrorResponse
   signMessageData: BraveWallet.SignMessageRequest[]
   switchChainRequest: BraveWallet.SwitchChainRequest
-  hardwareWalletError?: HardwareWalletErrorType
+  hardwareWalletCode?: HardwareWalletResponseCodeType
 }
 
 export interface PageState {
